@@ -747,30 +747,67 @@ if [[ "$INSTALL_NGINX" == true ]]; then
 
     apt-get install -y -qq nginx
 
-    cat > /etc/nginx/sites-available/$ODOO_USER << 'NGINX_EOF'
+    ADMIN_DIR_NGINX="$ODOO_HOME/admin-panel"
+
+    cat > /etc/nginx/sites-available/$ODOO_USER << NGINX_EOF
 upstream odoo {
-    server 127.0.0.1:ODOO_PORT_PLACEHOLDER;
+    server 127.0.0.1:$ODOO_PORT;
 }
 upstream odoochat {
-    server 127.0.0.1:ODOO_LONGPOLLING_PORT_PLACEHOLDER;
+    server 127.0.0.1:$ODOO_LONGPOLLING_PORT;
+}
+upstream admin_api {
+    server 127.0.0.1:3001;
 }
 
 server {
     listen 80;
-    server_name WEBSITE_NAME_PLACEHOLDER;
+    server_name $WEBSITE_NAME;
 
     proxy_read_timeout 720s;
     proxy_connect_timeout 720s;
     proxy_send_timeout 720s;
 
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Host \$host;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header Host \$http_host;
 
     access_log /var/log/nginx/odoo.access.log;
     error_log /var/log/nginx/odoo.error.log;
+
+    root $ADMIN_DIR_NGINX/public;
+
+    location = / {
+        try_files /index.html @odoo;
+    }
+
+    location /admin {
+        try_files /index.html @odoo;
+    }
+
+    location /assets/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files \$uri @odoo;
+    }
+
+    location /images/ {
+        expires 30d;
+        try_files \$uri @odoo;
+    }
+
+    location /api/ {
+        proxy_pass http://admin_api;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+
+    location /web {
+        proxy_redirect off;
+        proxy_pass http://odoo;
+    }
 
     location /longpolling {
         proxy_pass http://odoochat;
@@ -778,19 +815,19 @@ server {
 
     location /websocket {
         proxy_pass http://odoochat;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-    }
-
-    location / {
-        proxy_redirect off;
-        proxy_pass http://odoo;
     }
 
     location ~* /web/static/ {
         proxy_cache_valid 200 90m;
         proxy_buffering on;
         expires 864000;
+        proxy_pass http://odoo;
+    }
+
+    location @odoo {
+        proxy_redirect off;
         proxy_pass http://odoo;
     }
 
@@ -801,10 +838,6 @@ server {
     gzip on;
 }
 NGINX_EOF
-
-    sed -i "s/ODOO_PORT_PLACEHOLDER/$ODOO_PORT/g" /etc/nginx/sites-available/$ODOO_USER
-    sed -i "s/ODOO_LONGPOLLING_PORT_PLACEHOLDER/$ODOO_LONGPOLLING_PORT/g" /etc/nginx/sites-available/$ODOO_USER
-    sed -i "s/WEBSITE_NAME_PLACEHOLDER/$WEBSITE_NAME/g" /etc/nginx/sites-available/$ODOO_USER
 
     ln -sf /etc/nginx/sites-available/$ODOO_USER /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
@@ -1550,30 +1583,33 @@ if [[ -d "$REPO_DIR/artifacts" ]]; then
     log_info "Compilando el panel de administracion..."
 
     rm -rf "$ADMIN_DIR"
-    mkdir -p "$ADMIN_DIR/public"
+    mkdir -p "$ADMIN_DIR/public" "$ADMIN_DIR/api/dist"
 
     cd "$REPO_DIR"
     pnpm install --frozen-lockfile 2>/dev/null || pnpm install
 
+    log_info "Compilando frontend (landing + admin panel)..."
     cd "$REPO_DIR/artifacts/odoo-edu"
-    PORT=3000 BASE_PATH="/" NODE_ENV=production pnpm run build 2>/dev/null
-    cp -r dist/public/* "$ADMIN_DIR/public/" 2>/dev/null || true
-
-    cd "$REPO_DIR/artifacts/api-server"
-    pnpm run build 2>/dev/null || {
-        log_info "Copiando API server directamente..."
-        mkdir -p "$ADMIN_DIR/api"
-        cp -r src/* "$ADMIN_DIR/api/" 2>/dev/null || true
-        cp package.json "$ADMIN_DIR/api/" 2>/dev/null || true
-    }
-
-    if [[ -d "$REPO_DIR/artifacts/api-server/dist" ]]; then
-        mkdir -p "$ADMIN_DIR/api"
-        cp -r "$REPO_DIR/artifacts/api-server/dist/"* "$ADMIN_DIR/api/" 2>/dev/null || true
-        cp "$REPO_DIR/artifacts/api-server/package.json" "$ADMIN_DIR/api/" 2>/dev/null || true
+    if PORT=3000 BASE_PATH="/" NODE_ENV=production pnpm run build; then
+        cp -r dist/public/* "$ADMIN_DIR/public/" 2>/dev/null || cp -r dist/* "$ADMIN_DIR/public/" 2>/dev/null || true
+        log_success "Frontend compilado."
+    else
+        log_error "Error al compilar el frontend. Revisa los logs."
     fi
 
-    cd "$ADMIN_DIR/api" 2>/dev/null && npm install --omit=dev 2>/dev/null || true
+    log_info "Compilando API server..."
+    cd "$REPO_DIR/artifacts/api-server"
+    if pnpm run build; then
+        cp -r dist/* "$ADMIN_DIR/api/dist/" 2>/dev/null || true
+        cp package.json "$ADMIN_DIR/api/" 2>/dev/null || true
+        log_success "API server compilado."
+    else
+        log_error "Error al compilar el API server. Revisa los logs."
+    fi
+
+    cd "$ADMIN_DIR/api" && npm install --omit=dev 2>/dev/null || true
+
+    chown -R "$ODOO_USER":"$ODOO_USER" "$ADMIN_DIR"
 
     log_success "Panel de administracion compilado."
 else
@@ -1664,102 +1700,10 @@ else
     log_warn "El panel de administracion no se inicio. Revisa: journalctl -u odoo-edu-admin"
 fi
 
-if [[ "$INSTALL_NGINX" == true ]] && [[ -f /etc/nginx/sites-available/$ODOO_USER ]]; then
-    log_info "Actualizando Nginx para incluir el panel de administracion..."
-
-    cat > /etc/nginx/sites-available/$ODOO_USER << NGINXEOF
-upstream odoo {
-    server 127.0.0.1:$ODOO_PORT;
-}
-upstream odoochat {
-    server 127.0.0.1:$ODOO_LONGPOLLING_PORT;
-}
-upstream admin_api {
-    server 127.0.0.1:$ADMIN_PORT;
-}
-
-server {
-    listen 80;
-    server_name $WEBSITE_NAME;
-
-    proxy_read_timeout 720s;
-    proxy_connect_timeout 720s;
-    proxy_send_timeout 720s;
-
-    proxy_set_header X-Forwarded-Host \$host;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header Host \$http_host;
-
-    access_log /var/log/nginx/odoo.access.log;
-    error_log /var/log/nginx/odoo.error.log;
-
-    location = / {
-        root $ADMIN_DIR/public;
-        try_files /index.html =404;
-    }
-
-    location /assets/ {
-        root $ADMIN_DIR/public;
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    location /images/ {
-        root $ADMIN_DIR/public;
-        expires 30d;
-    }
-
-    location /admin {
-        root $ADMIN_DIR/public;
-        try_files /index.html =404;
-    }
-
-    location /api/ {
-        proxy_pass http://admin_api;
-        proxy_set_header Host \$http_host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-
-    location /odoo/ {
-        rewrite ^/odoo(.*)\$ \$1 break;
-        proxy_redirect off;
-        proxy_pass http://odoo;
-    }
-
-    location /web {
-        proxy_redirect off;
-        proxy_pass http://odoo;
-    }
-
-    location /longpolling {
-        proxy_pass http://odoochat;
-    }
-
-    location /websocket {
-        proxy_pass http://odoochat;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-
-    location ~* /web/static/ {
-        proxy_cache_valid 200 90m;
-        proxy_buffering on;
-        expires 864000;
-        proxy_pass http://odoo;
-    }
-
-    client_max_body_size 200m;
-
-    gzip_types text/css text/scss text/plain text/xml application/xml
-               application/json application/javascript;
-    gzip on;
-}
-NGINXEOF
-
+if [[ "$INSTALL_NGINX" == true ]]; then
+    log_info "Recargando Nginx con la configuracion del panel..."
     nginx -t && systemctl reload nginx
-    log_success "Nginx actualizado con rutas del panel de administracion."
+    log_success "Nginx recargado correctamente."
 fi
 
 #===============================================================================
@@ -1774,11 +1718,15 @@ echo "   INSTALACION DE ODOO $ODOO_VERSION COMPLETADA"
 echo "   EDICION EDUCATIVA CON MULTIEMPRESA"
 echo "=================================================================="
 echo ""
-echo "  ACCESO WEB:"
+echo "  RUTAS DE ACCESO:"
 if [[ "$INSTALL_NGINX" == true ]]; then
-echo "    http://$SERVER_IP"
+echo "    Landing page:        http://$SERVER_IP/"
+echo "    Panel admin:         http://$SERVER_IP/admin"
+echo "    API del panel:       http://$SERVER_IP/api/"
+echo "    Odoo ERP:            http://$SERVER_IP/web"
 else
-echo "    http://$SERVER_IP:$ODOO_PORT"
+echo "    Odoo ERP:            http://$SERVER_IP:$ODOO_PORT"
+echo "    Panel admin API:     http://$SERVER_IP:$ADMIN_PORT"
 fi
 echo ""
 echo "  CREDENCIALES DE ADMINISTRACION:"
@@ -1833,7 +1781,7 @@ echo "    1. ACCEDE AL PANEL DE ADMINISTRACION:"
 if [[ "$INSTALL_NGINX" == true ]]; then
 echo "       URL: http://$SERVER_IP/admin"
 else
-echo "       URL: http://$SERVER_IP:$ODOO_PORT/admin"
+echo "       URL: http://$SERVER_IP:$ADMIN_PORT/admin"
 fi
 echo "       Usuario: $SUPERADMIN_USER"
 echo "       Contrasena: $SUPERADMIN_PASSWORD"
@@ -1861,8 +1809,15 @@ cat > "$CREDENTIALS_FILE" << EOF
   Centro: $EDU_CENTRO_NOMBRE
 ============================================================
 
-URL de acceso:
-  $(if [[ "$INSTALL_NGINX" == true ]]; then echo "http://$SERVER_IP"; else echo "http://$SERVER_IP:$ODOO_PORT"; fi)
+URLs de acceso:
+  $(if [[ "$INSTALL_NGINX" == true ]]; then
+    echo "Landing page:    http://$SERVER_IP/"
+    echo "  Panel admin:     http://$SERVER_IP/admin"
+    echo "  Odoo ERP:        http://$SERVER_IP/web"
+  else
+    echo "Odoo ERP:        http://$SERVER_IP:$ODOO_PORT"
+    echo "  Panel admin API: http://$SERVER_IP:$ADMIN_PORT"
+  fi)
 
 Contrasena maestra (admin):
   $ADMIN_PASSWORD
