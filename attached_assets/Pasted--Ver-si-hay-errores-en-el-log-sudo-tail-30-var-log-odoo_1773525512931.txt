@@ -1,0 +1,30 @@
+
+# Ver si hay errores en el log
+sudo tail -30 /var/log/odoo17/odoo17-server.log
+* odoo17.service - Odoo 17.0 - Servidor ERP Educativo
+     Loaded: loaded (/etc/systemd/system/odoo17.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-03-14 21:58:07 UTC; 9s ago
+ Invocation: f6587e3d2075497f9af70c73ea34074b
+       Docs: https://www.odoo.com/documentation/17.0
+   Main PID: 23299 (python)
+      Tasks: 18 (limit: 18751)
+     Memory: 261.9M (peak: 262.2M)
+        CPU: 3.859s
+     CGroup: /system.slice/odoo17.service
+             |-23299 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23319 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23320 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23322 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23324 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23327 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23328 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |-23330 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin gevent -c /etc/odoo17.conf
+             |-23332 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             `-23333 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+
+Mar 14 21:58:07 odooedu systemd[1]: Started odoo17.service - Odoo 17.0 - Servidor ERP Educativo.
+Mar 14 21:58:08 odooedu odoo17[23299]: /opt/odoo17/odoo17-server/odoo/netsvc.py:17: UserWarning: pkg_resources is deprecated as an API. See https://setupto>
+Mar 14 21:58:08 odooedu odoo17[23299]:   from pkg_resources import PkgResourcesDeprecationWarning
+Mar 14 21:58:10 odooedu odoo17[23330]: /opt/odoo17/odoo17-server/odoo/netsvc.py:17: UserWarning: pkg_resources is deprecated as an API. See https://setupto>
+Mar 14 21:58:10 odooedu odoo17[23330]:   from pkg_resources import PkgResourcesDeprecationWarning
+lines 1-26/26 (END)
