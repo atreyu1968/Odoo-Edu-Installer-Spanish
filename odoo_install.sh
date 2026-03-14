@@ -1590,17 +1590,22 @@ if ! command -v node &>/dev/null || [[ $(node -v 2>/dev/null | sed 's/v//' | cut
     apt-get install -y -qq nodejs
 fi
 
-if ! command -v pnpm &>/dev/null; then
-    npm install -g pnpm >/dev/null 2>&1
-fi
-
 REPO_DIR=$(cd "$(dirname "$0")" && pwd)
 
-if [[ -d "$REPO_DIR/artifacts" ]]; then
-    log_info "Compilando el panel de administracion..."
+rm -rf "$ADMIN_DIR"
+mkdir -p "$ADMIN_DIR/public" "$ADMIN_DIR/api/dist"
 
-    rm -rf "$ADMIN_DIR"
-    mkdir -p "$ADMIN_DIR/public" "$ADMIN_DIR/api/dist"
+if [[ -d "$REPO_DIR/dist/public" && -f "$REPO_DIR/dist/api/index.cjs" ]]; then
+    log_info "Instalando panel pre-compilado..."
+    cp -r "$REPO_DIR/dist/public/"* "$ADMIN_DIR/public/"
+    cp "$REPO_DIR/dist/api/index.cjs" "$ADMIN_DIR/api/dist/"
+    log_success "Panel de administracion instalado desde archivos pre-compilados."
+elif [[ -d "$REPO_DIR/artifacts" ]]; then
+    log_info "Archivos pre-compilados no encontrados. Compilando desde codigo fuente..."
+
+    if ! command -v pnpm &>/dev/null; then
+        npm install -g pnpm >/dev/null 2>&1
+    fi
 
     cd "$REPO_DIR"
     pnpm install --frozen-lockfile 2>/dev/null || pnpm install
@@ -1623,12 +1628,12 @@ if [[ -d "$REPO_DIR/artifacts" ]]; then
         log_error "Error al compilar el API server. Revisa los logs."
     fi
 
-    chown -R "$ODOO_USER":"$ODOO_USER" "$ADMIN_DIR"
-
     log_success "Panel de administracion compilado."
 else
     log_warn "No se encontro el codigo fuente del panel. Omitiendo."
 fi
+
+chown -R "$ODOO_USER":"$ODOO_USER" "$ADMIN_DIR"
 
 cat > "$ADMIN_CONFIG" << ADMINEOF
 {
