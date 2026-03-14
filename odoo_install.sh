@@ -1595,10 +1595,10 @@ REPO_DIR=$(cd "$(dirname "$0")" && pwd)
 rm -rf "$ADMIN_DIR"
 mkdir -p "$ADMIN_DIR/public" "$ADMIN_DIR/api/dist"
 
-if [[ -d "$REPO_DIR/dist/public" && -f "$REPO_DIR/dist/api/index.cjs" ]]; then
+if [[ -d "$REPO_DIR/prebuilt/public" && -f "$REPO_DIR/prebuilt/api/index.cjs" ]]; then
     log_info "Instalando panel pre-compilado..."
-    cp -r "$REPO_DIR/dist/public/"* "$ADMIN_DIR/public/"
-    cp "$REPO_DIR/dist/api/index.cjs" "$ADMIN_DIR/api/dist/"
+    cp -r "$REPO_DIR/prebuilt/public/"* "$ADMIN_DIR/public/"
+    cp "$REPO_DIR/prebuilt/api/index.cjs" "$ADMIN_DIR/api/dist/"
     log_success "Panel de administracion instalado desde archivos pre-compilados."
 elif [[ -d "$REPO_DIR/artifacts" ]]; then
     log_info "Archivos pre-compilados no encontrados. Compilando desde codigo fuente..."
