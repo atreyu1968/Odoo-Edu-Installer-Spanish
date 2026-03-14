@@ -1,0 +1,123 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# # Verificar que se descargaron los cambios
+head -5 odoo_install.sh
+
+# Ver estado de los servicios
+sudo systemctl status odoo17 --no-pager
+sudo systemctl status odoo-edu-admin --no-pager
+
+# Ver config de Nginx
+cat /etc/nginx/sites-available/odoo17
+
+# Ver errores de Nginx
+sudo tail -10 /var/log/nginx/error.log
+#!/bin/bash
+################################################################################
+# Script de Instalacion Desatendida de Odoo 17 Community Edition
+# EDICION EDUCATIVA con Multiempresa
+#
+* odoo17.service - Odoo 17.0 - Servidor ERP Educativo
+     Loaded: loaded (/etc/systemd/system/odoo17.service; enabled; preset: enabled)
+     Active: inactive (dead)
+       Docs: https://www.odoo.com/documentation/17.0
+
+Mar 14 21:43:53 odooedu systemd[1]: odoo17.service: Consumed 19.232s CPU time, 434.3M memory peak.
+Mar 14 21:58:07 odooedu systemd[1]: Started odoo17.service - Odoo 17.0 - Servidor ERP Educativo.
+Mar 14 21:58:08 odooedu odoo17[23299]: /opt/odoo17/odoo17-server/odoo/netsvc.py:17: UserWarning: pkg_resources is deprecated as an API. See ht...uptools<81.
+Mar 14 21:58:08 odooedu odoo17[23299]:   from pkg_resources import PkgResourcesDeprecationWarning
+Mar 14 21:58:10 odooedu odoo17[23330]: /opt/odoo17/odoo17-server/odoo/netsvc.py:17: UserWarning: pkg_resources is deprecated as an API. See ht...uptools<81.
+Mar 14 21:58:10 odooedu odoo17[23330]:   from pkg_resources import PkgResourcesDeprecationWarning
+Mar 14 22:04:22 odooedu systemd[1]: Stopping odoo17.service - Odoo 17.0 - Servidor ERP Educativo...
+Mar 14 22:04:22 odooedu systemd[1]: odoo17.service: Deactivated successfully.
+Mar 14 22:04:22 odooedu systemd[1]: Stopped odoo17.service - Odoo 17.0 - Servidor ERP Educativo.
+Mar 14 22:04:22 odooedu systemd[1]: odoo17.service: Consumed 16.085s CPU time, 407M memory peak.
+Hint: Some lines were ellipsized, use -l to show in full.
+Unit odoo-edu-admin.service could not be found.
+upstream odoo {
+    server 127.0.0.1:8069;
+}
+upstream odoochat {
+    server 127.0.0.1:8072;
+}
+upstream admin_api {
+    server 127.0.0.1:3001;
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    proxy_read_timeout 720s;
+    proxy_connect_timeout 720s;
+    proxy_send_timeout 720s;
+
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Host $http_host;
+
+    access_log /var/log/nginx/odoo.access.log;
+    error_log /var/log/nginx/odoo.error.log;
+
+    root /opt/odoo17/admin-panel/public;
+
+    location = / {
+        try_files /index.html @odoo;
+    }
+
+    location /admin {
+        try_files /index.html @odoo;
+    }
+
+    location /assets/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri @odoo;
+    }
+
+    location /images/ {
+        expires 30d;
+        try_files $uri @odoo;
+    }
+
+    location /api/ {
+        proxy_pass http://admin_api;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /web {
+        proxy_redirect off;
+        proxy_pass http://odoo;
+    }
+
+    location /longpolling {
+        proxy_pass http://odoochat;
+    }
+
+    location /websocket {
+        proxy_pass http://odoochat;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location ~* /web/static/ {
+        proxy_cache_valid 200 90m;
+        proxy_buffering on;
+        expires 864000;
+        proxy_pass http://odoo;
+    }
+
+    location @odoo {
+        proxy_redirect off;
+        proxy_pass http://odoo;
+    }
+
+    client_max_body_size 200m;
+
+    gzip_types text/css text/scss text/plain text/xml application/xml
+               application/json application/javascript;
+    gzip on;
+}
+2026/03/14 20:26:09 [notice] 20529#20529: using inherited sockets from "5;6;"
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
