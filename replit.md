@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+pnpm workspace monorepo using TypeScript. Contains the Odoo Educativo landing page and the unattended Odoo 17 installation scripts for Spanish educational centers.
 
 ## Stack
 
@@ -16,23 +16,50 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Project: Odoo Educativo
+
+### Landing Page (`artifacts/odoo-edu`)
+React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcases features, installation instructions, OCA modules, and educator tools. No backend needed - purely static frontend.
+
+- **URL**: `/` (root)
+- **Framework**: React + Vite + Tailwind CSS + Framer Motion
+- **Key files**: `src/pages/Landing.tsx`, `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
+- **GitHub repo**: https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish
+
+### Installation Scripts (root directory)
+- `odoo_install.sh` — Main unattended installer for Odoo 17 CE with:
+  - Spanish localization (OCA/l10n-spain)
+  - Multi-company support for educational use
+  - Rebranding (OCA brand/server-brand)
+  - 40+ OCA module repositories
+  - PostgreSQL, Nginx, systemd, UFW, logrotate
+  - Automatic backup cron job
+  - Educational scripts for student/teacher management
+
+- Auxiliary scripts created by installer at `/usr/local/bin/`:
+  - `odoo_crear_alumnos.sh` — Mass student account creation
+  - `odoo_reset_alumno.sh` — Reset a student's database
+  - `odoo_backup.sh` — Manual backup of all databases
+  - `odoo_restaurar_alumno.sh` — Restore database from backup
+
 ## Structure
 
 ```text
 artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+├── artifacts/
+│   ├── api-server/         # Express API server
+│   └── odoo-edu/           # Landing page (React + Vite)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
 │   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
+├── scripts/                # Utility scripts
+├── odoo_install.sh         # Main Odoo installer script
+├── pnpm-workspace.yaml
+├── tsconfig.base.json
+├── tsconfig.json
+└── package.json
 ```
 
 ## TypeScript & Composite Projects
@@ -62,35 +89,34 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 - `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
 - Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
 
+### `artifacts/odoo-edu` (`@workspace/odoo-edu`)
+
+React + Vite landing page for Odoo Educativo. Frontend-only, no backend API calls.
+
+- Entry: `src/main.tsx`
+- Main page: `src/pages/Landing.tsx`
+- Components: `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
+- Styling: `src/index.css` (Tailwind + custom CSS vars, blue tech theme)
+- Images: `public/images/hero-bg.png`, `public/images/educator-dashboard.png`
+
 ### `lib/db` (`@workspace/db`)
 
 Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
 
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
-
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
-
 ### `lib/api-spec` (`@workspace/api-spec`)
 
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
-
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
+Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`).
 
 Run codegen: `pnpm --filter @workspace/api-spec run codegen`
 
 ### `lib/api-zod` (`@workspace/api-zod`)
 
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
+Generated Zod schemas from the OpenAPI spec.
 
 ### `lib/api-client-react` (`@workspace/api-client-react`)
 
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
+Generated React Query hooks and fetch client from the OpenAPI spec.
 
 ### `scripts` (`@workspace/scripts`)
 
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+Utility scripts package. Run scripts via `pnpm --filter @workspace/scripts run <script>`.

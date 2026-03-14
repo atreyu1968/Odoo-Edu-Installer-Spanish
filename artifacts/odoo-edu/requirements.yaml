@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "Scroll-triggered animations and page transitions"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility function to efficiently merge Tailwind CSS classes"
+
+images:
+  - path: "artifacts/odoo-edu/public/images/hero-bg.png"
+    description: "Abstract technology network background with soft glowing tech-blue nodes and smooth clean gradients, professional corporate aesthetic, bright and airy, shallow depth of field"
+    aspect_ratio: "16:9"
+  - path: "artifacts/odoo-edu/public/images/educator-dashboard.png"
+    description: "Abstract minimal UI mockup of a teacher dashboard showing student progress cards, floating translucent panels, soft blue and white color palette, 3D isometric perspective"
+    aspect_ratio: "4:3"
+
+notes:
+  - Purely static frontend landing page
+  - No backend integration required
+  - Uses framer-motion for scroll reveal effects
+  - Tech blue and slate color palette

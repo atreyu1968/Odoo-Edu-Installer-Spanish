@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Odoo Educativo - Landing Page"
+version = "1.0.0"
+id = "artifacts/odoo-edu"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 19439
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/odoo-edu run dev"
+
+[services.env]
+PORT = "19439"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/odoo-edu", "run", "build"]
+publicDir = "artifacts/odoo-edu/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
