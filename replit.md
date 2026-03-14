@@ -24,7 +24,8 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 - **URL**: `/` (root)
 - **Framework**: React + Vite + Tailwind CSS + Framer Motion
 - **Key files**: `src/pages/Landing.tsx`, `src/pages/Configurator.tsx`, `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
-- **Routes**: `/` (landing page), `/configurar` (installation configurator)
+- **Routes**: `/` (landing page), `/configurar` (installation configurator with live server execution)
+- **Vite proxy**: `/api` → `http://localhost:8080` (API server)
 - **GitHub repo**: https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish
 
 ### Installation Scripts (root directory)
@@ -84,7 +85,15 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 
 - Entry: `src/index.ts` — reads `PORT`, starts Express
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
+- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health`; `src/routes/install.ts` provides Odoo installation management
+- Install API endpoints:
+  - `GET /api/install/status` — current installation status
+  - `GET /api/install/logs` — all installation logs
+  - `GET /api/install/stream` — SSE stream for real-time logs
+  - `POST /api/install/start` — start installation with config
+  - `POST /api/install/stop` — cancel running installation
+  - `POST /api/install/reset` — reset state for new installation
+  - `POST /api/install/generate-script` — generate and download customized script
 - Depends on: `@workspace/db`, `@workspace/api-zod`
 - `pnpm --filter @workspace/api-server run dev` — run the dev server
 - `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)

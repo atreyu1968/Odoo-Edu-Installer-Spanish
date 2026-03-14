@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Settings, Server, Shield, Users, Package, Download,
+  Settings, Server, Package, Download,
   ChevronLeft, Eye, EyeOff, Copy, Check, GraduationCap,
-  Globe, Database, HardDrive, RefreshCw, Info
+  RefreshCw, Info, Play, Square, Terminal,
+  CheckCircle2, XCircle, AlertTriangle, Loader2
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -89,6 +90,10 @@ const ocaModules: { key: keyof ConfigState; label: string; description: string }
   { key: "ocaBrand", label: "Rebranding (Brand)", description: "Personalizar logo y nombre de Odoo" },
 ];
 
+type InstallStatus = "idle" | "running" | "completed" | "failed";
+
+const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/+/g, "/").replace(/\/$/, "");
+
 function ToggleSwitch({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <button
@@ -122,6 +127,7 @@ function SectionCard({ icon: Icon, title, children, color = "blue" }: {
     purple: "from-violet-500 to-violet-600",
     orange: "from-orange-500 to-orange-600",
     cyan: "from-cyan-500 to-cyan-600",
+    red: "from-red-500 to-red-600",
   };
 
   return (
@@ -155,11 +161,12 @@ function FieldRow({ label, description, children }: { label: string; description
   );
 }
 
-function TextInput({ value, onChange, placeholder, type = "text" }: {
+function TextInput({ value, onChange, placeholder, type = "text", disabled }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
+  disabled?: boolean;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -171,7 +178,8 @@ function TextInput({ value, onChange, placeholder, type = "text" }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+        disabled={disabled}
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
       />
       {isPassword && (
         <button
@@ -186,11 +194,12 @@ function TextInput({ value, onChange, placeholder, type = "text" }: {
   );
 }
 
-function NumberInput({ value, onChange, min, max }: {
+function NumberInput({ value, onChange, min, max, disabled }: {
   value: number;
   onChange: (v: number) => void;
   min?: number;
   max?: number;
+  disabled?: boolean;
 }) {
   return (
     <input
@@ -198,8 +207,9 @@ function NumberInput({ value, onChange, min, max }: {
       value={value}
       min={min}
       max={max}
+      disabled={disabled}
       onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
     />
   );
 }
@@ -285,33 +295,6 @@ ${generateConfigBlock(config)}
 #===============================================================================`;
 }
 
-const GITHUB_RAW_URL = "https://raw.githubusercontent.com/atreyu1968/Odoo-Edu-Installer-Spanish/main/odoo_install.sh";
-
-const CONFIG_START_MARKER = '#===============================================================================\n# CONFIGURACION';
-const CONFIG_END_MARKER = 'PYTHON_VERSION="python3"';
-
-async function fetchAndPatchScript(config: ConfigState): Promise<string> {
-  try {
-    const response = await fetch(GITHUB_RAW_URL);
-    if (!response.ok) throw new Error("No se pudo descargar el script");
-    const original = await response.text();
-
-    const startIdx = original.indexOf(CONFIG_START_MARKER);
-    const endIdx = original.indexOf(CONFIG_END_MARKER);
-
-    if (startIdx === -1 || endIdx === -1) throw new Error("No se encontraron los marcadores de configuración");
-
-    const before = original.substring(0, startIdx);
-    const after = original.substring(endIdx + CONFIG_END_MARKER.length);
-
-    return before +
-      `#===============================================================================\n# CONFIGURACION — Generada con OdooEdu Configurator (${new Date().toISOString().split("T")[0]})\n#===============================================================================\n\n` +
-      generateConfigBlock(config) + after;
-  } catch {
-    return generatePreviewScript(config) + "\n\n# ERROR: No se pudo descargar el script completo desde GitHub.\n# Descarga manualmente desde: " + GITHUB_RAW_URL + "\n# y reemplaza la seccion de CONFIGURACION con los valores de arriba.\n";
-  }
-}
-
 function ScriptPreview({ script }: { script: string }) {
   const [copied, setCopied] = useState(false);
   const lines = script.split("\n");
@@ -361,10 +344,157 @@ function ScriptPreview({ script }: { script: string }) {
   );
 }
 
+function LogViewer({ logs, status }: { logs: string[]; status: InstallStatus }) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  useEffect(() => {
+    if (autoScroll && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [logs.length, autoScroll]);
+
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    setAutoScroll(scrollHeight - scrollTop - clientHeight < 100);
+  };
+
+  const getLineColor = (line: string) => {
+    if (line.includes("[ERROR]") || line.includes("[STDERR]")) return "text-red-400";
+    if (line.includes("[AVISO]") || line.includes("[WARN]")) return "text-yellow-400";
+    if (line.includes("[OK]")) return "text-emerald-400";
+    if (line.includes("[INFO]")) return "text-blue-400";
+    return "text-slate-300";
+  };
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-slate-700 bg-slate-900">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-800 border-b border-slate-700">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className={`w-3 h-3 rounded-full ${status === "running" ? "bg-green-500 animate-pulse" : status === "failed" ? "bg-red-500" : status === "completed" ? "bg-green-500" : "bg-slate-500"}`} />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-slate-600" />
+          </div>
+          <span className="text-xs text-slate-400 ml-2 font-mono">
+            {status === "running" ? "Instalando..." : status === "completed" ? "Instalación completada" : status === "failed" ? "Instalación fallida" : "Terminal"}
+          </span>
+        </div>
+        <span className="text-xs text-slate-500">{logs.length} líneas</span>
+      </div>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="overflow-y-auto max-h-[500px] p-4 font-mono text-xs leading-relaxed"
+      >
+        {logs.length === 0 ? (
+          <div className="text-slate-500 text-center py-8">
+            Esperando inicio de la instalación...
+          </div>
+        ) : (
+          logs.map((line, i) => (
+            <div key={i} className={`${getLineColor(line)} whitespace-pre-wrap break-all`}>
+              {line}
+            </div>
+          ))
+        )}
+        <div ref={bottomRef} />
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: InstallStatus }) {
+  const map: Record<InstallStatus, { icon: React.ElementType; label: string; className: string }> = {
+    idle: { icon: Terminal, label: "Listo para instalar", className: "bg-slate-100 text-slate-600" },
+    running: { icon: Loader2, label: "Instalando...", className: "bg-blue-100 text-blue-700" },
+    completed: { icon: CheckCircle2, label: "Completado", className: "bg-emerald-100 text-emerald-700" },
+    failed: { icon: XCircle, label: "Error", className: "bg-red-100 text-red-700" },
+  };
+  const s = map[status];
+  const Icon = s.icon;
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${s.className}`}>
+      <Icon className={`w-3.5 h-3.5 ${status === "running" ? "animate-spin" : ""}`} />
+      {s.label}
+    </span>
+  );
+}
+
 export default function Configurator() {
   const [config, setConfig] = useState<ConfigState>(defaultConfig);
   const [showPreview, setShowPreview] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("general");
+  const [installStatus, setInstallStatus] = useState<InstallStatus>("idle");
+  const [installLogs, setInstallLogs] = useState<string[]>([]);
+  const [showInstallPanel, setShowInstallPanel] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [confirmInstall, setConfirmInstall] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
+
+  const isRunning = installStatus === "running";
+  const formDisabled = isRunning;
+
+  useEffect(() => {
+    fetch(`${API_BASE}/install/status`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.status && data.status !== "idle") {
+          setInstallStatus(data.status);
+          setShowInstallPanel(true);
+          if (data.config) setConfig(data.config);
+          fetch(`${API_BASE}/install/logs`)
+            .then((r) => r.json())
+            .then((d) => setInstallLogs(d.logs || []));
+          if (data.status === "running") {
+            connectSSE();
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      eventSourceRef.current?.close();
+    };
+  }, []);
+
+  const connectSSE = () => {
+    eventSourceRef.current?.close();
+    const es = new EventSource(`${API_BASE}/install/stream`);
+    eventSourceRef.current = es;
+
+    es.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "log") {
+          setInstallLogs((prev) => [...prev, msg.data]);
+        } else if (msg.type === "status") {
+          setInstallStatus(msg.data.status);
+          if (msg.data.status === "completed" || msg.data.status === "failed") {
+            es.close();
+          }
+        }
+      } catch {}
+    };
+
+    es.onerror = () => {
+      setTimeout(() => {
+        fetch(`${API_BASE}/install/status`)
+          .then((r) => r.json())
+          .then((data) => {
+            setInstallStatus(data.status);
+            if (data.status === "running") {
+              connectSSE();
+            }
+          })
+          .catch(() => {});
+      }, 3000);
+      es.close();
+    };
+  };
 
   const updateConfig = <K extends keyof ConfigState>(key: K, value: ConfigState[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -373,38 +503,20 @@ export default function Configurator() {
   const selectAllOca = () => {
     setConfig((prev) => ({
       ...prev,
-      ocaL10nSpain: true,
-      ocaAccountFinancialTools: true,
-      ocaAccountPayment: true,
-      ocaBankPayment: true,
-      ocaReportingEngine: true,
-      ocaCommunityDataFiles: true,
-      ocaServerTools: true,
-      ocaWeb: true,
-      ocaQueue: true,
-      ocaPartnerContact: true,
-      ocaMisBuilder: true,
-      ocaMultiCompany: true,
-      ocaBrand: true,
+      ocaL10nSpain: true, ocaAccountFinancialTools: true, ocaAccountPayment: true,
+      ocaBankPayment: true, ocaReportingEngine: true, ocaCommunityDataFiles: true,
+      ocaServerTools: true, ocaWeb: true, ocaQueue: true, ocaPartnerContact: true,
+      ocaMisBuilder: true, ocaMultiCompany: true, ocaBrand: true,
     }));
   };
 
   const deselectAllOca = () => {
     setConfig((prev) => ({
       ...prev,
-      ocaL10nSpain: false,
-      ocaAccountFinancialTools: false,
-      ocaAccountPayment: false,
-      ocaBankPayment: false,
-      ocaReportingEngine: false,
-      ocaCommunityDataFiles: false,
-      ocaServerTools: false,
-      ocaWeb: false,
-      ocaQueue: false,
-      ocaPartnerContact: false,
-      ocaMisBuilder: false,
-      ocaMultiCompany: false,
-      ocaBrand: false,
+      ocaL10nSpain: false, ocaAccountFinancialTools: false, ocaAccountPayment: false,
+      ocaBankPayment: false, ocaReportingEngine: false, ocaCommunityDataFiles: false,
+      ocaServerTools: false, ocaWeb: false, ocaQueue: false, ocaPartnerContact: false,
+      ocaMisBuilder: false, ocaMultiCompany: false, ocaBrand: false,
     }));
   };
 
@@ -412,19 +524,67 @@ export default function Configurator() {
     setConfig(defaultConfig);
   };
 
-  const [downloading, setDownloading] = useState(false);
+  const startInstall = async () => {
+    setConfirmInstall(false);
+    setShowInstallPanel(true);
+    setInstallLogs([]);
+    setInstallStatus("running");
+    setActiveSection("install");
+
+    try {
+      const resp = await fetch(`${API_BASE}/install/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        setInstallLogs((prev) => [...prev, `[ERROR] ${err.error || "Error desconocido"}`]);
+        setInstallStatus("failed");
+        return;
+      }
+
+      connectSSE();
+    } catch (err) {
+      setInstallLogs((prev) => [...prev, `[ERROR] No se pudo conectar con el servidor: ${err}`]);
+      setInstallStatus("failed");
+    }
+  };
+
+  const stopInstall = async () => {
+    try {
+      await fetch(`${API_BASE}/install/stop`, { method: "POST" });
+    } catch {}
+  };
+
+  const resetInstall = async () => {
+    try {
+      await fetch(`${API_BASE}/install/reset`, { method: "POST" });
+      setInstallStatus("idle");
+      setInstallLogs([]);
+      setShowInstallPanel(false);
+    } catch {}
+  };
 
   const downloadScript = async () => {
     setDownloading(true);
     try {
-      const script = await fetchAndPatchScript(config);
-      const blob = new Blob([script], { type: "text/x-shellscript" });
+      const resp = await fetch(`${API_BASE}/install/generate-script`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (!resp.ok) throw new Error("Error generando script");
+      const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = "odoo_install.sh";
       a.click();
       URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error downloading:", err);
     } finally {
       setDownloading(false);
     }
@@ -437,6 +597,7 @@ export default function Configurator() {
     { id: "education", label: "Educación", icon: GraduationCap },
     { id: "oca", label: "Módulos OCA", icon: Package },
     { id: "preview", label: "Vista Previa", icon: Eye },
+    ...(showInstallPanel ? [{ id: "install", label: "Instalación", icon: Terminal }] : []),
   ];
 
   return (
@@ -454,27 +615,101 @@ export default function Configurator() {
               </div>
               <h1 className="text-lg font-bold font-display text-slate-900">Configurador</h1>
             </div>
+            {installStatus !== "idle" && <StatusBadge status={installStatus} />}
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={resetToDefaults}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              disabled={formDisabled}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
             >
               <RefreshCw className="w-4 h-4" />
               <span className="hidden sm:inline">Restablecer</span>
             </button>
             <button
               onClick={downloadScript}
-              disabled={downloading}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+              disabled={downloading || formDisabled}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
             >
               {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {downloading ? "Generando..." : "Descargar Script"}
+              <span className="hidden sm:inline">{downloading ? "Generando..." : "Descargar"}</span>
             </button>
+            {!isRunning ? (
+              <button
+                onClick={() => setConfirmInstall(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm"
+              >
+                <Play className="w-4 h-4" />
+                Instalar
+              </button>
+            ) : (
+              <button
+                onClick={stopInstall}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm"
+              >
+                <Square className="w-4 h-4" />
+                Detener
+              </button>
+            )}
           </div>
         </div>
       </nav>
+
+      <AnimatePresence>
+        {confirmInstall && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setConfirmInstall(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <h3 className="text-lg font-bold font-display text-slate-900">Confirmar Instalación</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-2">
+                Vas a ejecutar la instalación de Odoo {config.odooVersion} en este servidor con la siguiente configuración:
+              </p>
+              <ul className="text-sm text-slate-600 mb-6 space-y-1 ml-4">
+                <li>• <strong>{config.eduNumAlumnos}</strong> alumnos ({config.eduPasswordPrefix}01...{config.eduPasswordPrefix}{String(config.eduNumAlumnos).padStart(2, "0")})</li>
+                <li>• Profesor: <strong>{config.eduProfesorUser}</strong></li>
+                <li>• Centro: <strong>{config.eduCentroNombre}</strong></li>
+                <li>• <strong>{activeOcaCount}</strong> módulos OCA</li>
+                <li>• Nginx: {config.installNginx ? "Sí" : "No"}</li>
+              </ul>
+              <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-3 mb-6">
+                Este proceso instalará paquetes del sistema, creará usuarios y bases de datos. Asegúrate de estar ejecutando esto en un servidor Ubuntu 22.04/24.04 limpio.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmInstall(false)}
+                  className="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={startInstall}
+                  className="px-6 py-2 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Iniciar Instalación
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
@@ -503,6 +738,9 @@ export default function Configurator() {
                         {activeOcaCount}
                       </span>
                     )}
+                    {s.id === "install" && installStatus === "running" && (
+                      <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    )}
                   </button>
                 );
               })}
@@ -513,7 +751,7 @@ export default function Configurator() {
                   <span className="text-xs font-semibold text-blue-700">Nota</span>
                 </div>
                 <p className="text-xs text-blue-600 leading-relaxed">
-                  El script generado incluye solo la sección de configuración personalizada. El resto del instalador permanece igual.
+                  Configura los parámetros y pulsa "Instalar" para ejecutar la instalación directamente en este servidor. También puedes descargar el script.
                 </p>
               </div>
             </div>
@@ -526,35 +764,36 @@ export default function Configurator() {
                   <select
                     value={config.odooVersion}
                     onChange={(e) => updateConfig("odooVersion", e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={formDisabled}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
                     <option value="17.0">17.0 (Community Edition)</option>
                   </select>
                 </FieldRow>
                 <div className="border-t border-slate-100" />
                 <FieldRow label="Puerto HTTP" description="Puerto principal de Odoo">
-                  <TextInput value={config.odooPort} onChange={(v) => updateConfig("odooPort", v)} />
+                  <TextInput value={config.odooPort} onChange={(v) => updateConfig("odooPort", v)} disabled={formDisabled} />
                 </FieldRow>
                 <FieldRow label="Puerto Longpolling" description="Para chat en vivo y notificaciones">
-                  <TextInput value={config.longpollingPort} onChange={(v) => updateConfig("longpollingPort", v)} />
+                  <TextInput value={config.longpollingPort} onChange={(v) => updateConfig("longpollingPort", v)} disabled={formDisabled} />
                 </FieldRow>
                 <div className="border-t border-slate-100" />
                 <FieldRow label="Instalar Nginx" description="Proxy inverso con soporte HTTPS">
-                  <ToggleSwitch checked={config.installNginx} onChange={(v) => updateConfig("installNginx", v)} />
+                  <ToggleSwitch checked={config.installNginx} onChange={(v) => updateConfig("installNginx", v)} disabled={formDisabled} />
                 </FieldRow>
                 {config.installNginx && (
                   <>
                     <FieldRow label="Nombre del dominio" description="Usa _ para aceptar cualquier dominio">
-                      <TextInput value={config.websiteName} onChange={(v) => updateConfig("websiteName", v)} placeholder="micentro.es" />
+                      <TextInput value={config.websiteName} onChange={(v) => updateConfig("websiteName", v)} placeholder="micentro.es" disabled={formDisabled} />
                     </FieldRow>
                     <FieldRow label="Habilitar SSL" description="Requiere dominio configurado y certificado">
-                      <ToggleSwitch checked={config.enableSsl} onChange={(v) => updateConfig("enableSsl", v)} />
+                      <ToggleSwitch checked={config.enableSsl} onChange={(v) => updateConfig("enableSsl", v)} disabled={formDisabled} />
                     </FieldRow>
                   </>
                 )}
                 <div className="border-t border-slate-100" />
                 <FieldRow label="Instalar wkhtmltopdf" description="Necesario para generar PDF de facturas e informes">
-                  <ToggleSwitch checked={config.installWkhtmltopdf} onChange={(v) => updateConfig("installWkhtmltopdf", v)} />
+                  <ToggleSwitch checked={config.installWkhtmltopdf} onChange={(v) => updateConfig("installWkhtmltopdf", v)} disabled={formDisabled} />
                 </FieldRow>
               </SectionCard>
             </div>
@@ -562,7 +801,7 @@ export default function Configurator() {
             <div id="section-education">
               <SectionCard icon={GraduationCap} title="Configuración Educativa" color="green">
                 <FieldRow label="Modo Educativo" description="Habilita funciones de multiempresa por alumno">
-                  <ToggleSwitch checked={config.eduMode} onChange={(v) => updateConfig("eduMode", v)} />
+                  <ToggleSwitch checked={config.eduMode} onChange={(v) => updateConfig("eduMode", v)} disabled={formDisabled} />
                 </FieldRow>
 
                 {config.eduMode && (
@@ -573,13 +812,13 @@ export default function Configurator() {
                       <p className="text-xs text-emerald-600 mb-4">Cada alumno recibirá su propia base de datos y empresa aislada.</p>
                       <div className="space-y-4">
                         <FieldRow label="Número de alumnos">
-                          <NumberInput value={config.eduNumAlumnos} onChange={(v) => updateConfig("eduNumAlumnos", v)} min={1} max={200} />
+                          <NumberInput value={config.eduNumAlumnos} onChange={(v) => updateConfig("eduNumAlumnos", v)} min={1} max={200} disabled={formDisabled} />
                         </FieldRow>
                         <FieldRow label="Prefijo de usuario/contraseña" description="Ej: alumno01, alumno02...">
-                          <TextInput value={config.eduPasswordPrefix} onChange={(v) => updateConfig("eduPasswordPrefix", v)} />
+                          <TextInput value={config.eduPasswordPrefix} onChange={(v) => updateConfig("eduPasswordPrefix", v)} disabled={formDisabled} />
                         </FieldRow>
                         <FieldRow label="Prefijo de base de datos" description="Ej: empresa01, empresa02...">
-                          <TextInput value={config.eduDbPrefix} onChange={(v) => updateConfig("eduDbPrefix", v)} />
+                          <TextInput value={config.eduDbPrefix} onChange={(v) => updateConfig("eduDbPrefix", v)} disabled={formDisabled} />
                         </FieldRow>
                       </div>
                     </div>
@@ -589,10 +828,10 @@ export default function Configurator() {
                       <p className="text-xs text-blue-600 mb-4">Credenciales del usuario administrador con acceso a todas las BDs.</p>
                       <div className="space-y-4">
                         <FieldRow label="Usuario del profesor">
-                          <TextInput value={config.eduProfesorUser} onChange={(v) => updateConfig("eduProfesorUser", v)} />
+                          <TextInput value={config.eduProfesorUser} onChange={(v) => updateConfig("eduProfesorUser", v)} disabled={formDisabled} />
                         </FieldRow>
                         <FieldRow label="Contraseña del profesor">
-                          <TextInput value={config.eduProfesorPassword} onChange={(v) => updateConfig("eduProfesorPassword", v)} type="password" />
+                          <TextInput value={config.eduProfesorPassword} onChange={(v) => updateConfig("eduProfesorPassword", v)} type="password" disabled={formDisabled} />
                         </FieldRow>
                       </div>
                     </div>
@@ -602,20 +841,20 @@ export default function Configurator() {
                       <p className="text-xs text-violet-600 mb-4">Información para el rebranding de Odoo.</p>
                       <div className="space-y-4">
                         <FieldRow label="Nombre del centro">
-                          <TextInput value={config.eduCentroNombre} onChange={(v) => updateConfig("eduCentroNombre", v)} />
+                          <TextInput value={config.eduCentroNombre} onChange={(v) => updateConfig("eduCentroNombre", v)} disabled={formDisabled} />
                         </FieldRow>
                         <FieldRow label="URL del logo" description="Opcional. URL pública del logo del centro">
-                          <TextInput value={config.eduCentroLogo} onChange={(v) => updateConfig("eduCentroLogo", v)} placeholder="https://..." />
+                          <TextInput value={config.eduCentroLogo} onChange={(v) => updateConfig("eduCentroLogo", v)} placeholder="https://..." disabled={formDisabled} />
                         </FieldRow>
                       </div>
                     </div>
 
                     <div className="border-t border-slate-100" />
                     <FieldRow label="Directorio de backups" description="Ruta donde se almacenan las copias de seguridad">
-                      <TextInput value={config.eduBackupDir} onChange={(v) => updateConfig("eduBackupDir", v)} />
+                      <TextInput value={config.eduBackupDir} onChange={(v) => updateConfig("eduBackupDir", v)} disabled={formDisabled} />
                     </FieldRow>
                     <FieldRow label="Retención de backups (días)" description="Los backups más antiguos se eliminan automáticamente">
-                      <NumberInput value={config.eduBackupRetentionDays} onChange={(v) => updateConfig("eduBackupRetentionDays", v)} min={1} max={365} />
+                      <NumberInput value={config.eduBackupRetentionDays} onChange={(v) => updateConfig("eduBackupRetentionDays", v)} min={1} max={365} disabled={formDisabled} />
                     </FieldRow>
                   </>
                 )}
@@ -629,10 +868,10 @@ export default function Configurator() {
                     <span className="font-semibold text-violet-700">{activeOcaCount}</span> de {ocaModules.length} módulos seleccionados
                   </p>
                   <div className="flex gap-2">
-                    <button onClick={selectAllOca} className="text-xs px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors font-medium">
+                    <button onClick={selectAllOca} disabled={formDisabled} className="text-xs px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors font-medium disabled:opacity-50">
                       Seleccionar todos
                     </button>
-                    <button onClick={deselectAllOca} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors font-medium">
+                    <button onClick={deselectAllOca} disabled={formDisabled} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors font-medium disabled:opacity-50">
                       Deseleccionar todos
                     </button>
                   </div>
@@ -655,6 +894,7 @@ export default function Configurator() {
                       <ToggleSwitch
                         checked={config[mod.key] as boolean}
                         onChange={(v) => updateConfig(mod.key, v as never)}
+                        disabled={formDisabled}
                       />
                     </div>
                   ))}
@@ -665,7 +905,7 @@ export default function Configurator() {
             <div id="section-preview">
               <SectionCard icon={Eye} title="Vista Previa del Script" color="cyan">
                 <p className="text-sm text-slate-600 mb-4">
-                  Vista previa de la sección de configuración del script que se generará con tus ajustes.
+                  Vista previa de la sección de configuración del script que se usará para la instalación.
                 </p>
                 {showPreview ? (
                   <ScriptPreview script={generatePreviewScript(config)} />
@@ -681,26 +921,99 @@ export default function Configurator() {
               </SectionCard>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg"
-            >
-              <div>
-                <h3 className="text-lg font-bold text-white font-display">¿Listo para instalar?</h3>
-                <p className="text-sm text-blue-200 mt-1">
-                  Descarga tu script personalizado y ejecútalo en tu servidor Ubuntu.
-                </p>
+            {showInstallPanel && (
+              <div id="section-install">
+                <SectionCard icon={Terminal} title="Consola de Instalación" color="orange">
+                  <div className="flex items-center justify-between mb-4">
+                    <StatusBadge status={installStatus} />
+                    <div className="flex gap-2">
+                      {installStatus === "completed" || installStatus === "failed" ? (
+                        <button
+                          onClick={resetInstall}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors font-medium"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Nueva instalación
+                        </button>
+                      ) : null}
+                      {isRunning && (
+                        <button
+                          onClick={stopInstall}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-medium"
+                        >
+                          <Square className="w-3.5 h-3.5" />
+                          Detener
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <LogViewer logs={installLogs} status={installStatus} />
+                  {installStatus === "completed" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                        <h4 className="text-sm font-semibold text-emerald-800">Instalación completada</h4>
+                      </div>
+                      <p className="text-xs text-emerald-700">
+                        Odoo se ha instalado correctamente. Accede a tu instancia en el puerto {config.odooPort}.
+                        Usa los scripts auxiliares para crear alumnos y gestionar las bases de datos.
+                      </p>
+                    </motion.div>
+                  )}
+                  {installStatus === "failed" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <XCircle className="w-5 h-5 text-red-600" />
+                        <h4 className="text-sm font-semibold text-red-800">Instalación fallida</h4>
+                      </div>
+                      <p className="text-xs text-red-700">
+                        Revisa los logs de arriba para identificar el error. Puedes corregir la configuración y volver a intentarlo.
+                      </p>
+                    </motion.div>
+                  )}
+                </SectionCard>
               </div>
-              <button
-                onClick={downloadScript}
-                disabled={downloading}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-700 font-semibold hover:bg-blue-50 transition-colors shadow-sm flex-shrink-0 disabled:opacity-50"
+            )}
+
+            {!showInstallPanel && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl shadow-lg"
               >
-                {downloading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                {downloading ? "Generando..." : "Descargar odoo_install.sh"}
-              </button>
-            </motion.div>
+                <div>
+                  <h3 className="text-lg font-bold text-white font-display">¿Listo para instalar?</h3>
+                  <p className="text-sm text-emerald-200 mt-1">
+                    Ejecuta la instalación directamente en este servidor o descarga el script personalizado.
+                  </p>
+                </div>
+                <div className="flex gap-3 flex-shrink-0">
+                  <button
+                    onClick={downloadScript}
+                    disabled={downloading}
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-800/50 text-white font-semibold hover:bg-emerald-800/70 transition-colors border border-emerald-500/30"
+                  >
+                    <Download className="w-5 h-5" />
+                    Descargar
+                  </button>
+                  <button
+                    onClick={() => setConfirmInstall(true)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors shadow-sm"
+                  >
+                    <Play className="w-5 h-5" />
+                    Instalar Ahora
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </main>
         </div>
       </div>
