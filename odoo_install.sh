@@ -168,6 +168,14 @@ detect_os() {
         log_warn "Continuando de todas formas..."
     fi
 
+    SUPPORTED_CODENAMES="jammy noble"
+    if [[ -n "$OS_CODENAME" ]] && ! echo "$SUPPORTED_CODENAMES" | grep -qw "$OS_CODENAME"; then
+        log_warn "Ubuntu '$OS_CODENAME' ($OS_VERSION) no es una version LTS oficialmente probada."
+        log_warn "Las versiones probadas son: Ubuntu 22.04 (jammy) y 24.04 (noble)."
+        log_warn "Algunos repositorios externos (PostgreSQL, wkhtmltopdf) pueden no estar disponibles."
+        log_info "Se usaran los paquetes de los repositorios del sistema cuando sea necesario."
+    fi
+
     log_info "Sistema operativo detectado: $OS_ID $OS_VERSION ($OS_CODENAME)"
 }
 
@@ -305,9 +313,18 @@ log_success "Dependencias del sistema instaladas."
 log_info "Instalando PostgreSQL..."
 
 if ! command -v psql &>/dev/null; then
-    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-    wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
-    apt-get update -qq
+    DISTRO_CODENAME=$(lsb_release -cs 2>/dev/null || echo "")
+    PGDG_SUPPORTED="jammy noble"
+
+    if echo "$PGDG_SUPPORTED" | grep -qw "$DISTRO_CODENAME"; then
+        log_info "Anadiendo repositorio oficial de PostgreSQL (codename: $DISTRO_CODENAME)..."
+        sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt ${DISTRO_CODENAME}-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+        wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+        apt-get update -qq
+    else
+        log_warn "El codename '$DISTRO_CODENAME' no esta soportado por el repositorio PGDG."
+        log_info "Instalando PostgreSQL desde los repositorios del sistema..."
+    fi
 fi
 
 apt-get install -y -qq postgresql postgresql-client
