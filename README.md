@@ -66,7 +66,7 @@ sudo apt update && sudo apt install -y git curl && git clone https://github.com/
 O si prefieres usar el **script de bootstrap** que prepara el servidor y lanza la instalación de forma completamente desatendida:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/atreyu1968/Odoo-Edu-Installer-Spanish/main/bootstrap.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/atreyu1968/Odoo-Edu-Installer-Spanish/master/bootstrap.sh | sudo bash
 ```
 
 ---

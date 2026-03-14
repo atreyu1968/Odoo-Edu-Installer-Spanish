@@ -43,7 +43,7 @@ echo ""
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}[ERROR]${NC} Este script debe ejecutarse como root."
     echo ""
-    echo "  Uso: curl -sSL https://raw.githubusercontent.com/atreyu1968/Odoo-Edu-Installer-Spanish/main/bootstrap.sh | sudo bash"
+    echo "  Uso: curl -sSL https://raw.githubusercontent.com/atreyu1968/Odoo-Edu-Installer-Spanish/master/bootstrap.sh | sudo bash"
     echo ""
     exit 1
 fi
