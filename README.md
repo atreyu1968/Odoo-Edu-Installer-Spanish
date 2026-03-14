@@ -35,6 +35,7 @@
 | **Backups automáticos** | Copias de seguridad diarias automatizadas con retención configurable. Backup y restauración por alumno |
 | **Reseteo de BD** | El profesor puede resetear la empresa de cualquier alumno a su estado inicial desde el panel |
 | **CSV de contraseñas** | Archivo CSV auto-generado con las credenciales de todos los alumnos para distribuir al inicio del curso |
+| **IGIC para Canarias** | Configuración fiscal adaptable: IVA (Península/Baleares) o IGIC (Canarias) con todos los tipos impositivos precargados y posiciones fiscales |
 | **Versiones múltiples** | Soporte para Odoo 14.0, 15.0, 16.0, 17.0 y 18.0 con análisis de compatibilidad de módulos OCA antes de migrar |
 
 ---
@@ -111,6 +112,8 @@ Variables configurables:
 | `BRAND_FAVICON_URL` | _(vacío)_ | URL del favicon (PNG/ICO, 32x32px) |
 | `BRAND_PRIMARY_COLOR` | `#714B67` | Color primario de la interfaz |
 | `BRAND_SECONDARY_COLOR` | `#21b799` | Color secundario |
+| `FISCAL_REGIME` | `iva` | Régimen fiscal: `iva` (Península) o `igic` (Canarias) |
+| `FISCAL_RECARGO_EQUIVALENCIA` | `false` | Activar recargo de equivalencia para minoristas |
 
 **Formato de `EDU_GRUPOS`** (separados por `;`):
 ```

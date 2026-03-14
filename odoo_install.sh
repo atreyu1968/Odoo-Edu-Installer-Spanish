@@ -90,6 +90,12 @@ BRAND_FAVICON_URL=""
 BRAND_PRIMARY_COLOR="#714B67"
 BRAND_SECONDARY_COLOR="#21b799"
 
+# --- Regimen Fiscal ---
+# "iva"  = Peninsular (IVA: 4%, 10%, 21%)
+# "igic" = Canarias  (IGIC: 0%, 3%, 5%, 7%, 9.5%, 15%, 20%)
+FISCAL_REGIME="iva"
+FISCAL_RECARGO_EQUIVALENCIA=false
+
 # --- Modulos OCA ---
 OCA_L10N_SPAIN=true
 OCA_ACCOUNT_FINANCIAL_TOOLS=true
@@ -1585,6 +1591,9 @@ Base de datos:
 Superadministrador:
   Usuario: $SUPERADMIN_USER
   Contrasena: $SUPERADMIN_PASSWORD
+
+Regimen fiscal: $FISCAL_REGIME
+Recargo de equivalencia: $FISCAL_RECARGO_EQUIVALENCIA
 
 Grupos (profesor incluido): $EDU_GRUPOS
 

@@ -4,7 +4,7 @@ import {
   Lock, Eye, EyeOff, LogOut,
   Users, GraduationCap, Palette, RefreshCw,
   Plus, Trash2, Save, CheckCircle2, AlertTriangle,
-  Building2, Image, Globe, Mail, Phone, MapPin,
+  Building2, Image, Globe, Mail, Phone, MapPin, Landmark,
   Server, Database, Shield,
   Download, RotateCcw, ChevronDown, Info,
   ShieldCheck, ShieldAlert, ShieldX, GitBranch,
@@ -26,6 +26,13 @@ interface GrupoAlumnos {
   profesor: Profesor;
 }
 
+type FiscalRegime = "iva" | "igic";
+
+interface FiscalConfig {
+  regime: FiscalRegime;
+  recargo: boolean;
+}
+
 interface BrandingConfig {
   companyName: string;
   companyTagline: string;
@@ -35,10 +42,12 @@ interface BrandingConfig {
   companyStreet: string;
   companyCity: string;
   companyZip: string;
+  companyState: string;
   logoUrl: string;
   faviconUrl: string;
   primaryColor: string;
   secondaryColor: string;
+  fiscal: FiscalConfig;
 }
 
 type UserRole = "superadmin" | "profesor";
@@ -107,6 +116,37 @@ const OCA_MODULES: OcaModuleStatus[] = [
   { repo: "mis-builder", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 1 semana", pendingCommits: 0 },
 ];
 
+const IGIC_TAXES = [
+  { name: "IGIC 0% (Tipo cero)", rate: "0%", description: "Productos de primera necesidad, libros, medicamentos" },
+  { name: "IGIC 3% (Reducido)", rate: "3%", description: "Transporte, hostelería, industria" },
+  { name: "IGIC 5% (Reducido)", rate: "5%", description: "Otros bienes y servicios reducidos" },
+  { name: "IGIC 7% (General)", rate: "7%", description: "Tipo general aplicable a la mayoría de operaciones" },
+  { name: "IGIC 9.5% (Incrementado)", rate: "9.5%", description: "Vehículos, embarcaciones, tabaco" },
+  { name: "IGIC 15% (Especial incrementado)", rate: "15%", description: "Artículos de lujo y joyería" },
+  { name: "IGIC 20% (Especial)", rate: "20%", description: "Tabaco negro y rubio" },
+];
+
+const IVA_TAXES = [
+  { name: "IVA 0% (Exento)", rate: "0%", description: "Operaciones exentas (sanidad, educación, seguros)" },
+  { name: "IVA 4% (Superreducido)", rate: "4%", description: "Pan, leche, frutas, libros, medicamentos" },
+  { name: "IVA 10% (Reducido)", rate: "10%", description: "Alimentación, transporte, hostelería, vivienda" },
+  { name: "IVA 21% (General)", rate: "21%", description: "Tipo general aplicable a la mayoría de operaciones" },
+];
+
+const SPANISH_STATES: Record<FiscalRegime, string[]> = {
+  iva: [
+    "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Barcelona",
+    "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ceuta", "Ciudad Real", "Córdoba",
+    "A Coruña", "Cuenca", "Girona", "Granada", "Guadalajara", "Guipúzcoa", "Huelva", "Huesca",
+    "Illes Balears", "Jaén", "León", "Lleida", "Lugo", "Madrid", "Málaga", "Melilla", "Murcia",
+    "Navarra", "Ourense", "Palencia", "Pontevedra", "La Rioja", "Salamanca", "Segovia", "Sevilla",
+    "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"
+  ],
+  igic: [
+    "Las Palmas de Gran Canaria", "Santa Cruz de Tenerife"
+  ],
+};
+
 const defaultBranding: BrandingConfig = {
   companyName: "Centro de Formacion Profesional",
   companyTagline: "",
@@ -116,10 +156,12 @@ const defaultBranding: BrandingConfig = {
   companyStreet: "",
   companyCity: "",
   companyZip: "",
+  companyState: "",
   logoUrl: "",
   faviconUrl: "",
   primaryColor: "#714B67",
   secondaryColor: "#017e84",
+  fiscal: { regime: "iva", recargo: false },
 };
 
 const SUPERADMIN_USER = "superadmin";
@@ -554,6 +596,7 @@ export default function AdminPanel() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
               {/* Company Data */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-6">
@@ -571,7 +614,101 @@ export default function AdminPanel() {
                     <InputField label="Ciudad" value={branding.companyCity} onChange={v => setBranding(b => ({ ...b, companyCity: v }))} />
                     <InputField label="Código Postal" value={branding.companyZip} onChange={v => setBranding(b => ({ ...b, companyZip: v }))} />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Provincia</label>
+                    <select
+                      value={branding.companyState}
+                      onChange={e => setBranding(b => ({ ...b, companyState: e.target.value }))}
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    >
+                      <option value="">Seleccionar provincia...</option>
+                      {SPANISH_STATES[branding.fiscal.regime].map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+              </div>
+
+              {/* Fiscal Regime */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <Landmark className="w-5 h-5 text-slate-600" />
+                  <h3 className="text-lg font-bold text-slate-900">Régimen Fiscal</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {([
+                    { id: "iva" as FiscalRegime, label: "IVA (Península y Baleares)", desc: "Impuesto sobre el Valor Añadido" },
+                    { id: "igic" as FiscalRegime, label: "IGIC (Canarias)", desc: "Impuesto General Indirecto Canario" },
+                  ]).map(opt => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setBranding(b => ({ ...b, companyState: "", fiscal: { ...b.fiscal, regime: opt.id } }))}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        branding.fiscal.regime === opt.id
+                          ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                          : "border-slate-200 hover:border-slate-300 bg-white"
+                      }`}
+                    >
+                      <div className={`font-semibold text-sm ${branding.fiscal.regime === opt.id ? "text-blue-700" : "text-slate-800"}`}>
+                        {opt.label}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {branding.fiscal.regime === "igic" && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <strong>Canarias:</strong> Se configurará el IGIC en lugar del IVA en todas las bases de datos de alumnos. 
+                      Se instalarán las posiciones fiscales y los tipos impositivos específicos de Canarias del módulo <code className="bg-amber-100 px-1 rounded">l10n_es</code>.
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 mb-6">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={branding.fiscal.recargo}
+                      onChange={e => setBranding(b => ({ ...b, fiscal: { ...b.fiscal, recargo: e.target.checked } }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                  </label>
+                  <div>
+                    <span className="text-sm font-medium text-slate-800">Recargo de equivalencia</span>
+                    <p className="text-xs text-slate-500">Activa los recargos de equivalencia para comerciantes minoristas</p>
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200">
+                    <h4 className="text-sm font-semibold text-slate-700">
+                      Tipos impositivos que se preconfigurarán — {branding.fiscal.regime === "igic" ? "IGIC" : "IVA"}
+                    </h4>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {(branding.fiscal.regime === "igic" ? IGIC_TAXES : IVA_TAXES).map(tax => (
+                      <div key={tax.name} className="px-4 py-3 flex items-center gap-4">
+                        <span className={`inline-flex items-center justify-center w-14 py-1 rounded-full text-xs font-bold ${
+                          branding.fiscal.regime === "igic" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"
+                        }`}>
+                          {tax.rate}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-800">{tax.name}</div>
+                          <div className="text-xs text-slate-500">{tax.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               </div>
 
               {/* Visual Identity */}
