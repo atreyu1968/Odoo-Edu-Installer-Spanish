@@ -220,6 +220,11 @@ log_success "Sistema actualizado."
 
 log_info "Instalando dependencias del sistema..."
 
+apt-get install -y -qq ${PYTHON_VERSION}
+
+PYTHON_EXACT=$(python3 -c 'import sys; print(f"python{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || echo "python3")
+log_info "Python detectado: $PYTHON_EXACT"
+
 apt-get install -y -qq \
     git \
     curl \
@@ -227,10 +232,9 @@ apt-get install -y -qq \
     gnupg2 \
     software-properties-common \
     build-essential \
-    ${PYTHON_VERSION} \
-    ${PYTHON_VERSION}-dev \
+    ${PYTHON_EXACT}-dev \
     ${PYTHON_VERSION}-pip \
-    ${PYTHON_VERSION}-venv \
+    ${PYTHON_EXACT}-venv \
     python3-setuptools \
     python3-wheel \
     python3-cffi \
