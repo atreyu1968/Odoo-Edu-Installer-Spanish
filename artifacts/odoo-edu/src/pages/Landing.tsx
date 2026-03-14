@@ -2,8 +2,9 @@ import { motion } from "framer-motion";
 import { 
   Terminal, Server, Building2, Palette, Users, Shield, 
   ArrowRight, CheckCircle2, Download, BookOpen, Settings,
-  Database, PlayCircle
+  Database, PlayCircle, Sliders
 } from "lucide-react";
+import { Link } from "wouter";
 import { CodeBlock } from "@/components/CodeBlock";
 import { SectionHeading } from "@/components/SectionHeading";
 
@@ -29,10 +30,10 @@ export default function Landing() {
             <a href="#instructions" className="hover:text-blue-600 transition-colors">Instalación</a>
           </div>
           <a 
-            href="#download" 
+            href="/configurar" 
             className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300"
           >
-            Descargar Script
+            Configurar
           </a>
         </div>
       </nav>
@@ -72,13 +73,13 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a 
-                href="#download"
+              <Link 
+                href="/configurar"
                 className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group"
               >
-                <Download className="w-5 h-5 group-hover:animate-bounce" />
-                Descargar Instalador
-              </a>
+                <Sliders className="w-5 h-5 group-hover:animate-bounce" />
+                Configurar Instalación
+              </Link>
               <a 
                 href="#instructions"
                 className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-slate-700 border border-slate-200 font-semibold text-lg shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
@@ -401,13 +402,22 @@ export default function Landing() {
           </div>
 
           <div className="flex flex-col items-center gap-6">
-            <a 
-              href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish/archive/refs/heads/main.zip" 
-              className="px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center gap-3"
-            >
-              <Download className="w-6 h-6" />
-              Descargar .zip
-            </a>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Link 
+                href="/configurar"
+                className="px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center gap-3"
+              >
+                <Sliders className="w-6 h-6" />
+                Configurador Visual
+              </Link>
+              <a 
+                href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish/archive/refs/heads/main.zip" 
+                className="px-8 py-4 rounded-xl bg-slate-700 text-white font-bold text-lg hover:bg-slate-600 transition-all duration-300 flex items-center gap-3 border border-slate-600"
+              >
+                <Download className="w-6 h-6" />
+                Descargar .zip
+              </a>
+            </div>
             <a 
               href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish"
               target="_blank"

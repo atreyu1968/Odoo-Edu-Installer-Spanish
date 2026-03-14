@@ -23,7 +23,8 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 
 - **URL**: `/` (root)
 - **Framework**: React + Vite + Tailwind CSS + Framer Motion
-- **Key files**: `src/pages/Landing.tsx`, `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
+- **Key files**: `src/pages/Landing.tsx`, `src/pages/Configurator.tsx`, `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
+- **Routes**: `/` (landing page), `/configurar` (installation configurator)
 - **GitHub repo**: https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish
 
 ### Installation Scripts (root directory)

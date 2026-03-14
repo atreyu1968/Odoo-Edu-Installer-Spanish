@@ -1,0 +1,709 @@
+import { useState, useCallback } from "react";
+import { motion } from "framer-motion";
+import {
+  Settings, Server, Shield, Users, Package, Download,
+  ChevronLeft, Eye, EyeOff, Copy, Check, GraduationCap,
+  Globe, Database, HardDrive, RefreshCw, Info
+} from "lucide-react";
+import { Link } from "wouter";
+
+interface ConfigState {
+  odooVersion: string;
+  odooPort: string;
+  longpollingPort: string;
+  installNginx: boolean;
+  websiteName: string;
+  enableSsl: boolean;
+  installWkhtmltopdf: boolean;
+  eduMode: boolean;
+  eduNumAlumnos: number;
+  eduPasswordPrefix: string;
+  eduDbPrefix: string;
+  eduProfesorUser: string;
+  eduProfesorPassword: string;
+  eduCentroNombre: string;
+  eduCentroLogo: string;
+  eduBackupDir: string;
+  eduBackupRetentionDays: number;
+  ocaL10nSpain: boolean;
+  ocaAccountFinancialTools: boolean;
+  ocaAccountPayment: boolean;
+  ocaBankPayment: boolean;
+  ocaReportingEngine: boolean;
+  ocaCommunityDataFiles: boolean;
+  ocaServerTools: boolean;
+  ocaWeb: boolean;
+  ocaQueue: boolean;
+  ocaPartnerContact: boolean;
+  ocaMisBuilder: boolean;
+  ocaMultiCompany: boolean;
+  ocaBrand: boolean;
+}
+
+const defaultConfig: ConfigState = {
+  odooVersion: "17.0",
+  odooPort: "8069",
+  longpollingPort: "8072",
+  installNginx: true,
+  websiteName: "_",
+  enableSsl: false,
+  installWkhtmltopdf: true,
+  eduMode: true,
+  eduNumAlumnos: 30,
+  eduPasswordPrefix: "alumno",
+  eduDbPrefix: "empresa",
+  eduProfesorUser: "profesor",
+  eduProfesorPassword: "Profesor2024!",
+  eduCentroNombre: "Centro de Formacion Profesional",
+  eduCentroLogo: "",
+  eduBackupDir: "/var/backups/odoo",
+  eduBackupRetentionDays: 30,
+  ocaL10nSpain: true,
+  ocaAccountFinancialTools: true,
+  ocaAccountPayment: true,
+  ocaBankPayment: true,
+  ocaReportingEngine: true,
+  ocaCommunityDataFiles: true,
+  ocaServerTools: true,
+  ocaWeb: true,
+  ocaQueue: true,
+  ocaPartnerContact: true,
+  ocaMisBuilder: true,
+  ocaMultiCompany: true,
+  ocaBrand: true,
+};
+
+const ocaModules: { key: keyof ConfigState; label: string; description: string }[] = [
+  { key: "ocaL10nSpain", label: "Localización Española (l10n-spain)", description: "Plan General Contable, modelos AEAT, SII, Factura-e" },
+  { key: "ocaAccountFinancialTools", label: "Herramientas Financieras", description: "Herramientas contables avanzadas" },
+  { key: "ocaAccountPayment", label: "Pagos Contables", description: "Módulos de gestión de pagos" },
+  { key: "ocaBankPayment", label: "Pagos Bancarios", description: "Órdenes de pago y extractos bancarios" },
+  { key: "ocaReportingEngine", label: "Motor de Informes", description: "Informes avanzados y plantillas" },
+  { key: "ocaCommunityDataFiles", label: "Datos Comunitarios", description: "Datos maestros compartidos" },
+  { key: "ocaServerTools", label: "Herramientas de Servidor", description: "Utilidades técnicas del servidor" },
+  { key: "ocaWeb", label: "Extensiones Web", description: "Mejoras de interfaz web" },
+  { key: "ocaQueue", label: "Cola de Trabajos", description: "Procesamiento en segundo plano" },
+  { key: "ocaPartnerContact", label: "Contactos", description: "Gestión avanzada de contactos" },
+  { key: "ocaMisBuilder", label: "MIS Builder", description: "Constructor de informes MIS" },
+  { key: "ocaMultiCompany", label: "Multiempresa", description: "Reglas y funciones multiempresa" },
+  { key: "ocaBrand", label: "Rebranding (Brand)", description: "Personalizar logo y nombre de Odoo" },
+];
+
+function ToggleSwitch({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+        checked ? "bg-blue-600" : "bg-slate-300"
+      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          checked ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+}
+
+function SectionCard({ icon: Icon, title, children, color = "blue" }: {
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+  color?: string;
+}) {
+  const colorMap: Record<string, string> = {
+    blue: "from-blue-500 to-blue-600",
+    green: "from-emerald-500 to-emerald-600",
+    purple: "from-violet-500 to-violet-600",
+    orange: "from-orange-500 to-orange-600",
+    cyan: "from-cyan-500 to-cyan-600",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+    >
+      <div className={`bg-gradient-to-r ${colorMap[color]} px-6 py-4 flex items-center gap-3`}>
+        <Icon className="w-5 h-5 text-white" />
+        <h3 className="text-lg font-semibold text-white font-display">{title}</h3>
+      </div>
+      <div className="p-6 space-y-5">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+function FieldRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+      <div className="flex-1 min-w-0">
+        <label className="block text-sm font-medium text-slate-700">{label}</label>
+        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+      </div>
+      <div className="sm:w-72 flex-shrink-0">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function TextInput({ value, onChange, placeholder, type = "text" }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+
+  return (
+    <div className="relative">
+      <input
+        type={isPassword && showPassword ? "text" : type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+      />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+        >
+          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function NumberInput({ value, onChange, min, max }: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <input
+      type="number"
+      value={value}
+      min={min}
+      max={max}
+      onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+    />
+  );
+}
+
+function generateConfigBlock(config: ConfigState): string {
+  const b = (v: boolean) => v ? "true" : "false";
+
+  return `ODOO_VERSION="${config.odooVersion}"
+ODOO_USER="odoo17"
+ODOO_HOME="/opt/$ODOO_USER"
+ODOO_HOME_EXT="$ODOO_HOME/\${ODOO_USER}-server"
+ODOO_CONF="/etc/\${ODOO_USER}.conf"
+ODOO_PORT="${config.odooPort}"
+ODOO_LONGPOLLING_PORT="${config.longpollingPort}"
+
+INSTALL_NGINX=${b(config.installNginx)}
+WEBSITE_NAME="${config.websiteName}"
+ENABLE_SSL=${b(config.enableSsl)}
+
+DB_HOST="localhost"
+DB_PORT="5432"
+DB_USER="$ODOO_USER"
+DB_PASSWORD=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
+
+ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
+
+INSTALL_WKHTMLTOPDF=${b(config.installWkhtmltopdf)}
+WKHTMLTOPDF_VERSION="0.12.6.1-3"
+
+# --- Configuracion educativa ---
+EDU_MODE=${b(config.eduMode)}
+EDU_NUM_ALUMNOS=${config.eduNumAlumnos}
+EDU_PASSWORD_PREFIX="${config.eduPasswordPrefix}"
+EDU_DB_PREFIX="${config.eduDbPrefix}"
+EDU_PROFESOR_USER="${config.eduProfesorUser}"
+EDU_PROFESOR_PASSWORD="${config.eduProfesorPassword}"
+EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
+EDU_CENTRO_LOGO="${config.eduCentroLogo}"
+EDU_BACKUP_DIR="${config.eduBackupDir}"
+EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
+
+# --- Modulos OCA ---
+OCA_L10N_SPAIN=${b(config.ocaL10nSpain)}
+OCA_ACCOUNT_FINANCIAL_TOOLS=${b(config.ocaAccountFinancialTools)}
+OCA_ACCOUNT_PAYMENT=${b(config.ocaAccountPayment)}
+OCA_BANK_PAYMENT=${b(config.ocaBankPayment)}
+OCA_REPORTING_ENGINE=${b(config.ocaReportingEngine)}
+OCA_COMMUNITY_DATA_FILES=${b(config.ocaCommunityDataFiles)}
+OCA_SERVER_TOOLS=${b(config.ocaServerTools)}
+OCA_WEB=${b(config.ocaWeb)}
+OCA_QUEUE=${b(config.ocaQueue)}
+OCA_PARTNER_CONTACT=${b(config.ocaPartnerContact)}
+OCA_MIS_BUILDER=${b(config.ocaMisBuilder)}
+OCA_MULTI_COMPANY=${b(config.ocaMultiCompany)}
+OCA_BRAND=${b(config.ocaBrand)}
+
+CUSTOM_ADDONS_DIR="$ODOO_HOME/custom/addons"
+OCA_DIR="$ODOO_HOME/OCA"
+
+PYTHON_VERSION="python3"`;
+}
+
+function generatePreviewScript(config: ConfigState): string {
+  return `#!/bin/bash
+################################################################################
+# Script de Instalacion Desatendida de Odoo ${config.odooVersion} Community Edition
+# EDICION EDUCATIVA con Multiempresa
+#
+# Generado con OdooEdu Configurator
+# Fecha: ${new Date().toISOString().split("T")[0]}
+################################################################################
+
+set -euo pipefail
+
+#===============================================================================
+# CONFIGURACION — Generada con OdooEdu Configurator
+#===============================================================================
+
+${generateConfigBlock(config)}
+
+#===============================================================================
+# ... (resto del instalador: funciones, PostgreSQL, Nginx, OCA, etc.)
+#===============================================================================`;
+}
+
+const GITHUB_RAW_URL = "https://raw.githubusercontent.com/atreyu1968/Odoo-Edu-Installer-Spanish/main/odoo_install.sh";
+
+const CONFIG_START_MARKER = '#===============================================================================\n# CONFIGURACION';
+const CONFIG_END_MARKER = 'PYTHON_VERSION="python3"';
+
+async function fetchAndPatchScript(config: ConfigState): Promise<string> {
+  try {
+    const response = await fetch(GITHUB_RAW_URL);
+    if (!response.ok) throw new Error("No se pudo descargar el script");
+    const original = await response.text();
+
+    const startIdx = original.indexOf(CONFIG_START_MARKER);
+    const endIdx = original.indexOf(CONFIG_END_MARKER);
+
+    if (startIdx === -1 || endIdx === -1) throw new Error("No se encontraron los marcadores de configuración");
+
+    const before = original.substring(0, startIdx);
+    const after = original.substring(endIdx + CONFIG_END_MARKER.length);
+
+    return before +
+      `#===============================================================================\n# CONFIGURACION — Generada con OdooEdu Configurator (${new Date().toISOString().split("T")[0]})\n#===============================================================================\n\n` +
+      generateConfigBlock(config) + after;
+  } catch {
+    return generatePreviewScript(config) + "\n\n# ERROR: No se pudo descargar el script completo desde GitHub.\n# Descarga manualmente desde: " + GITHUB_RAW_URL + "\n# y reemplaza la seccion de CONFIGURACION con los valores de arriba.\n";
+  }
+}
+
+function ScriptPreview({ script }: { script: string }) {
+  const [copied, setCopied] = useState(false);
+  const lines = script.split("\n");
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(script);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [script]);
+
+  return (
+    <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900">
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+          </div>
+          <span className="text-xs text-slate-400 ml-2">odoo_install.sh (sección de configuración)</span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? "Copiado" : "Copiar"}
+        </button>
+      </div>
+      <div className="overflow-x-auto overflow-y-auto max-h-[500px] p-4">
+        <pre className="text-sm font-mono leading-relaxed">
+          {lines.map((line, i) => (
+            <div key={i} className="flex">
+              <span className="text-slate-600 select-none w-8 text-right mr-4 flex-shrink-0">{i + 1}</span>
+              <span className={
+                line.startsWith("#") ? "text-slate-500" :
+                line.includes("=true") || line.includes("=false") ? "text-cyan-400" :
+                line.includes('="') ? "text-emerald-400" :
+                line.includes("=$(") ? "text-yellow-400" :
+                "text-slate-300"
+              }>{line}</span>
+            </div>
+          ))}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+export default function Configurator() {
+  const [config, setConfig] = useState<ConfigState>(defaultConfig);
+  const [showPreview, setShowPreview] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("general");
+
+  const updateConfig = <K extends keyof ConfigState>(key: K, value: ConfigState[K]) => {
+    setConfig((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const selectAllOca = () => {
+    setConfig((prev) => ({
+      ...prev,
+      ocaL10nSpain: true,
+      ocaAccountFinancialTools: true,
+      ocaAccountPayment: true,
+      ocaBankPayment: true,
+      ocaReportingEngine: true,
+      ocaCommunityDataFiles: true,
+      ocaServerTools: true,
+      ocaWeb: true,
+      ocaQueue: true,
+      ocaPartnerContact: true,
+      ocaMisBuilder: true,
+      ocaMultiCompany: true,
+      ocaBrand: true,
+    }));
+  };
+
+  const deselectAllOca = () => {
+    setConfig((prev) => ({
+      ...prev,
+      ocaL10nSpain: false,
+      ocaAccountFinancialTools: false,
+      ocaAccountPayment: false,
+      ocaBankPayment: false,
+      ocaReportingEngine: false,
+      ocaCommunityDataFiles: false,
+      ocaServerTools: false,
+      ocaWeb: false,
+      ocaQueue: false,
+      ocaPartnerContact: false,
+      ocaMisBuilder: false,
+      ocaMultiCompany: false,
+      ocaBrand: false,
+    }));
+  };
+
+  const resetToDefaults = () => {
+    setConfig(defaultConfig);
+  };
+
+  const [downloading, setDownloading] = useState(false);
+
+  const downloadScript = async () => {
+    setDownloading(true);
+    try {
+      const script = await fetchAndPatchScript(config);
+      const blob = new Blob([script], { type: "text/x-shellscript" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "odoo_install.sh";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const activeOcaCount = ocaModules.filter((m) => config[m.key] as boolean).length;
+
+  const sections = [
+    { id: "general", label: "General", icon: Server },
+    { id: "education", label: "Educación", icon: GraduationCap },
+    { id: "oca", label: "Módulos OCA", icon: Package },
+    { id: "preview", label: "Vista Previa", icon: Eye },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors">
+              <ChevronLeft className="w-4 h-4" />
+              <span className="text-sm hidden sm:inline">Volver</span>
+            </Link>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
+                <Settings className="w-4 h-4 text-white" />
+              </div>
+              <h1 className="text-lg font-bold font-display text-slate-900">Configurador</h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={resetToDefaults}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">Restablecer</span>
+            </button>
+            <button
+              onClick={downloadScript}
+              disabled={downloading}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+            >
+              {downloading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {downloading ? "Generando..." : "Descargar Script"}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <aside className="lg:w-56 flex-shrink-0">
+            <div className="lg:sticky lg:top-20 flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0">
+              {sections.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      setActiveSection(s.id);
+                      if (s.id === "preview") setShowPreview(true);
+                      document.getElementById(`section-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+                      activeSection === s.id
+                        ? "bg-blue-50 text-blue-700 shadow-sm"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {s.label}
+                    {s.id === "oca" && (
+                      <span className="ml-auto bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+                        {activeOcaCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+
+              <div className="hidden lg:block mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="w-4 h-4 text-blue-600" />
+                  <span className="text-xs font-semibold text-blue-700">Nota</span>
+                </div>
+                <p className="text-xs text-blue-600 leading-relaxed">
+                  El script generado incluye solo la sección de configuración personalizada. El resto del instalador permanece igual.
+                </p>
+              </div>
+            </div>
+          </aside>
+
+          <main className="flex-1 space-y-6">
+            <div id="section-general">
+              <SectionCard icon={Server} title="Configuración General" color="blue">
+                <FieldRow label="Versión de Odoo" description="Solo se soporta la rama 17.0 CE">
+                  <select
+                    value={config.odooVersion}
+                    onChange={(e) => updateConfig("odooVersion", e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="17.0">17.0 (Community Edition)</option>
+                  </select>
+                </FieldRow>
+                <div className="border-t border-slate-100" />
+                <FieldRow label="Puerto HTTP" description="Puerto principal de Odoo">
+                  <TextInput value={config.odooPort} onChange={(v) => updateConfig("odooPort", v)} />
+                </FieldRow>
+                <FieldRow label="Puerto Longpolling" description="Para chat en vivo y notificaciones">
+                  <TextInput value={config.longpollingPort} onChange={(v) => updateConfig("longpollingPort", v)} />
+                </FieldRow>
+                <div className="border-t border-slate-100" />
+                <FieldRow label="Instalar Nginx" description="Proxy inverso con soporte HTTPS">
+                  <ToggleSwitch checked={config.installNginx} onChange={(v) => updateConfig("installNginx", v)} />
+                </FieldRow>
+                {config.installNginx && (
+                  <>
+                    <FieldRow label="Nombre del dominio" description="Usa _ para aceptar cualquier dominio">
+                      <TextInput value={config.websiteName} onChange={(v) => updateConfig("websiteName", v)} placeholder="micentro.es" />
+                    </FieldRow>
+                    <FieldRow label="Habilitar SSL" description="Requiere dominio configurado y certificado">
+                      <ToggleSwitch checked={config.enableSsl} onChange={(v) => updateConfig("enableSsl", v)} />
+                    </FieldRow>
+                  </>
+                )}
+                <div className="border-t border-slate-100" />
+                <FieldRow label="Instalar wkhtmltopdf" description="Necesario para generar PDF de facturas e informes">
+                  <ToggleSwitch checked={config.installWkhtmltopdf} onChange={(v) => updateConfig("installWkhtmltopdf", v)} />
+                </FieldRow>
+              </SectionCard>
+            </div>
+
+            <div id="section-education">
+              <SectionCard icon={GraduationCap} title="Configuración Educativa" color="green">
+                <FieldRow label="Modo Educativo" description="Habilita funciones de multiempresa por alumno">
+                  <ToggleSwitch checked={config.eduMode} onChange={(v) => updateConfig("eduMode", v)} />
+                </FieldRow>
+
+                {config.eduMode && (
+                  <>
+                    <div className="border-t border-slate-100" />
+                    <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                      <h4 className="text-sm font-semibold text-emerald-800 mb-1">Alumnos</h4>
+                      <p className="text-xs text-emerald-600 mb-4">Cada alumno recibirá su propia base de datos y empresa aislada.</p>
+                      <div className="space-y-4">
+                        <FieldRow label="Número de alumnos">
+                          <NumberInput value={config.eduNumAlumnos} onChange={(v) => updateConfig("eduNumAlumnos", v)} min={1} max={200} />
+                        </FieldRow>
+                        <FieldRow label="Prefijo de usuario/contraseña" description="Ej: alumno01, alumno02...">
+                          <TextInput value={config.eduPasswordPrefix} onChange={(v) => updateConfig("eduPasswordPrefix", v)} />
+                        </FieldRow>
+                        <FieldRow label="Prefijo de base de datos" description="Ej: empresa01, empresa02...">
+                          <TextInput value={config.eduDbPrefix} onChange={(v) => updateConfig("eduDbPrefix", v)} />
+                        </FieldRow>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                      <h4 className="text-sm font-semibold text-blue-800 mb-1">Profesor</h4>
+                      <p className="text-xs text-blue-600 mb-4">Credenciales del usuario administrador con acceso a todas las BDs.</p>
+                      <div className="space-y-4">
+                        <FieldRow label="Usuario del profesor">
+                          <TextInput value={config.eduProfesorUser} onChange={(v) => updateConfig("eduProfesorUser", v)} />
+                        </FieldRow>
+                        <FieldRow label="Contraseña del profesor">
+                          <TextInput value={config.eduProfesorPassword} onChange={(v) => updateConfig("eduProfesorPassword", v)} type="password" />
+                        </FieldRow>
+                      </div>
+                    </div>
+
+                    <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+                      <h4 className="text-sm font-semibold text-violet-800 mb-1">Centro Educativo</h4>
+                      <p className="text-xs text-violet-600 mb-4">Información para el rebranding de Odoo.</p>
+                      <div className="space-y-4">
+                        <FieldRow label="Nombre del centro">
+                          <TextInput value={config.eduCentroNombre} onChange={(v) => updateConfig("eduCentroNombre", v)} />
+                        </FieldRow>
+                        <FieldRow label="URL del logo" description="Opcional. URL pública del logo del centro">
+                          <TextInput value={config.eduCentroLogo} onChange={(v) => updateConfig("eduCentroLogo", v)} placeholder="https://..." />
+                        </FieldRow>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100" />
+                    <FieldRow label="Directorio de backups" description="Ruta donde se almacenan las copias de seguridad">
+                      <TextInput value={config.eduBackupDir} onChange={(v) => updateConfig("eduBackupDir", v)} />
+                    </FieldRow>
+                    <FieldRow label="Retención de backups (días)" description="Los backups más antiguos se eliminan automáticamente">
+                      <NumberInput value={config.eduBackupRetentionDays} onChange={(v) => updateConfig("eduBackupRetentionDays", v)} min={1} max={365} />
+                    </FieldRow>
+                  </>
+                )}
+              </SectionCard>
+            </div>
+
+            <div id="section-oca">
+              <SectionCard icon={Package} title="Módulos OCA" color="purple">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-slate-600">
+                    <span className="font-semibold text-violet-700">{activeOcaCount}</span> de {ocaModules.length} módulos seleccionados
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={selectAllOca} className="text-xs px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors font-medium">
+                      Seleccionar todos
+                    </button>
+                    <button onClick={deselectAllOca} className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors font-medium">
+                      Deseleccionar todos
+                    </button>
+                  </div>
+                </div>
+                <div className="border-t border-slate-100" />
+                <div className="grid gap-3">
+                  {ocaModules.map((mod) => (
+                    <div
+                      key={mod.key}
+                      className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                        config[mod.key]
+                          ? "bg-violet-50/50 border-violet-200"
+                          : "bg-slate-50/50 border-slate-200"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800">{mod.label}</p>
+                        <p className="text-xs text-slate-500">{mod.description}</p>
+                      </div>
+                      <ToggleSwitch
+                        checked={config[mod.key] as boolean}
+                        onChange={(v) => updateConfig(mod.key, v as never)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            </div>
+
+            <div id="section-preview">
+              <SectionCard icon={Eye} title="Vista Previa del Script" color="cyan">
+                <p className="text-sm text-slate-600 mb-4">
+                  Vista previa de la sección de configuración del script que se generará con tus ajustes.
+                </p>
+                {showPreview ? (
+                  <ScriptPreview script={generatePreviewScript(config)} />
+                ) : (
+                  <button
+                    onClick={() => setShowPreview(true)}
+                    className="w-full py-8 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex flex-col items-center gap-2"
+                  >
+                    <Eye className="w-6 h-6" />
+                    <span className="text-sm font-medium">Haz clic para ver la vista previa</span>
+                  </button>
+                )}
+              </SectionCard>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg"
+            >
+              <div>
+                <h3 className="text-lg font-bold text-white font-display">¿Listo para instalar?</h3>
+                <p className="text-sm text-blue-200 mt-1">
+                  Descarga tu script personalizado y ejecútalo en tu servidor Ubuntu.
+                </p>
+              </div>
+              <button
+                onClick={downloadScript}
+                disabled={downloading}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-700 font-semibold hover:bg-blue-50 transition-colors shadow-sm flex-shrink-0 disabled:opacity-50"
+              >
+                {downloading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                {downloading ? "Generando..." : "Descargar odoo_install.sh"}
+              </button>
+            </motion.div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
