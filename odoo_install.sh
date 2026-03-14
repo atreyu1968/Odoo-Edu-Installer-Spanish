@@ -312,17 +312,21 @@ log_success "Dependencias del sistema instaladas."
 
 log_info "Instalando PostgreSQL..."
 
+if [[ -f /etc/apt/sources.list.d/pgdg.list ]]; then
+    rm -f /etc/apt/sources.list.d/pgdg.list
+    apt-get update -qq 2>/dev/null || true
+fi
+
 if ! command -v psql &>/dev/null; then
-    DISTRO_CODENAME=$(lsb_release -cs 2>/dev/null || echo "")
     PGDG_SUPPORTED="jammy noble"
 
-    if echo "$PGDG_SUPPORTED" | grep -qw "$DISTRO_CODENAME"; then
-        log_info "Anadiendo repositorio oficial de PostgreSQL (codename: $DISTRO_CODENAME)..."
-        sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt ${DISTRO_CODENAME}-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
-        wget -qO - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+    if echo "$PGDG_SUPPORTED" | grep -qw "$OS_CODENAME"; then
+        log_info "Anadiendo repositorio oficial de PostgreSQL (codename: $OS_CODENAME)..."
+        sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt ${OS_CODENAME}-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+        wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --batch --yes --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
         apt-get update -qq
     else
-        log_warn "El codename '$DISTRO_CODENAME' no esta soportado por el repositorio PGDG."
+        log_warn "El codename '$OS_CODENAME' no esta soportado por el repositorio PGDG."
         log_info "Instalando PostgreSQL desde los repositorios del sistema..."
     fi
 fi
