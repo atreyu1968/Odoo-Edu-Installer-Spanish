@@ -433,29 +433,43 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer className="bg-slate-950 py-12 border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-blue-500" />
-            <span className="font-display font-bold text-xl text-white">
-              Odoo<span className="text-blue-500">Edu</span>
-            </span>
-          </div>
-          
-          <div className="text-center md:text-left text-slate-400 text-sm">
-            <p className="mb-2">Herramienta de código abierto para la Formación Profesional.</p>
-            <p className="text-xs text-slate-500">
-              Scripts bajo licencia MIT. Odoo CE bajo LGPL-3. Módulos OCA bajo AGPL-3 o LGPL-3.
-            </p>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <img 
+                src={`${import.meta.env.BASE_URL}images/asd-logo.png`}
+                alt="Atreyu Servicios Digitales" 
+                className="h-14 object-contain"
+              />
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-blue-500" />
+                <span className="font-display font-bold text-xl text-white">
+                  Odoo<span className="text-blue-500">Edu</span>
+                </span>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-4 text-sm text-slate-400">
-            <a href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
-            <span>•</span>
-            <a href="https://www.odoo.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Odoo CE</a>
-            <span>•</span>
-            <a href="https://odoo-community.org" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">OCA</a>
-            <span>•</span>
-            <a href="https://github.com/OCA/l10n-spain" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">l10n-spain</a>
+            <div className="text-center space-y-3 max-w-2xl">
+              <p className="text-slate-300 text-sm">
+                Script desarrollado por <strong className="text-white">Atreyu Servicios Digitales</strong>
+              </p>
+              <p className="text-slate-400 text-sm">
+                Una iniciativa del <strong className="text-slate-300">Departamento de Administración de Empresas</strong> del <strong className="text-slate-300">IES Manuel Martín González</strong>
+              </p>
+              <p className="text-xs text-slate-500 mt-4">
+                Scripts bajo licencia MIT. Odoo CE bajo LGPL-3. Módulos OCA bajo AGPL-3 o LGPL-3.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4 text-sm text-slate-400">
+              <a href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub</a>
+              <span>•</span>
+              <a href="https://www.odoo.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Odoo CE</a>
+              <span>•</span>
+              <a href="https://odoo-community.org" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">OCA</a>
+              <span>•</span>
+              <a href="https://github.com/OCA/l10n-spain" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">l10n-spain</a>
+            </div>
           </div>
         </div>
       </footer>
