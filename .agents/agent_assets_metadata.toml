@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "8UsThOHea-p9ewHwg5o-y"
+uri = "file://README.md"
+type = "text"
+title = "README.md - Documentación completa de OdooEdu"

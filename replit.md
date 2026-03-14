@@ -16,6 +16,11 @@ pnpm workspace monorepo using TypeScript. Contains the Odoo Educativo landing pa
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Key Files (root)
+- `README.md` — Full documentation with features, installation instructions, troubleshooting
+- `bootstrap.sh` — One-line bootstrap script (updates server, installs git/curl, clones repo, runs installer)
+- `odoo_install.sh` — Main unattended installation script
+
 ## Project: Odoo Educativo
 
 ### Landing Page (`artifacts/odoo-edu`)
