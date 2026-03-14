@@ -430,6 +430,13 @@ source "$VENV_DIR/bin/activate"
 
 pip install --no-cache-dir --upgrade pip setuptools wheel
 
+sed -i 's/^psycopg2.*$/psycopg2-binary/' "$ODOO_HOME_EXT/requirements.txt" 2>/dev/null || true
+
+pip install --no-cache-dir --only-binary=lxml lxml 2>/dev/null || \
+    pip install --no-cache-dir lxml
+
+pip install --no-cache-dir psycopg2-binary
+
 pip install --no-cache-dir -r "$ODOO_HOME_EXT/requirements.txt"
 
 pip install --no-cache-dir \
