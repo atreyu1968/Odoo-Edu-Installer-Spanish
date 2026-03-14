@@ -235,6 +235,29 @@ apt-get install -y -qq \
     ${PYTHON_EXACT}-dev \
     ${PYTHON_VERSION}-pip \
     ${PYTHON_EXACT}-venv \
+    libxml2-dev \
+    libxslt1-dev \
+    libzip-dev \
+    libldap2-dev \
+    libsasl2-dev \
+    libjpeg-dev \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    zlib1g-dev \
+    libfreetype6-dev \
+    liblcms2-dev \
+    libwebp-dev \
+    node-less \
+    npm \
+    xfonts-75dpi \
+    xfonts-base \
+    fontconfig
+
+apt-get install -y -qq libtiff5-dev 2>/dev/null || apt-get install -y -qq libtiff-dev 2>/dev/null || true
+apt-get install -y -qq libjpeg62-turbo-dev 2>/dev/null || apt-get install -y -qq libjpeg62-dev 2>/dev/null || true
+
+apt-get install -y -qq \
     python3-setuptools \
     python3-wheel \
     python3-cffi \
@@ -282,29 +305,7 @@ apt-get install -y -qq \
     python3-xlrd \
     python3-xlsxwriter \
     python3-xlwt \
-    python3-zeep \
-    libxml2-dev \
-    libxslt1-dev \
-    libzip-dev \
-    libldap2-dev \
-    libsasl2-dev \
-    libjpeg-dev \
-    libpq-dev \
-    libffi-dev \
-    libssl-dev \
-    zlib1g-dev \
-    libtiff5-dev \
-    libfreetype6-dev \
-    liblcms2-dev \
-    libwebp-dev \
-    libjpeg62-turbo-dev 2>/dev/null || true
-
-apt-get install -y -qq \
-    node-less \
-    npm \
-    xfonts-75dpi \
-    xfonts-base \
-    fontconfig
+    python3-zeep 2>/dev/null || true
 
 npm install -g rtlcss less less-plugin-clean-css 2>/dev/null || true
 
