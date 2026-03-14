@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { 
   Terminal, Server, Building2, Palette, Users, Shield, 
   CheckCircle2,
-  Database, Lock, MonitorSmartphone
+  Database, Lock, MonitorSmartphone, Globe, Settings, BookOpen, LayoutDashboard
 } from "lucide-react";
 import { CodeBlock } from "@/components/CodeBlock";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -29,6 +29,7 @@ export default function Landing() {
             <a href="#modules" className="hover:text-blue-600 transition-colors">Módulos OCA</a>
             <a href="#educator" className="hover:text-blue-600 transition-colors">Para Profesores</a>
             <a href="#instructions" className="hover:text-blue-600 transition-colors">Instalación</a>
+            <a href="#acceso" className="hover:text-blue-600 transition-colors">Acceso</a>
           </div>
           <a 
             href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish" 
@@ -285,8 +286,113 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ACCESS ROUTES SECTION */}
+      <section id="acceso" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading 
+            badge="Rutas de Acceso"
+            title="Todo desde una sola dirección"
+            description="Tras la instalación, tu servidor sirve todas las herramientas desde una misma IP o dominio. Aquí tienes el mapa completo."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {[
+              {
+                icon: Globe,
+                route: "/",
+                title: "Página de Inicio",
+                description: "La landing page pública del proyecto. Muestra las características, módulos OCA incluidos e instrucciones de instalación.",
+                color: "blue",
+                badge: "Público"
+              },
+              {
+                icon: Settings,
+                route: "/admin",
+                title: "Panel de Administración",
+                description: "Panel web para gestionar grupos de alumnos, profesores, branding del centro y estado de los servicios. Requiere login.",
+                color: "violet",
+                badge: "Superadmin / Profesor"
+              },
+              {
+                icon: BookOpen,
+                route: "/web",
+                title: "Odoo ERP",
+                description: "Acceso al ERP Odoo 17 para alumnos y profesores. Cada alumno entra con sus credenciales a su propia base de datos.",
+                color: "emerald",
+                badge: "Alumnos / Profesores"
+              },
+              {
+                icon: LayoutDashboard,
+                route: "/api/",
+                title: "API del Panel",
+                description: "Endpoints internos del servidor API que alimentan el panel de administración. No requiere acceso directo.",
+                color: "slate",
+                badge: "Interno"
+              }
+            ].map((item, idx) => {
+              const colorMap: Record<string, { bg: string; border: string; icon: string; badgeBg: string; badgeText: string }> = {
+                blue: { bg: "bg-blue-50", border: "border-blue-200", icon: "text-blue-600", badgeBg: "bg-blue-100", badgeText: "text-blue-700" },
+                violet: { bg: "bg-violet-50", border: "border-violet-200", icon: "text-violet-600", badgeBg: "bg-violet-100", badgeText: "text-violet-700" },
+                emerald: { bg: "bg-emerald-50", border: "border-emerald-200", icon: "text-emerald-600", badgeBg: "bg-emerald-100", badgeText: "text-emerald-700" },
+                slate: { bg: "bg-slate-50", border: "border-slate-200", icon: "text-slate-500", badgeBg: "bg-slate-100", badgeText: "text-slate-600" },
+              };
+              const c = colorMap[item.color];
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                  className={`relative rounded-2xl border ${c.border} ${c.bg} p-6 hover:shadow-lg transition-shadow duration-300`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl ${c.badgeBg} ${c.icon} flex items-center justify-center shrink-0`}>
+                      <item.icon className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1 flex-wrap">
+                        <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${c.badgeBg} ${c.badgeText}`}>
+                          {item.badge}
+                        </span>
+                      </div>
+                      <code className={`inline-block text-sm font-mono ${c.icon} font-semibold mb-2`}>
+                        http://tu-servidor{item.route}
+                      </code>
+                      <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <div className="bg-slate-900 rounded-2xl p-8 text-white">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Server className="w-5 h-5 text-blue-400" />
+              Arquitectura del servidor
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+              <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+                <div className="text-blue-400 font-semibold mb-2">Nginx (puerto 80/443)</div>
+                <p className="text-slate-400">Proxy inverso que distribuye las peticiones a cada servicio. Sirve los archivos estáticos de la landing y el panel.</p>
+              </div>
+              <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+                <div className="text-violet-400 font-semibold mb-2">API Node.js (puerto 3001)</div>
+                <p className="text-slate-400">Servidor Express que gestiona la autenticación, grupos, branding y estado del sistema. Nginx lo expone en <code className="text-violet-300">/api/</code></p>
+              </div>
+              <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+                <div className="text-emerald-400 font-semibold mb-2">Odoo 17 (puerto 8069)</div>
+                <p className="text-slate-400">El ERP principal. Nginx lo expone en <code className="text-emerald-300">/web</code>, <code className="text-emerald-300">/longpolling</code> y <code className="text-emerald-300">/websocket</code></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* MODULES SECTION */}
-      <section id="modules" className="py-24 bg-white">
+      <section id="modules" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading 
             badge="Ecosistema Completo"
