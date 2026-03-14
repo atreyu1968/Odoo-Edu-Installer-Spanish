@@ -53,6 +53,10 @@ ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
 INSTALL_WKHTMLTOPDF=true
 WKHTMLTOPDF_VERSION="0.12.6.1-3"
 
+# --- Superadministrador del panel web ---
+SUPERADMIN_USER="superadmin"
+SUPERADMIN_PASSWORD="SuperAdmin2024!"
+
 # --- Configuracion educativa ---
 EDU_MODE=true
 EDU_CENTRO_NOMBRE="Centro de Formacion Profesional"
@@ -1352,14 +1356,27 @@ echo "    - e-commerce, pos, crm, social"
 echo "    - website, maintenance, knowledge"
 echo ""
 echo "  PASOS SIGUIENTES:"
-echo "    1. Ejecuta: sudo odoo_crear_alumnos.sh"
-echo "    2. Reparte las credenciales del archivo:"
-echo "       $ODOO_HOME/credenciales_alumnos.csv"
-echo "    3. Cada alumno accede a su BD con su usuario"
-echo "    4. Los profesores acceden con sus credenciales"
-echo "       (tienen acceso a TODAS las bases de datos)"
-echo "    5. Para personalizar la marca, instala el modulo"
-echo "       'brand' desde Aplicaciones en cada BD"
+echo ""
+echo "    1. ACCEDE AL PANEL DE ADMINISTRACION:"
+if [[ "$INSTALL_NGINX" == true ]]; then
+echo "       URL: http://$SERVER_IP/admin"
+else
+echo "       URL: http://$SERVER_IP:$ODOO_PORT/admin"
+fi
+echo "       Usuario: $SUPERADMIN_USER"
+echo "       Contrasena: $SUPERADMIN_PASSWORD"
+echo ""
+echo "    2. Desde el panel puedes:"
+echo "       - Crear grupos de alumnos y asignar profesores"
+echo "       - Configurar el branding (logo, colores, datos)"
+echo "       - Gestionar actualizaciones de Odoo y modulos OCA"
+echo "       - Resetear bases de datos de alumnos"
+echo ""
+echo "    3. Cada profesor accede con sus credenciales"
+echo "       y solo ve las BDs de su grupo asignado."
+echo ""
+echo "    4. Cada alumno accede con su usuario/contrasena"
+echo "       a su base de datos individual."
 echo ""
 echo "=================================================================="
 
@@ -1383,6 +1400,10 @@ Base de datos:
   Contrasena: $DB_PASSWORD
   Host: $DB_HOST
   Puerto: $DB_PORT
+
+Superadministrador:
+  Usuario: $SUPERADMIN_USER
+  Contrasena: $SUPERADMIN_PASSWORD
 
 Grupos (profesor incluido): $EDU_GRUPOS
 

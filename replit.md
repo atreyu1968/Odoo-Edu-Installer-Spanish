@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Contains the Odoo Educativo landing page and the unattended Odoo 17 installation scripts for Spanish educational centers.
+pnpm workspace monorepo using TypeScript. Contains the Odoo Educativo landing page, post-install admin panel, and the unattended Odoo 17 installation scripts for Spanish educational centers.
 
 ## Stack
 
@@ -19,14 +19,28 @@ pnpm workspace monorepo using TypeScript. Contains the Odoo Educativo landing pa
 ## Project: Odoo Educativo
 
 ### Landing Page (`artifacts/odoo-edu`)
-React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcases features, installation instructions, OCA modules, and educator tools. No backend needed - purely static frontend.
+React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcases features, installation instructions (GitHub clone + bash), OCA modules, and educator tools. Links to GitHub repo for download — no configurator buttons.
 
 - **URL**: `/` (root)
 - **Framework**: React + Vite + Tailwind CSS + Framer Motion
-- **Key files**: `src/pages/Landing.tsx`, `src/pages/Configurator.tsx`, `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
-- **Routes**: `/` (landing page), `/configurar` (installation configurator with live server execution)
+- **Key files**: `src/pages/Landing.tsx`, `src/pages/AdminPanel.tsx`, `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
+- **Routes**:
+  - `/` — Landing page with GitHub install instructions
+  - `/admin` — Post-install admin panel with login (superadmin or professor)
 - **Vite proxy**: `/api` → `http://localhost:8080` (API server)
 - **GitHub repo**: https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish
+
+### Admin Panel (`/admin`)
+Role-based post-installation admin panel for managing the Odoo educational environment.
+
+- **Superadmin role**: Full access — manages all groups, professors, branding, and updates
+- **Professor role**: Limited access — only sees and manages their own group's students
+- **Auth**: Client-side auth with hardcoded defaults for demo (superadmin/SuperAdmin2024!)
+- **Tabs (superadmin only)**:
+  - Grupos y Profesores — CRUD for groups with embedded professor management
+  - Branding — Company data, logo, favicon, corporate colors
+  - Actualizaciones — Odoo and OCA module update status
+- **Default credentials**: superadmin / SuperAdmin2024!
 
 ### Installation Scripts (root directory)
 - `odoo_install.sh` — Main unattended installer for Odoo 17 CE with:
@@ -34,15 +48,17 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
   - Multi-company support for educational use
   - **Multi-group model with per-group professor**: each group has its own assigned professor (1:1 relationship). Professor only has admin access to their own group's databases.
     - Serialized as pipe-delimited fields, semicolon-delimited entries: `EDU_GRUPOS="nombre|numAlumnos|dbPrefix|pwdPrefix|profNombre|profUsuario|profPassword;..."`
+  - **Superadmin credentials**: `SUPERADMIN_USER` / `SUPERADMIN_PASSWORD` variables for admin panel access
   - Full branding/marca blanca: logo (PNG 200×60px), favicon (32×32px), corporate colors, company data (name, tagline, website, email, phone, address)
   - Rebranding via OCA brand/server-brand modules
   - 40+ OCA module repositories
   - PostgreSQL, Nginx, systemd, UFW, logrotate
   - Automatic backup cron job
   - Educational scripts for student/teacher management (with branding propagation)
+  - Post-install summary: shows admin panel URL (adapts for Nginx vs direct) and superadmin credentials
 
 - Auxiliary scripts created by installer at `/usr/local/bin/`:
-  - `odoo_crear_alumnos.sh` — Mass student account creation (iterates all groups, creates all professors with admin access to all DBs)
+  - `odoo_crear_alumnos.sh` — Mass student account creation (iterates all groups, creates each professor only in their group's DBs)
   - `odoo_reset_alumno.sh` — Reset a student's database (takes DB name directly)
   - `odoo_backup.sh` — Manual backup of all databases
   - `odoo_restaurar_alumno.sh` — Restore database from backup
@@ -53,7 +69,7 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 artifacts-monorepo/
 ├── artifacts/
 │   ├── api-server/         # Express API server
-│   └── odoo-edu/           # Landing page (React + Vite)
+│   └── odoo-edu/           # Landing page + Admin panel (React + Vite)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -89,28 +105,19 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 - Entry: `src/index.ts` — reads `PORT`, starts Express
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
 - Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health`; `src/routes/install.ts` provides Odoo installation management
-- Install API endpoints:
-  - `GET /api/install/status` — current installation status
-  - `GET /api/install/logs` — all installation logs
-  - `GET /api/install/stream` — SSE stream for real-time logs
-  - `POST /api/install/start` — start installation with config
-  - `POST /api/install/stop` — cancel running installation
-  - `POST /api/install/reset` — reset state for new installation
-  - `POST /api/install/generate-script` — generate and download customized script
 - Depends on: `@workspace/db`, `@workspace/api-zod`
 - `pnpm --filter @workspace/api-server run dev` — run the dev server
 - `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
 
 ### `artifacts/odoo-edu` (`@workspace/odoo-edu`)
 
-React + Vite landing page for Odoo Educativo. Frontend-only, no backend API calls.
+React + Vite app with landing page and admin panel for Odoo Educativo.
 
 - Entry: `src/main.tsx`
-- Main page: `src/pages/Landing.tsx`
+- Pages: `src/pages/Landing.tsx` (landing), `src/pages/AdminPanel.tsx` (admin panel with login)
 - Components: `src/components/CodeBlock.tsx`, `src/components/SectionHeading.tsx`
 - Styling: `src/index.css` (Tailwind + custom CSS vars, blue tech theme)
-- Images: `public/images/hero-bg.png`, `public/images/educator-dashboard.png`
+- Images: `public/images/hero-bg.png`, `public/images/educator-dashboard.png`, `public/images/asd-logo.png`
 
 ### `lib/db` (`@workspace/db`)
 

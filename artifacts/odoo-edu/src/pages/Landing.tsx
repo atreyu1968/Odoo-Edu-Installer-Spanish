@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
 import { 
   Terminal, Server, Building2, Palette, Users, Shield, 
-  ArrowRight, CheckCircle2, Download, BookOpen, Settings,
-  Database, PlayCircle, Sliders
+  CheckCircle2, BookOpen,
+  Database, Lock, MonitorSmartphone
 } from "lucide-react";
-import { Link } from "wouter";
 import { CodeBlock } from "@/components/CodeBlock";
 import { SectionHeading } from "@/components/SectionHeading";
 
@@ -30,17 +29,18 @@ export default function Landing() {
             <a href="#instructions" className="hover:text-blue-600 transition-colors">Instalación</a>
           </div>
           <a 
-            href="/configurar" 
-            className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300"
+            href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish" 
+            target="_blank"
+            rel="noreferrer"
+            className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 flex items-center gap-2"
           >
-            Configurar
+            GitHub
           </a>
         </div>
       </nav>
 
       {/* HERO SECTION */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-        {/* Background elements */}
         <div className="absolute inset-0 z-0">
           <img 
             src={`${import.meta.env.BASE_URL}images/hero-bg.png`} 
@@ -69,23 +69,25 @@ export default function Landing() {
               <span className="text-gradient">centros de formación</span>
             </h1>
             <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Script de instalación desatendida profesional con localización española, soporte multiempresa aislado para alumnos, rebranding y la suite completa de módulos OCA.
+              Instalación desatendida profesional con localización española, soporte multiempresa aislado para alumnos, panel de administración web, rebranding y la suite completa de módulos OCA.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                href="/configurar"
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group"
-              >
-                <Sliders className="w-5 h-5 group-hover:animate-bounce" />
-                Configurar Instalación
-              </Link>
               <a 
                 href="#instructions"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group"
+              >
+                <Terminal className="w-5 h-5 group-hover:animate-bounce" />
+                Instrucciones de Instalación
+              </a>
+              <a 
+                href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish"
+                target="_blank"
+                rel="noreferrer"
                 className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-slate-700 border border-slate-200 font-semibold text-lg shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <Terminal className="w-5 h-5 text-slate-400" />
-                Ver Instrucciones
+                <Database className="w-5 h-5 text-slate-400" />
+                Ver en GitHub
               </a>
             </div>
           </motion.div>
@@ -121,17 +123,17 @@ export default function Landing() {
               {
                 icon: Palette,
                 title: "Rebranding del Centro",
-                description: "Módulo OCA brand preinstalado para sustituir los logotipos y colores de Odoo por la identidad corporativa de tu centro educativo."
+                description: "Personaliza logo, colores corporativos, datos de empresa y favicon. Se aplica automáticamente a todas las bases de datos de alumnos."
               },
               {
-                icon: Settings,
-                title: "Gestión de Alumnos",
-                description: "Scripts incluidos para la creación masiva de cuentas de alumnos. Genera un CSV con todas las credenciales listas para repartir en clase."
+                icon: MonitorSmartphone,
+                title: "Panel de Administración",
+                description: "Panel web para el superadministrador: gestiona grupos, profesores, branding y actualizaciones sin tocar la terminal."
               },
               {
                 icon: Shield,
                 title: "Backups y Reseteos",
-                description: "Copias de seguridad diarias automatizadas. Además, el profesor puede resetear la empresa de cualquier alumno a su estado inicial con un comando."
+                description: "Copias de seguridad diarias automatizadas. El profesor puede resetear la empresa de cualquier alumno a su estado inicial desde el panel."
               }
             ].map((feature, idx) => (
               <motion.div 
@@ -175,10 +177,11 @@ export default function Landing() {
               
               <ul className="space-y-5">
                 {[
-                  "Usuario 'profesor' con acceso administrador a todas las BDs.",
+                  "Panel de administración web para el superadministrador.",
+                  "Cada profesor gestiona solo su grupo de alumnos.",
                   "Archivo CSV auto-generado con las contraseñas de los alumnos.",
-                  "Script de reseteo: si un alumno rompe algo, devuélvelo al estado inicial en 5 segundos.",
-                  "Políticas de retención de backups configurables (ej: 30 días)."
+                  "Reseteo de bases de datos y gestión de backups desde el panel.",
+                  "Rebranding y actualizaciones centralizadas."
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
@@ -210,8 +213,8 @@ export default function Landing() {
       <section id="instructions" className="py-24 bg-slate-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading 
-            badge="Guía Rápida"
-            title="Instalación en 5 pasos"
+            badge="Guía de Instalación"
+            title="Instalación en 3 pasos"
             description="Despliega el entorno completo en un servidor Ubuntu limpio en menos de 15 minutos."
           />
 
@@ -220,9 +223,9 @@ export default function Landing() {
               <Database className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-semibold text-blue-900 mb-1">Requisitos previos recomendados</h4>
+              <h4 className="font-semibold text-blue-900 mb-1">Requisitos previos</h4>
               <p className="text-blue-800/80 text-sm">
-                Servidor VPS o Máquina Virtual con Ubuntu 22.04 LTS o 24.04 LTS. <br/>
+                Servidor VPS o Máquina Virtual con <strong>Ubuntu 22.04 LTS o 24.04 LTS</strong>. <br/>
                 Mínimo 4GB de RAM, 2 vCPU y 50GB de disco SSD. Acceso root o sudo.
               </p>
             </div>
@@ -231,28 +234,22 @@ export default function Landing() {
           <div className="space-y-12">
             {[
               {
-                title: "Descargar el script de instalación",
-                desc: "Clona el repositorio o descarga directamente el archivo odoo_install.sh en tu servidor.",
+                title: "Clonar el repositorio",
+                desc: "Descarga el instalador desde GitHub en tu servidor.",
                 code: "git clone https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish.git\ncd Odoo-Edu-Installer-Spanish\nchmod +x odoo_install.sh"
               },
               {
-                title: "Ejecutar la instalación desatendida",
-                desc: "Este proceso tardará varios minutos. Descargará Odoo, instalará dependencias, PostgreSQL, y los repositorios OCA.",
+                title: "Ejecutar la instalación",
+                desc: "El script instalará Odoo 17, PostgreSQL, Nginx, módulos OCA y todas las dependencias de forma automática. El proceso tarda entre 10 y 20 minutos.",
                 code: "sudo bash odoo_install.sh"
               },
               {
-                title: "Crear bases de datos para alumnos",
-                desc: "Usa el script auxiliar para generar automáticamente el entorno de todos tus alumnos. Por ejemplo, para 30 alumnos:",
-                code: "sudo odoo_crear_alumnos.sh 30"
-              },
-              {
-                title: "Repartir credenciales",
-                desc: "El paso anterior generará un archivo CSV en el directorio de Odoo. Puedes descargarlo y enviarlo a los alumnos.",
-                code: "cat /opt/odoo17/credenciales_alumnos.csv"
+                title: "Acceder al panel de administración",
+                desc: "Al finalizar la instalación, el script te mostrará la URL del panel y las credenciales del superadministrador. Desde el panel podrás crear grupos de alumnos, asignar profesores, configurar el branding y gestionar actualizaciones.",
+                code: "# Al finalizar veras algo como:\n# URL: http://TU_IP/admin\n# Usuario: superadmin\n# Contraseña: SuperAdmin2024!\n#\n# Cambia la contraseña por defecto en el primer acceso."
               }
             ].map((step, idx) => (
               <div key={idx} className="relative pl-10 md:pl-0">
-                {/* Timeline line on mobile */}
                 <div className="absolute left-[19px] top-10 bottom-[-40px] w-0.5 bg-slate-200 md:hidden" />
                 
                 <div className="md:grid md:grid-cols-[100px_1fr] md:gap-6 items-start">
@@ -267,6 +264,21 @@ export default function Landing() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Post-install callout */}
+          <div className="mt-12 bg-emerald-50 border border-emerald-200 rounded-xl p-6 flex items-start gap-4">
+            <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600 shrink-0">
+              <Lock className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-emerald-900 mb-1">Después de la instalación</h4>
+              <p className="text-emerald-800/80 text-sm">
+                Lo primero que debes hacer es <strong>acceder al panel como superadministrador</strong> y cambiar la contraseña por defecto.
+                Desde el panel podrás crear los grupos de alumnos, asignar un profesor a cada grupo y personalizar la marca del centro.
+                Cada profesor recibirá sus credenciales para acceder a su propio panel donde gestiona únicamente su grupo.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -337,97 +349,33 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* DOWNLOAD / QUICKSTART */}
-      <section id="download" className="py-24 bg-slate-900 relative overflow-hidden">
-        {/* Abstract background shapes */}
+      {/* GITHUB CTA */}
+      <section className="py-24 bg-slate-900 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-40 -mt-40 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-96 h-96 rounded-full bg-cyan-600/10 blur-3xl pointer-events-none" />
         
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-              Preparado para tu centro
-            </h2>
-            <p className="text-slate-400 text-lg">
-              Descarga, configura las variables y ejecuta. OdooEdu hace el resto.
-            </p>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+            Preparado para tu centro
+          </h2>
+          <p className="text-slate-400 text-lg mb-10">
+            Clona el repositorio, ejecuta el script y accede al panel de administración.
+          </p>
+
+          <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl p-8 mb-10 text-left max-w-2xl mx-auto">
+            <CodeBlock code={`git clone https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish.git
+cd Odoo-Edu-Installer-Spanish
+sudo bash odoo_install.sh`} />
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl overflow-hidden mb-12">
-            <div className="p-6 border-b border-slate-700 bg-slate-800/80">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Settings className="w-5 h-5 text-blue-400" />
-                Variables de configuración (odoo_install.sh)
-              </h3>
-              <p className="text-sm text-slate-400 mt-1">Edita el principio del script antes de ejecutarlo para adaptarlo a tu clase.</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-900/50 text-slate-400">
-                  <tr>
-                    <th className="px-6 py-4 font-mono font-medium">Variable</th>
-                    <th className="px-6 py-4 font-medium">Valor por defecto</th>
-                    <th className="px-6 py-4 font-medium">Descripción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/50">
-                  <tr className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-blue-300">EDU_NUM_ALUMNOS</td>
-                    <td className="px-6 py-4 font-mono">30</td>
-                    <td className="px-6 py-4">Número de bases de datos/empresas a crear.</td>
-                  </tr>
-                  <tr className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-blue-300">EDU_PASSWORD_PREFIX</td>
-                    <td className="px-6 py-4 font-mono">"alumno"</td>
-                    <td className="px-6 py-4">Prefijo para usuario y contraseña (ej: alumno01).</td>
-                  </tr>
-                  <tr className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-blue-300">EDU_DB_PREFIX</td>
-                    <td className="px-6 py-4 font-mono">"empresa"</td>
-                    <td className="px-6 py-4">Prefijo para la base de datos (ej: empresa01).</td>
-                  </tr>
-                  <tr className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-blue-300">EDU_PROFESOR_USER</td>
-                    <td className="px-6 py-4 font-mono">"profesor"</td>
-                    <td className="px-6 py-4">Usuario maestro con acceso global.</td>
-                  </tr>
-                  <tr className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-blue-300">EDU_CENTRO_NOMBRE</td>
-                    <td className="px-6 py-4 font-mono">"Centro FP"</td>
-                    <td className="px-6 py-4">Nombre que aparecerá por defecto en las empresas.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Link 
-                href="/configurar"
-                className="px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 flex items-center gap-3"
-              >
-                <Sliders className="w-6 h-6" />
-                Configurador Visual
-              </Link>
-              <a 
-                href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish/archive/refs/heads/main.zip" 
-                className="px-8 py-4 rounded-xl bg-slate-700 text-white font-bold text-lg hover:bg-slate-600 transition-all duration-300 flex items-center gap-3 border border-slate-600"
-              >
-                <Download className="w-6 h-6" />
-                Descargar .zip
-              </a>
-            </div>
-            <a 
-              href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish"
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate-400 text-sm hover:text-blue-400 transition-colors flex items-center gap-2"
-            >
-              <PlayCircle className="w-4 h-4" />
-              O clona el repositorio desde GitHub
-            </a>
-          </div>
+          <a 
+            href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 items-center gap-3"
+          >
+            Ver en GitHub
+          </a>
         </div>
       </section>
 
