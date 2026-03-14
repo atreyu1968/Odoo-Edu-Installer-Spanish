@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
-  BookOpen, Lock, Eye, EyeOff, LogOut,
+  Lock, Eye, EyeOff, LogOut,
   Users, GraduationCap, Palette, RefreshCw,
   Plus, Trash2, Save, CheckCircle2, AlertTriangle,
   Building2, Image, Globe, Mail, Phone, MapPin,
@@ -216,9 +216,11 @@ export default function AdminPanel() {
           className="w-full max-w-md"
         >
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 mx-auto mb-4">
-              <BookOpen className="w-8 h-8" />
-            </div>
+            <img 
+              src={`${import.meta.env.BASE_URL}images/odoo-edu-logo.png`}
+              alt="OdooEdu"
+              className="w-20 h-20 object-contain mx-auto mb-4 drop-shadow-lg"
+            />
             <h1 className="text-2xl font-display font-bold text-white">
               Odoo<span className="text-blue-400">Edu</span>
             </h1>
@@ -303,9 +305,11 @@ export default function AdminPanel() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white">
-              <BookOpen className="w-4 h-4" />
-            </div>
+            <img 
+              src={`${import.meta.env.BASE_URL}images/odoo-edu-logo.png`}
+              alt="OdooEdu"
+              className="w-8 h-8 object-contain"
+            />
             <span className="font-display font-bold text-lg text-slate-900">
               Odoo<span className="text-blue-600">Edu</span>
             </span>

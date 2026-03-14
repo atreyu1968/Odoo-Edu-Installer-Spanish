@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { 
   Terminal, Server, Building2, Palette, Users, Shield, 
-  CheckCircle2, BookOpen,
+  CheckCircle2,
   Database, Lock, MonitorSmartphone
 } from "lucide-react";
 import { CodeBlock } from "@/components/CodeBlock";
@@ -15,9 +15,11 @@ export default function Landing() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-              <BookOpen className="w-5 h-5" />
-            </div>
+            <img 
+              src={`${import.meta.env.BASE_URL}images/odoo-edu-logo.png`}
+              alt="OdooEdu"
+              className="w-10 h-10 object-contain"
+            />
             <span className="font-display font-bold text-xl tracking-tight text-slate-900">
               Odoo<span className="text-blue-600">Edu</span>
             </span>
@@ -390,7 +392,11 @@ sudo bash odoo_install.sh`} />
                 className="h-14 object-contain"
               />
               <div className="flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-blue-500" />
+                <img 
+                  src={`${import.meta.env.BASE_URL}images/odoo-edu-logo.png`}
+                  alt="OdooEdu"
+                  className="w-8 h-8 object-contain"
+                />
                 <span className="font-display font-bold text-xl text-white">
                   Odoo<span className="text-blue-500">Edu</span>
                 </span>
