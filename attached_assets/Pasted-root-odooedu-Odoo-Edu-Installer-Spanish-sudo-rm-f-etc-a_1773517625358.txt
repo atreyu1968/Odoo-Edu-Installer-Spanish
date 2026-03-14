@@ -1,0 +1,57 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# sudo rm -f /etc/apt/sources.list.d/pgdg.list
+sudo apt update
+sudo bash odoo_install.sh
+Hit:1 http://archive.ubuntu.com/ubuntu plucky InRelease
+Hit:2 http://archive.ubuntu.com/ubuntu plucky-updates InRelease
+Hit:3 http://archive.ubuntu.com/ubuntu plucky-security InRelease
+All packages are up to date.    
+
+[INFO] 2026-03-14 19:46:23 - Sistema operativo detectado: ubuntu 25.04 (plucky)
+
+[INFO] 2026-03-14 19:46:23 - ============================================================
+
+[INFO] 2026-03-14 19:46:23 -  Instalacion Desatendida de Odoo 17.0
+
+[INFO] 2026-03-14 19:46:23 -  EDICION EDUCATIVA con Multiempresa
+
+[INFO] 2026-03-14 19:46:23 -  Localizacion Espanola OCA/l10n-spain + Rebranding
+
+[INFO] 2026-03-14 19:46:23 - ============================================================
+
+[INFO] 2026-03-14 19:46:23 - Usuario Odoo:         odoo17
+
+[INFO] 2026-03-14 19:46:23 - Directorio:           /opt/odoo17
+
+[INFO] 2026-03-14 19:46:23 - Puerto:               8069
+
+[INFO] 2026-03-14 19:46:23 - Contrasena admin:     AlLwyNdgdmhzyAJO
+
+[INFO] 2026-03-14 19:46:23 - Contrasena BD:        L4C6Q1ttHxUnDvcD
+
+[INFO] 2026-03-14 19:46:23 - Modo educativo:       true
+
+[INFO] 2026-03-14 19:46:23 - Centro:               Centro de Formacion Profesional
+
+[INFO] 2026-03-14 19:46:23 - Grupos:               Grupo 1|30|empresa|alumno|Profesor|profesor|Profesor2024!
+
+[INFO] 2026-03-14 19:46:23 - Empresa (branding):   Centro de Formacion Profesional
+
+[INFO] 2026-03-14 19:46:23 - Color principal:      #714B67
+
+[INFO] 2026-03-14 19:46:23 - ============================================================
+
+[INFO] 2026-03-14 19:46:23 - Actualizando el sistema...
+[OK] 2026-03-14 19:46:26 - Sistema actualizado.
+
+[INFO] 2026-03-14 19:46:26 - Instalando dependencias del sistema...
+
+changed 27 packages in 2s
+
+5 packages are looking for funding
+  run `npm fund` for details
+[OK] 2026-03-14 19:46:30 - Dependencias del sistema instaladas.
+
+[INFO] 2026-03-14 19:46:30 - Instalando PostgreSQL...
+File '/etc/apt/trusted.gpg.d/postgresql.gpg' exists. Overwrite? (y/N) y
+E: The repository 'http://apt.postgresql.org/pub/repos/apt plucky-pgdg Release' does not have a Release file.
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
