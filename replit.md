@@ -32,6 +32,8 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 - `odoo_install.sh` — Main unattended installer for Odoo 17 CE with:
   - Spanish localization (OCA/l10n-spain)
   - Multi-company support for educational use
+  - **Multi-professor / multi-group model**: multiple professors and student groups, each with independent DB/user prefixes
+    - Serialized as pipe-delimited fields, semicolon-delimited entries: `EDU_PROFESORES="name|user|pwd;..."`, `EDU_GRUPOS="name|num|dbPrefix|pwdPrefix;..."`
   - Full branding/marca blanca: logo (PNG 200×60px), favicon (32×32px), corporate colors, company data (name, tagline, website, email, phone, address)
   - Rebranding via OCA brand/server-brand modules
   - 40+ OCA module repositories
@@ -40,8 +42,8 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
   - Educational scripts for student/teacher management (with branding propagation)
 
 - Auxiliary scripts created by installer at `/usr/local/bin/`:
-  - `odoo_crear_alumnos.sh` — Mass student account creation
-  - `odoo_reset_alumno.sh` — Reset a student's database
+  - `odoo_crear_alumnos.sh` — Mass student account creation (iterates all groups, creates all professors with admin access to all DBs)
+  - `odoo_reset_alumno.sh` — Reset a student's database (takes DB name directly)
   - `odoo_backup.sh` — Manual backup of all databases
   - `odoo_restaurar_alumno.sh` — Restore database from backup
 

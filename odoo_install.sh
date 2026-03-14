@@ -55,14 +55,15 @@ WKHTMLTOPDF_VERSION="0.12.6.1-3"
 
 # --- Configuracion educativa ---
 EDU_MODE=true
-EDU_NUM_ALUMNOS=30
-EDU_PASSWORD_PREFIX="alumno"
-EDU_DB_PREFIX="empresa"
-EDU_PROFESOR_USER="profesor"
-EDU_PROFESOR_PASSWORD="Profesor2024!"
 EDU_CENTRO_NOMBRE="Centro de Formacion Profesional"
 EDU_BACKUP_DIR="/var/backups/odoo"
 EDU_BACKUP_RETENTION_DAYS=30
+
+# Profesores: nombre|usuario|password (separados por ;)
+EDU_PROFESORES="Profesor|profesor|Profesor2024!"
+
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
+EDU_GRUPOS="Grupo 1|30|empresa|alumno"
 
 # --- Branding / Marca Blanca ---
 # Logo principal: PNG con fondo transparente, 200x60 px recomendado (max 300x100 px)
@@ -167,8 +168,9 @@ log_info "Puerto:               $ODOO_PORT"
 log_info "Contrasena admin:     $ADMIN_PASSWORD"
 log_info "Contrasena BD:        $DB_PASSWORD"
 log_info "Modo educativo:       $EDU_MODE"
-log_info "Num. alumnos:         $EDU_NUM_ALUMNOS"
 log_info "Centro:               $EDU_CENTRO_NOMBRE"
+log_info "Profesores:           $EDU_PROFESORES"
+log_info "Grupos:               $EDU_GRUPOS"
 log_info "Empresa (branding):   $BRAND_COMPANY_NAME"
 [[ -n "$BRAND_LOGO_URL" ]] && log_info "Logo:                 $BRAND_LOGO_URL"
 [[ -n "$BRAND_PRIMARY_COLOR" ]] && log_info "Color principal:      $BRAND_PRIMARY_COLOR"
@@ -844,28 +846,30 @@ log_info "Creando scripts auxiliares educativos..."
 cat > /usr/local/bin/odoo_crear_alumnos.sh << 'ALUMNOS_SCRIPT'
 #!/bin/bash
 ################################################################################
-# Crear alumnos masivamente en Odoo
+# Crear alumnos masivamente en Odoo (multi-grupo, multi-profesor)
 # Cada alumno obtiene:
 #   - Su propia base de datos con datos de demostracion
 #   - Un usuario con permisos limitados a su empresa
 #   - Idioma espanol y plan contable espanol precargado
 #
-# Uso: sudo bash odoo_crear_alumnos.sh [numero_alumnos]
-# Ejemplo: sudo bash odoo_crear_alumnos.sh 30
+# Los profesores reciben acceso de administrador a todas las BDs.
+#
+# Uso: sudo bash odoo_crear_alumnos.sh
 ################################################################################
 
 set -euo pipefail
 
-NUM=${1:-NUM_ALUMNOS_PLACEHOLDER}
 ODOO_USER="ODOO_USER_PLACEHOLDER"
 ODOO_HOME="ODOO_HOME_PLACEHOLDER"
 ODOO_CONF="ODOO_CONF_PLACEHOLDER"
 VENV_DIR="$ODOO_HOME/venv"
 ODOO_BIN="$ODOO_HOME/ODOO_USER_PLACEHOLDER-server/odoo-bin"
-DB_PREFIX="DB_PREFIX_PLACEHOLDER"
-PWD_PREFIX="PWD_PREFIX_PLACEHOLDER"
-PROFESOR_USER="PROFESOR_USER_PLACEHOLDER"
-PROFESOR_PWD="PROFESOR_PWD_PLACEHOLDER"
+
+# Profesores: nombre|usuario|password (separados por ;)
+EDU_PROFESORES="EDU_PROFESORES_PLACEHOLDER"
+
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
+EDU_GRUPOS="EDU_GRUPOS_PLACEHOLDER"
 
 # Branding
 BRAND_COMPANY_WEBSITE="BRAND_WEBSITE_PLACEHOLDER"
@@ -879,126 +883,140 @@ BRAND_SECONDARY_COLOR="BRAND_SECONDARY_COLOR_PLACEHOLDER"
 BRAND_LOGO_URL="BRAND_LOGO_URL_PLACEHOLDER"
 BRAND_FAVICON_URL="BRAND_FAVICON_URL_PLACEHOLDER"
 
-echo "============================================================"
-echo " Creando $NUM bases de datos para alumnos"
-echo " Prefijo BD: ${DB_PREFIX}"
-echo " Contrasena: ${PWD_PREFIX}XX (donde XX = numero)"
-echo "============================================================"
-
 CREDENTIALS_FILE="$ODOO_HOME/credenciales_alumnos.csv"
-echo "alumno,base_datos,usuario,contrasena,url" > "$CREDENTIALS_FILE"
+echo "grupo,alumno,base_datos,usuario,contrasena,url" > "$CREDENTIALS_FILE"
 
-for i in $(seq -w 1 "$NUM"); do
-    DB_NAME="${DB_PREFIX}${i}"
-    USER_LOGIN="${PWD_PREFIX}${i}"
-    USER_PWD="${PWD_PREFIX}${i}"
-    EMPRESA_NOMBRE="Empresa Alumno ${i}"
+SERVER_IP=$(hostname -I | awk '{print $1}')
+ALL_DB_NAMES=()
 
-    echo -n "Creando alumno $i ($DB_NAME)... "
-
-    sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 && {
-        echo "ya existe, saltando."
-        continue
-    }
-
-    sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
-        -c "$ODOO_CONF" \
-        -d "$DB_NAME" \
-        -i base,l10n_es,contacts,sale_management,purchase,stock,account,point_of_sale,hr,project,crm,mrp \
-        --load-language=es_ES \
-        --without-demo=False \
-        --stop-after-init 2>/dev/null
-
-    if [[ $? -eq 0 ]]; then
-        sudo -u postgres psql -d "$DB_NAME" -c "
-            UPDATE res_company SET name='$EMPRESA_NOMBRE' WHERE id=1;
-            UPDATE res_partner SET name='$EMPRESA_NOMBRE' WHERE id=1;
-        " 2>/dev/null
-
-        # Aplicar branding a la empresa
-        BRAND_SQL="UPDATE res_company SET"
-        BRAND_SQL="$BRAND_SQL name='$EMPRESA_NOMBRE'"
-        [[ -n "$BRAND_COMPANY_WEBSITE" ]] && BRAND_SQL="$BRAND_SQL, website='$BRAND_COMPANY_WEBSITE'"
-        [[ -n "$BRAND_COMPANY_EMAIL" ]] && BRAND_SQL="$BRAND_SQL, email='$BRAND_COMPANY_EMAIL'"
-        [[ -n "$BRAND_COMPANY_PHONE" ]] && BRAND_SQL="$BRAND_SQL, phone='$BRAND_COMPANY_PHONE'"
-        [[ -n "$BRAND_COMPANY_STREET" ]] && BRAND_SQL="$BRAND_SQL, street='$BRAND_COMPANY_STREET'"
-        [[ -n "$BRAND_COMPANY_CITY" ]] && BRAND_SQL="$BRAND_SQL, city='$BRAND_COMPANY_CITY'"
-        [[ -n "$BRAND_COMPANY_ZIP" ]] && BRAND_SQL="$BRAND_SQL, zip='$BRAND_COMPANY_ZIP'"
-        [[ -n "$BRAND_PRIMARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, primary_color='$BRAND_PRIMARY_COLOR'"
-        [[ -n "$BRAND_SECONDARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, secondary_color='$BRAND_SECONDARY_COLOR'"
-        BRAND_SQL="$BRAND_SQL WHERE id=1;"
-        sudo -u postgres psql -d "$DB_NAME" -c "$BRAND_SQL" 2>/dev/null
-
-        # Aplicar branding al partner de la empresa
-        PARTNER_SQL="UPDATE res_partner SET name='$EMPRESA_NOMBRE'"
-        [[ -n "$BRAND_COMPANY_WEBSITE" ]] && PARTNER_SQL="$PARTNER_SQL, website='$BRAND_COMPANY_WEBSITE'"
-        [[ -n "$BRAND_COMPANY_EMAIL" ]] && PARTNER_SQL="$PARTNER_SQL, email='$BRAND_COMPANY_EMAIL'"
-        [[ -n "$BRAND_COMPANY_PHONE" ]] && PARTNER_SQL="$PARTNER_SQL, phone='$BRAND_COMPANY_PHONE'"
-        [[ -n "$BRAND_COMPANY_STREET" ]] && PARTNER_SQL="$PARTNER_SQL, street='$BRAND_COMPANY_STREET'"
-        [[ -n "$BRAND_COMPANY_CITY" ]] && PARTNER_SQL="$PARTNER_SQL, city='$BRAND_COMPANY_CITY'"
-        [[ -n "$BRAND_COMPANY_ZIP" ]] && PARTNER_SQL="$PARTNER_SQL, zip='$BRAND_COMPANY_ZIP'"
-        PARTNER_SQL="$PARTNER_SQL WHERE id=1;"
-        sudo -u postgres psql -d "$DB_NAME" -c "$PARTNER_SQL" 2>/dev/null
-
-        # Descargar y aplicar logo si se proporcionó URL
-        if [[ -n "$BRAND_LOGO_URL" ]]; then
-            LOGO_TMP="/tmp/brand_logo_$$.png"
-            if wget -q -O "$LOGO_TMP" "$BRAND_LOGO_URL" 2>/dev/null; then
-                LOGO_B64=$(base64 -w0 "$LOGO_TMP" 2>/dev/null)
-                if [[ -n "$LOGO_B64" ]]; then
-                    sudo -u postgres psql -d "$DB_NAME" -c "
-                        UPDATE res_company SET logo=decode('$LOGO_B64','base64') WHERE id=1;
-                    " 2>/dev/null
-                fi
-                rm -f "$LOGO_TMP"
-            fi
-        fi
-
-        # Descargar y aplicar favicon si se proporcionó URL
-        if [[ -n "$BRAND_FAVICON_URL" ]]; then
-            FAV_TMP="/tmp/brand_favicon_$$.png"
-            if wget -q -O "$FAV_TMP" "$BRAND_FAVICON_URL" 2>/dev/null; then
-                FAV_B64=$(base64 -w0 "$FAV_TMP" 2>/dev/null)
-                if [[ -n "$FAV_B64" ]]; then
-                    sudo -u postgres psql -d "$DB_NAME" -c "
-                        UPDATE res_company SET favicon=decode('$FAV_B64','base64') WHERE id=1;
-                    " 2>/dev/null
-                fi
-                rm -f "$FAV_TMP"
-            fi
-        fi
-
-        sudo -u postgres psql -d "$DB_NAME" -c "
-            INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-            SELECT '$USER_LOGIN', '$USER_PWD', 'Alumno $i', 1, true, 'email'
-            WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$USER_LOGIN');
-        " 2>/dev/null
-
-        echo "$USER_LOGIN,$DB_NAME,$USER_LOGIN,$USER_PWD,http://$(hostname -I | awk '{print $1}')/web?db=$DB_NAME" >> "$CREDENTIALS_FILE"
-        echo "OK"
-    else
-        echo "ERROR"
+# Descargar logo una sola vez si se proporcionó URL
+LOGO_B64=""
+if [[ -n "$BRAND_LOGO_URL" ]]; then
+    LOGO_TMP="/tmp/brand_logo_$$.png"
+    if wget -q -O "$LOGO_TMP" "$BRAND_LOGO_URL" 2>/dev/null; then
+        LOGO_B64=$(base64 -w0 "$LOGO_TMP" 2>/dev/null)
+        rm -f "$LOGO_TMP"
     fi
+fi
+
+FAV_B64=""
+if [[ -n "$BRAND_FAVICON_URL" ]]; then
+    FAV_TMP="/tmp/brand_favicon_$$.png"
+    if wget -q -O "$FAV_TMP" "$BRAND_FAVICON_URL" 2>/dev/null; then
+        FAV_B64=$(base64 -w0 "$FAV_TMP" 2>/dev/null)
+        rm -f "$FAV_TMP"
+    fi
+fi
+
+# Iterar sobre los grupos
+IFS=';' read -ra GRUPOS <<< "$EDU_GRUPOS"
+for GRUPO_DEF in "${GRUPOS[@]}"; do
+    IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX <<< "$GRUPO_DEF"
+
+    echo ""
+    echo "============================================================"
+    echo " Grupo: $GRUPO_NOMBRE"
+    echo " Creando $GRUPO_NUM bases de datos"
+    echo " Prefijo BD: ${GRUPO_DB_PREFIX}"
+    echo " Prefijo usuario: ${GRUPO_PWD_PREFIX}"
+    echo "============================================================"
+
+    for i in $(seq -w 1 "$GRUPO_NUM"); do
+        DB_NAME="${GRUPO_DB_PREFIX}${i}"
+        USER_LOGIN="${GRUPO_PWD_PREFIX}${i}"
+        USER_PWD="${GRUPO_PWD_PREFIX}${i}"
+        EMPRESA_NOMBRE="$GRUPO_NOMBRE - Alumno ${i}"
+
+        echo -n "  [$GRUPO_NOMBRE] Creando alumno $i ($DB_NAME)... "
+
+        sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 && {
+            echo "ya existe, saltando."
+            ALL_DB_NAMES+=("$DB_NAME")
+            continue
+        }
+
+        sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
+            -c "$ODOO_CONF" \
+            -d "$DB_NAME" \
+            -i base,l10n_es,contacts,sale_management,purchase,stock,account,point_of_sale,hr,project,crm,mrp \
+            --load-language=es_ES \
+            --without-demo=False \
+            --stop-after-init 2>/dev/null
+
+        if [[ $? -eq 0 ]]; then
+            # Aplicar branding a la empresa
+            BRAND_SQL="UPDATE res_company SET name='$EMPRESA_NOMBRE'"
+            [[ -n "$BRAND_COMPANY_WEBSITE" ]] && BRAND_SQL="$BRAND_SQL, website='$BRAND_COMPANY_WEBSITE'"
+            [[ -n "$BRAND_COMPANY_EMAIL" ]] && BRAND_SQL="$BRAND_SQL, email='$BRAND_COMPANY_EMAIL'"
+            [[ -n "$BRAND_COMPANY_PHONE" ]] && BRAND_SQL="$BRAND_SQL, phone='$BRAND_COMPANY_PHONE'"
+            [[ -n "$BRAND_COMPANY_STREET" ]] && BRAND_SQL="$BRAND_SQL, street='$BRAND_COMPANY_STREET'"
+            [[ -n "$BRAND_COMPANY_CITY" ]] && BRAND_SQL="$BRAND_SQL, city='$BRAND_COMPANY_CITY'"
+            [[ -n "$BRAND_COMPANY_ZIP" ]] && BRAND_SQL="$BRAND_SQL, zip='$BRAND_COMPANY_ZIP'"
+            [[ -n "$BRAND_PRIMARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, primary_color='$BRAND_PRIMARY_COLOR'"
+            [[ -n "$BRAND_SECONDARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, secondary_color='$BRAND_SECONDARY_COLOR'"
+            BRAND_SQL="$BRAND_SQL WHERE id=1;"
+            sudo -u postgres psql -d "$DB_NAME" -c "$BRAND_SQL" 2>/dev/null
+
+            sudo -u postgres psql -d "$DB_NAME" -c "
+                UPDATE res_partner SET name='$EMPRESA_NOMBRE' WHERE id=1;
+            " 2>/dev/null
+
+            # Aplicar logo
+            if [[ -n "$LOGO_B64" ]]; then
+                sudo -u postgres psql -d "$DB_NAME" -c "
+                    UPDATE res_company SET logo=decode('$LOGO_B64','base64') WHERE id=1;
+                " 2>/dev/null
+            fi
+
+            # Aplicar favicon
+            if [[ -n "$FAV_B64" ]]; then
+                sudo -u postgres psql -d "$DB_NAME" -c "
+                    UPDATE res_company SET favicon=decode('$FAV_B64','base64') WHERE id=1;
+                " 2>/dev/null
+            fi
+
+            # Crear usuario alumno
+            sudo -u postgres psql -d "$DB_NAME" -c "
+                INSERT INTO res_users (login, password, name, company_id, active, notification_type)
+                SELECT '$USER_LOGIN', '$USER_PWD', '$GRUPO_NOMBRE - Alumno $i', 1, true, 'email'
+                WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$USER_LOGIN');
+            " 2>/dev/null
+
+            ALL_DB_NAMES+=("$DB_NAME")
+            echo "$GRUPO_NOMBRE,$USER_LOGIN,$DB_NAME,$USER_LOGIN,$USER_PWD,http://${SERVER_IP}/web?db=$DB_NAME" >> "$CREDENTIALS_FILE"
+            echo "OK"
+        else
+            echo "ERROR"
+        fi
+    done
 done
 
-# Crear usuario profesor con acceso a todas las BD
+# Crear todos los profesores con acceso a todas las BD de todos los grupos
 echo ""
-echo "Creando usuario profesor..."
-for i in $(seq -w 1 "$NUM"); do
-    DB_NAME="${DB_PREFIX}${i}"
-    sudo -u postgres psql -d "$DB_NAME" -c "
-        INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-        SELECT '$PROFESOR_USER', '$PROFESOR_PWD', 'Profesor', 1, true, 'email'
-        WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$PROFESOR_USER');
-    " 2>/dev/null
+echo "============================================================"
+echo " Creando profesores en todas las bases de datos..."
+echo "============================================================"
 
-    sudo -u postgres psql -d "$DB_NAME" -c "
-        UPDATE res_users SET groups_id = (
-            SELECT array_agg(id) FROM res_groups WHERE category_id IN (
-                SELECT id FROM ir_module_category WHERE name IN ('Administration', 'Technical')
-            )
-        ) WHERE login='$PROFESOR_USER';
-    " 2>/dev/null || true
+IFS=';' read -ra PROFESORES <<< "$EDU_PROFESORES"
+for PROF_DEF in "${PROFESORES[@]}"; do
+    IFS='|' read -r PROF_NOMBRE PROF_USER PROF_PWD <<< "$PROF_DEF"
+    echo "  Profesor: $PROF_NOMBRE ($PROF_USER)"
+
+    for DB_NAME in "${ALL_DB_NAMES[@]}"; do
+        sudo -u postgres psql -d "$DB_NAME" -c "
+            INSERT INTO res_users (login, password, name, company_id, active, notification_type)
+            SELECT '$PROF_USER', '$PROF_PWD', '$PROF_NOMBRE', 1, true, 'email'
+            WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$PROF_USER');
+        " 2>/dev/null
+
+        sudo -u postgres psql -d "$DB_NAME" -c "
+            UPDATE res_users SET groups_id = (
+                SELECT array_agg(id) FROM res_groups WHERE category_id IN (
+                    SELECT id FROM ir_module_category WHERE name IN ('Administration', 'Technical')
+                )
+            ) WHERE login='$PROF_USER';
+        " 2>/dev/null || true
+    done
 done
 
 chmod 600 "$CREDENTIALS_FILE"
@@ -1010,26 +1028,26 @@ echo " ALUMNOS CREADOS EXITOSAMENTE"
 echo "============================================================"
 echo " Archivo de credenciales: $CREDENTIALS_FILE"
 echo ""
-echo " Credenciales del profesor:"
-echo "   Usuario: $PROFESOR_USER"
-echo "   Contrasena: $PROFESOR_PWD"
-echo "   (Tiene acceso a TODAS las bases de datos)"
+echo " Profesores (acceso a TODAS las bases de datos):"
+for PROF_DEF in "${PROFESORES[@]}"; do
+    IFS='|' read -r PROF_NOMBRE PROF_USER PROF_PWD <<< "$PROF_DEF"
+    echo "   - $PROF_NOMBRE: usuario=$PROF_USER"
+done
 echo ""
-echo " Formato por alumno:"
-echo "   BD: ${DB_PREFIX}XX"
-echo "   Usuario: ${PWD_PREFIX}XX"
-echo "   Contrasena: ${PWD_PREFIX}XX"
+echo " Grupos:"
+IFS=';' read -ra GRUPOS_FIN <<< "$EDU_GRUPOS"
+for GRUPO_DEF in "${GRUPOS_FIN[@]}"; do
+    IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX <<< "$GRUPO_DEF"
+    echo "   - $GRUPO_NOMBRE: ${GRUPO_NUM} alumnos (BD: ${GRUPO_DB_PREFIX}XX, User: ${GRUPO_PWD_PREFIX}XX)"
+done
 echo "============================================================"
 ALUMNOS_SCRIPT
 
-sed -i "s|NUM_ALUMNOS_PLACEHOLDER|$EDU_NUM_ALUMNOS|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_USER_PLACEHOLDER|$ODOO_USER|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_HOME_PLACEHOLDER|$ODOO_HOME|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_CONF_PLACEHOLDER|$ODOO_CONF|g" /usr/local/bin/odoo_crear_alumnos.sh
-sed -i "s|DB_PREFIX_PLACEHOLDER|$EDU_DB_PREFIX|g" /usr/local/bin/odoo_crear_alumnos.sh
-sed -i "s|PWD_PREFIX_PLACEHOLDER|$EDU_PASSWORD_PREFIX|g" /usr/local/bin/odoo_crear_alumnos.sh
-sed -i "s|PROFESOR_USER_PLACEHOLDER|$EDU_PROFESOR_USER|g" /usr/local/bin/odoo_crear_alumnos.sh
-sed -i "s|PROFESOR_PWD_PLACEHOLDER|$EDU_PROFESOR_PASSWORD|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|EDU_PROFESORES_PLACEHOLDER|$EDU_PROFESORES|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|EDU_GRUPOS_PLACEHOLDER|$EDU_GRUPOS|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_WEBSITE_PLACEHOLDER|$BRAND_COMPANY_WEBSITE|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_EMAIL_PLACEHOLDER|$BRAND_COMPANY_EMAIL|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_PHONE_PLACEHOLDER|$BRAND_COMPANY_PHONE|g" /usr/local/bin/odoo_crear_alumnos.sh
@@ -1049,25 +1067,24 @@ cat > /usr/local/bin/odoo_reset_alumno.sh << 'RESET_SCRIPT'
 # Resetear la base de datos de un alumno
 # Crea un backup antes de eliminar y recrea la BD con datos de demostracion
 #
-# Uso: sudo bash odoo_reset_alumno.sh <nombre_usuario>
-# Ejemplo: sudo bash odoo_reset_alumno.sh alumno05
+# Uso: sudo bash odoo_reset_alumno.sh <nombre_bd>
+# Ejemplo: sudo bash odoo_reset_alumno.sh empresa05
 ################################################################################
 
 set -euo pipefail
 
 if [[ $# -lt 1 ]]; then
-    echo "Uso: $0 <nombre_usuario>"
-    echo "Ejemplo: $0 alumno05"
+    echo "Uso: $0 <nombre_bd>"
+    echo "Ejemplo: $0 empresa05"
     exit 1
 fi
 
-ALUMNO="$1"
+DB_NAME="$1"
 ODOO_USER="ODOO_USER_PLACEHOLDER"
 ODOO_HOME="ODOO_HOME_PLACEHOLDER"
 ODOO_CONF="ODOO_CONF_PLACEHOLDER"
 VENV_DIR="$ODOO_HOME/venv"
 ODOO_BIN="$ODOO_HOME/ODOO_USER_PLACEHOLDER-server/odoo-bin"
-DB_PREFIX="DB_PREFIX_PLACEHOLDER"
 BACKUP_DIR="BACKUP_DIR_PLACEHOLDER"
 
 # Branding
@@ -1082,14 +1099,15 @@ BRAND_SECONDARY_COLOR="BRAND_SECONDARY_COLOR_PLACEHOLDER"
 BRAND_LOGO_URL="BRAND_LOGO_URL_PLACEHOLDER"
 BRAND_FAVICON_URL="BRAND_FAVICON_URL_PLACEHOLDER"
 
-NUM=$(echo "$ALUMNO" | grep -o '[0-9]\+$')
-DB_NAME="${DB_PREFIX}$(printf '%02d' $NUM)"
-EMPRESA_NOMBRE="Empresa Alumno $(printf '%02d' $NUM)"
-
 echo "============================================================"
 echo " Reseteando base de datos: $DB_NAME"
-echo " Alumno: $ALUMNO"
 echo "============================================================"
+
+# Verificar que la BD existe
+sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || {
+    echo "ERROR: La base de datos '$DB_NAME' no existe."
+    exit 1
+}
 
 # Backup antes de borrar
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -1114,14 +1132,8 @@ sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
     --without-demo=False \
     --stop-after-init 2>/dev/null
 
-# Reconfigurar nombre
-sudo -u postgres psql -d "$DB_NAME" -c "
-    UPDATE res_company SET name='$EMPRESA_NOMBRE' WHERE id=1;
-    UPDATE res_partner SET name='$EMPRESA_NOMBRE' WHERE id=1;
-" 2>/dev/null
-
 # Aplicar branding
-BRAND_SQL="UPDATE res_company SET name='$EMPRESA_NOMBRE'"
+BRAND_SQL="UPDATE res_company SET name='$DB_NAME'"
 [[ -n "$BRAND_COMPANY_WEBSITE" ]] && BRAND_SQL="$BRAND_SQL, website='$BRAND_COMPANY_WEBSITE'"
 [[ -n "$BRAND_COMPANY_EMAIL" ]] && BRAND_SQL="$BRAND_SQL, email='$BRAND_COMPANY_EMAIL'"
 [[ -n "$BRAND_COMPANY_PHONE" ]] && BRAND_SQL="$BRAND_SQL, phone='$BRAND_COMPANY_PHONE'"
@@ -1132,6 +1144,10 @@ BRAND_SQL="UPDATE res_company SET name='$EMPRESA_NOMBRE'"
 [[ -n "$BRAND_SECONDARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, secondary_color='$BRAND_SECONDARY_COLOR'"
 BRAND_SQL="$BRAND_SQL WHERE id=1;"
 sudo -u postgres psql -d "$DB_NAME" -c "$BRAND_SQL" 2>/dev/null
+
+sudo -u postgres psql -d "$DB_NAME" -c "
+    UPDATE res_partner SET name='$DB_NAME' WHERE id=1;
+" 2>/dev/null
 
 # Descargar y aplicar logo si se proporcionó URL
 if [[ -n "$BRAND_LOGO_URL" ]]; then
@@ -1147,24 +1163,30 @@ if [[ -n "$BRAND_LOGO_URL" ]]; then
     fi
 fi
 
-sudo -u postgres psql -d "$DB_NAME" -c "
-    INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-    SELECT '$ALUMNO', '$ALUMNO', 'Alumno $(printf '%02d' $NUM)', 1, true, 'email'
-    WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$ALUMNO');
-" 2>/dev/null
+# Descargar y aplicar favicon si se proporcionó URL
+if [[ -n "$BRAND_FAVICON_URL" ]]; then
+    FAV_TMP="/tmp/brand_favicon_$$.png"
+    if wget -q -O "$FAV_TMP" "$BRAND_FAVICON_URL" 2>/dev/null; then
+        FAV_B64=$(base64 -w0 "$FAV_TMP" 2>/dev/null)
+        if [[ -n "$FAV_B64" ]]; then
+            sudo -u postgres psql -d "$DB_NAME" -c "
+                UPDATE res_company SET favicon=decode('$FAV_B64','base64') WHERE id=1;
+            " 2>/dev/null
+        fi
+        rm -f "$FAV_TMP"
+    fi
+fi
 
 echo ""
 echo "============================================================"
 echo " Base de datos $DB_NAME reseteada correctamente"
 echo " Backup previo: $BACKUP_DIR/${DB_NAME}_pre_reset_${TIMESTAMP}.sql.gz"
-echo " Usuario: $ALUMNO / Contrasena: $ALUMNO"
 echo "============================================================"
 RESET_SCRIPT
 
 sed -i "s|ODOO_USER_PLACEHOLDER|$ODOO_USER|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|ODOO_HOME_PLACEHOLDER|$ODOO_HOME|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|ODOO_CONF_PLACEHOLDER|$ODOO_CONF|g" /usr/local/bin/odoo_reset_alumno.sh
-sed -i "s|DB_PREFIX_PLACEHOLDER|$EDU_DB_PREFIX|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|BACKUP_DIR_PLACEHOLDER|$EDU_BACKUP_DIR|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|BRAND_WEBSITE_PLACEHOLDER|$BRAND_COMPANY_WEBSITE|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|BRAND_EMAIL_PLACEHOLDER|$BRAND_COMPANY_EMAIL|g" /usr/local/bin/odoo_reset_alumno.sh
@@ -1349,13 +1371,12 @@ echo "    - e-commerce, pos, crm, social"
 echo "    - website, maintenance, knowledge"
 echo ""
 echo "  PASOS SIGUIENTES:"
-echo "    1. Ejecuta: sudo odoo_crear_alumnos.sh $EDU_NUM_ALUMNOS"
+echo "    1. Ejecuta: sudo odoo_crear_alumnos.sh"
 echo "    2. Reparte las credenciales del archivo:"
 echo "       $ODOO_HOME/credenciales_alumnos.csv"
 echo "    3. Cada alumno accede a su BD con su usuario"
-echo "    4. El profesor accede con:"
-echo "       Usuario: $EDU_PROFESOR_USER"
-echo "       Contrasena: $EDU_PROFESOR_PASSWORD"
+echo "    4. Los profesores acceden con sus credenciales"
+echo "       (tienen acceso a TODAS las bases de datos)"
 echo "    5. Para personalizar la marca, instala el modulo"
 echo "       'brand' desde Aplicaciones en cada BD"
 echo ""
@@ -1382,14 +1403,8 @@ Base de datos:
   Host: $DB_HOST
   Puerto: $DB_PORT
 
-Profesor:
-  Usuario: $EDU_PROFESOR_USER
-  Contrasena: $EDU_PROFESOR_PASSWORD
-
-Patron alumnos:
-  BD: ${EDU_DB_PREFIX}XX
-  Usuario: ${EDU_PASSWORD_PREFIX}XX
-  Contrasena: ${EDU_PASSWORD_PREFIX}XX
+Profesores: $EDU_PROFESORES
+Grupos: $EDU_GRUPOS
 
 Archivo de configuracion:  $ODOO_CONF
 Directorio de Odoo:        $ODOO_HOME_EXT

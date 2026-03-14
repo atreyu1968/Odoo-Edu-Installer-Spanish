@@ -6,6 +6,19 @@ import os from "os";
 
 const router: IRouter = Router();
 
+interface Profesor {
+  nombre: string;
+  usuario: string;
+  password: string;
+}
+
+interface GrupoAlumnos {
+  nombre: string;
+  numAlumnos: number;
+  dbPrefix: string;
+  passwordPrefix: string;
+}
+
 interface InstallConfig {
   odooVersion: string;
   odooPort: string;
@@ -15,11 +28,8 @@ interface InstallConfig {
   enableSsl: boolean;
   installWkhtmltopdf: boolean;
   eduMode: boolean;
-  eduNumAlumnos: number;
-  eduPasswordPrefix: string;
-  eduDbPrefix: string;
-  eduProfesorUser: string;
-  eduProfesorPassword: string;
+  eduProfesores: Profesor[];
+  eduGrupos: GrupoAlumnos[];
   eduCentroNombre: string;
   eduBackupDir: string;
   eduBackupRetentionDays: number;
@@ -113,14 +123,15 @@ WKHTMLTOPDF_VERSION="0.12.6.1-3"
 
 # --- Configuracion educativa ---
 EDU_MODE=${b(config.eduMode)}
-EDU_NUM_ALUMNOS=${config.eduNumAlumnos}
-EDU_PASSWORD_PREFIX="${config.eduPasswordPrefix}"
-EDU_DB_PREFIX="${config.eduDbPrefix}"
-EDU_PROFESOR_USER="${config.eduProfesorUser}"
-EDU_PROFESOR_PASSWORD="${config.eduProfesorPassword}"
 EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
 EDU_BACKUP_DIR="${config.eduBackupDir}"
 EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
+
+# Profesores: nombre|usuario|password (separados por ;)
+EDU_PROFESORES="${config.eduProfesores.map((p: Profesor) => `${p.nombre}|${p.usuario}|${p.password}`).join(";")}"
+
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
+EDU_GRUPOS="${config.eduGrupos.map((g: GrupoAlumnos) => `${g.nombre}|${g.numAlumnos}|${g.dbPrefix}|${g.passwordPrefix}`).join(";")}"
 
 # --- Branding / Marca Blanca ---
 BRAND_COMPANY_NAME="${config.brandCompanyName}"

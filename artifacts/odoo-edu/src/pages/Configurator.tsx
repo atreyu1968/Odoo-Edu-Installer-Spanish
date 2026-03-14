@@ -5,9 +5,23 @@ import {
   ChevronLeft, Eye, EyeOff, Copy, Check, GraduationCap,
   RefreshCw, Info, Play, Square, Terminal,
   CheckCircle2, XCircle, AlertTriangle, Loader2,
-  Palette, Building2, Upload, Image, Globe, Mail, Phone, MapPin
+  Palette, Building2, Upload, Image, Globe, Mail, Phone, MapPin,
+  Trash2, Plus, Users
 } from "lucide-react";
 import { Link } from "wouter";
+
+interface Profesor {
+  nombre: string;
+  usuario: string;
+  password: string;
+}
+
+interface GrupoAlumnos {
+  nombre: string;
+  numAlumnos: number;
+  dbPrefix: string;
+  passwordPrefix: string;
+}
 
 interface ConfigState {
   odooVersion: string;
@@ -18,11 +32,8 @@ interface ConfigState {
   enableSsl: boolean;
   installWkhtmltopdf: boolean;
   eduMode: boolean;
-  eduNumAlumnos: number;
-  eduPasswordPrefix: string;
-  eduDbPrefix: string;
-  eduProfesorUser: string;
-  eduProfesorPassword: string;
+  eduProfesores: Profesor[];
+  eduGrupos: GrupoAlumnos[];
   eduCentroNombre: string;
   eduBackupDir: string;
   eduBackupRetentionDays: number;
@@ -64,11 +75,12 @@ const defaultConfig: ConfigState = {
   enableSsl: false,
   installWkhtmltopdf: true,
   eduMode: true,
-  eduNumAlumnos: 30,
-  eduPasswordPrefix: "alumno",
-  eduDbPrefix: "empresa",
-  eduProfesorUser: "profesor",
-  eduProfesorPassword: "Profesor2024!",
+  eduProfesores: [
+    { nombre: "Profesor", usuario: "profesor", password: "Profesor2024!" },
+  ],
+  eduGrupos: [
+    { nombre: "Grupo 1", numAlumnos: 30, dbPrefix: "empresa", passwordPrefix: "alumno" },
+  ],
   eduCentroNombre: "Centro de Formacion Profesional",
   eduBackupDir: "/var/backups/odoo",
   eduBackupRetentionDays: 30,
@@ -294,14 +306,15 @@ WKHTMLTOPDF_VERSION="0.12.6.1-3"
 
 # --- Configuracion educativa ---
 EDU_MODE=${b(config.eduMode)}
-EDU_NUM_ALUMNOS=${config.eduNumAlumnos}
-EDU_PASSWORD_PREFIX="${config.eduPasswordPrefix}"
-EDU_DB_PREFIX="${config.eduDbPrefix}"
-EDU_PROFESOR_USER="${config.eduProfesorUser}"
-EDU_PROFESOR_PASSWORD="${config.eduProfesorPassword}"
 EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
 EDU_BACKUP_DIR="${config.eduBackupDir}"
 EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
+
+# Profesores: nombre|usuario|password (separados por ;)
+EDU_PROFESORES="${config.eduProfesores.map(p => `${p.nombre}|${p.usuario}|${p.password}`).join(";")}"
+
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
+EDU_GRUPOS="${config.eduGrupos.map(g => `${g.nombre}|${g.numAlumnos}|${g.dbPrefix}|${g.passwordPrefix}`).join(";")}"
 
 # --- Branding / Marca Blanca ---
 BRAND_COMPANY_NAME="${config.brandCompanyName}"
@@ -751,9 +764,12 @@ export default function Configurator() {
                 Vas a ejecutar la instalación de Odoo {config.odooVersion} en este servidor con la siguiente configuración:
               </p>
               <ul className="text-sm text-slate-600 mb-6 space-y-1 ml-4">
-                <li>• <strong>{config.eduNumAlumnos}</strong> alumnos ({config.eduPasswordPrefix}01...{config.eduPasswordPrefix}{String(config.eduNumAlumnos).padStart(2, "0")})</li>
-                <li>• Profesor: <strong>{config.eduProfesorUser}</strong></li>
                 <li>• Centro: <strong>{config.eduCentroNombre}</strong></li>
+                <li>• <strong>{config.eduProfesores.length}</strong> {config.eduProfesores.length === 1 ? "profesor" : "profesores"}: {config.eduProfesores.map(p => p.usuario).join(", ")}</li>
+                <li>• <strong>{config.eduGrupos.length}</strong> {config.eduGrupos.length === 1 ? "grupo" : "grupos"} con <strong>{config.eduGrupos.reduce((s, g) => s + g.numAlumnos, 0)}</strong> alumnos total</li>
+                {config.eduGrupos.map((g, i) => (
+                  <li key={i} className="ml-4 text-xs">— {g.nombre}: {g.numAlumnos} alumnos ({g.passwordPrefix}01...{g.passwordPrefix}{String(g.numAlumnos).padStart(2, "0")})</li>
+                ))}
                 <li>• <strong>{activeOcaCount}</strong> módulos OCA</li>
                 <li>• Nginx: {config.installNginx ? "Sí" : "No"}</li>
               </ul>
@@ -876,34 +892,6 @@ export default function Configurator() {
                 {config.eduMode && (
                   <>
                     <div className="border-t border-slate-100" />
-                    <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                      <h4 className="text-sm font-semibold text-emerald-800 mb-1">Alumnos</h4>
-                      <p className="text-xs text-emerald-600 mb-4">Cada alumno recibirá su propia base de datos y empresa aislada.</p>
-                      <div className="space-y-4">
-                        <FieldRow label="Número de alumnos">
-                          <NumberInput value={config.eduNumAlumnos} onChange={(v) => updateConfig("eduNumAlumnos", v)} min={1} max={200} disabled={formDisabled} />
-                        </FieldRow>
-                        <FieldRow label="Prefijo de usuario/contraseña" description="Ej: alumno01, alumno02...">
-                          <TextInput value={config.eduPasswordPrefix} onChange={(v) => updateConfig("eduPasswordPrefix", v)} disabled={formDisabled} />
-                        </FieldRow>
-                        <FieldRow label="Prefijo de base de datos" description="Ej: empresa01, empresa02...">
-                          <TextInput value={config.eduDbPrefix} onChange={(v) => updateConfig("eduDbPrefix", v)} disabled={formDisabled} />
-                        </FieldRow>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                      <h4 className="text-sm font-semibold text-blue-800 mb-1">Profesor</h4>
-                      <p className="text-xs text-blue-600 mb-4">Credenciales del usuario administrador con acceso a todas las BDs.</p>
-                      <div className="space-y-4">
-                        <FieldRow label="Usuario del profesor">
-                          <TextInput value={config.eduProfesorUser} onChange={(v) => updateConfig("eduProfesorUser", v)} disabled={formDisabled} />
-                        </FieldRow>
-                        <FieldRow label="Contraseña del profesor">
-                          <TextInput value={config.eduProfesorPassword} onChange={(v) => updateConfig("eduProfesorPassword", v)} type="password" disabled={formDisabled} />
-                        </FieldRow>
-                      </div>
-                    </div>
 
                     <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
                       <h4 className="text-sm font-semibold text-violet-800 mb-1">Centro Educativo</h4>
@@ -912,6 +900,221 @@ export default function Configurator() {
                         <FieldRow label="Nombre del centro">
                           <TextInput value={config.eduCentroNombre} onChange={(v) => updateConfig("eduCentroNombre", v)} disabled={formDisabled} />
                         </FieldRow>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100" />
+
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-blue-600" />
+                          <h4 className="text-sm font-semibold text-blue-800">Profesores</h4>
+                        </div>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                          {config.eduProfesores.length} {config.eduProfesores.length === 1 ? "profesor" : "profesores"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-blue-600 mb-4">Cada profesor tendrá acceso de administrador a todas las bases de datos de todos los grupos.</p>
+
+                      <div className="space-y-3">
+                        {config.eduProfesores.map((prof, idx) => (
+                          <div key={idx} className="bg-white rounded-lg p-3 border border-blue-200 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-blue-700">Profesor {idx + 1}</span>
+                              {config.eduProfesores.length > 1 && (
+                                <button
+                                  type="button"
+                                  disabled={formDisabled}
+                                  onClick={() => {
+                                    const updated = config.eduProfesores.filter((_, i) => i !== idx);
+                                    updateConfig("eduProfesores", updated);
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                  title="Eliminar profesor"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Nombre</label>
+                                <TextInput
+                                  value={prof.nombre}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduProfesores];
+                                    updated[idx] = { ...updated[idx], nombre: v };
+                                    updateConfig("eduProfesores", updated);
+                                  }}
+                                  placeholder="Nombre completo"
+                                  disabled={formDisabled}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Usuario</label>
+                                <TextInput
+                                  value={prof.usuario}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduProfesores];
+                                    updated[idx] = { ...updated[idx], usuario: v };
+                                    updateConfig("eduProfesores", updated);
+                                  }}
+                                  placeholder="login"
+                                  disabled={formDisabled}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña</label>
+                                <TextInput
+                                  value={prof.password}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduProfesores];
+                                    updated[idx] = { ...updated[idx], password: v };
+                                    updateConfig("eduProfesores", updated);
+                                  }}
+                                  type="password"
+                                  disabled={formDisabled}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          disabled={formDisabled}
+                          onClick={() => {
+                            const n = config.eduProfesores.length + 1;
+                            updateConfig("eduProfesores", [
+                              ...config.eduProfesores,
+                              { nombre: `Profesor ${n}`, usuario: `profesor${n}`, password: `Profesor${n}2024!` },
+                            ]);
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 border-dashed border-blue-300 text-blue-600 text-sm font-medium hover:bg-blue-100/50 hover:border-blue-400 transition-colors disabled:opacity-50"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Añadir profesor
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100" />
+
+                    <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-emerald-600" />
+                          <h4 className="text-sm font-semibold text-emerald-800">Grupos de Alumnos</h4>
+                        </div>
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                          {config.eduGrupos.length} {config.eduGrupos.length === 1 ? "grupo" : "grupos"} · {config.eduGrupos.reduce((sum, g) => sum + g.numAlumnos, 0)} alumnos total
+                        </span>
+                      </div>
+                      <p className="text-xs text-emerald-600 mb-4">
+                        Cada grupo puede representar una clase, ciclo o asignatura. Cada alumno de cada grupo recibe su propia base de datos y empresa aislada. Los prefijos deben ser únicos entre grupos.
+                      </p>
+
+                      <div className="space-y-3">
+                        {config.eduGrupos.map((grupo, idx) => (
+                          <div key={idx} className="bg-white rounded-lg p-3 border border-emerald-200 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-emerald-700">{grupo.nombre || `Grupo ${idx + 1}`}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-emerald-600">{grupo.numAlumnos} alumnos</span>
+                                {config.eduGrupos.length > 1 && (
+                                  <button
+                                    type="button"
+                                    disabled={formDisabled}
+                                    onClick={() => {
+                                      const updated = config.eduGrupos.filter((_, i) => i !== idx);
+                                      updateConfig("eduGrupos", updated);
+                                    }}
+                                    className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                    title="Eliminar grupo"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del grupo</label>
+                                <TextInput
+                                  value={grupo.nombre}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduGrupos];
+                                    updated[idx] = { ...updated[idx], nombre: v };
+                                    updateConfig("eduGrupos", updated);
+                                  }}
+                                  placeholder="Ej: 1º DAM, 2º DAW"
+                                  disabled={formDisabled}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Nº de alumnos</label>
+                                <NumberInput
+                                  value={grupo.numAlumnos}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduGrupos];
+                                    updated[idx] = { ...updated[idx], numAlumnos: v };
+                                    updateConfig("eduGrupos", updated);
+                                  }}
+                                  min={1}
+                                  max={200}
+                                  disabled={formDisabled}
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Prefijo de BD</label>
+                                <TextInput
+                                  value={grupo.dbPrefix}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduGrupos];
+                                    updated[idx] = { ...updated[idx], dbPrefix: v };
+                                    updateConfig("eduGrupos", updated);
+                                  }}
+                                  placeholder="empresa"
+                                  disabled={formDisabled}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-0.5">BD: {grupo.dbPrefix}01, {grupo.dbPrefix}02...</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">Prefijo de usuario</label>
+                                <TextInput
+                                  value={grupo.passwordPrefix}
+                                  onChange={(v) => {
+                                    const updated = [...config.eduGrupos];
+                                    updated[idx] = { ...updated[idx], passwordPrefix: v };
+                                    updateConfig("eduGrupos", updated);
+                                  }}
+                                  placeholder="alumno"
+                                  disabled={formDisabled}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-0.5">User/Pass: {grupo.passwordPrefix}01, {grupo.passwordPrefix}02...</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          disabled={formDisabled}
+                          onClick={() => {
+                            const n = config.eduGrupos.length + 1;
+                            updateConfig("eduGrupos", [
+                              ...config.eduGrupos,
+                              { nombre: `Grupo ${n}`, numAlumnos: 30, dbPrefix: `grupo${n}_empresa`, passwordPrefix: `grupo${n}_alumno` },
+                            ]);
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 border-dashed border-emerald-300 text-emerald-600 text-sm font-medium hover:bg-emerald-100/50 hover:border-emerald-400 transition-colors disabled:opacity-50"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Añadir grupo
+                        </button>
                       </div>
                     </div>
 
