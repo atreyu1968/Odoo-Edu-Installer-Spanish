@@ -428,7 +428,7 @@ fi
 
 source "$VENV_DIR/bin/activate"
 
-pip install --no-cache-dir --upgrade pip setuptools wheel
+pip install --no-cache-dir --upgrade pip "setuptools<81" wheel
 
 sed -i 's/^psycopg2.*$/psycopg2-binary/' "$ODOO_HOME_EXT/requirements.txt" 2>/dev/null || true
 
