@@ -13,6 +13,7 @@
   <img src="https://img.shields.io/badge/Ubuntu-22.04_%7C_24.04_LTS-orange?style=flat-square&logo=ubuntu" alt="Ubuntu" />
   <img src="https://img.shields.io/badge/Licencia-MIT-green?style=flat-square" alt="MIT" />
   <img src="https://img.shields.io/badge/OCA-40%2B_m%C3%B3dulos-purple?style=flat-square" alt="OCA" />
+  <img src="https://img.shields.io/badge/VeriFactu-RD_1007%2F2023-red?style=flat-square" alt="VeriFactu" />
 </p>
 
 ---
@@ -28,15 +29,15 @@
 | **Instalación automática** | Un solo comando instala Odoo 17, PostgreSQL, Nginx como proxy inverso, certificados SSL, wkhtmltopdf y todas las dependencias del sistema |
 | **Localización española** | Plan General Contable (`l10n_es`), modelos AEAT (303, 347, 390), Suministro Inmediato de Información (SII) y Factura-e listos para usar |
 | **Aislamiento multiempresa** | Cada alumno recibe su propia base de datos con datos de demostración españoles precargados (clientes, facturas, productos) |
-| **Panel de administración web** | Interfaz web para el superadministrador: gestiona grupos, profesores, branding y actualizaciones sin tocar la terminal |
+| **Panel de administración web** | Interfaz web para el superadministrador: gestiona grupos, profesores, branding, fiscalidad y actualizaciones sin tocar la terminal |
 | **Roles de acceso** | Superadministrador (acceso completo) y Profesor (solo su grupo de alumnos) |
 | **Rebranding / marca blanca** | Personaliza logo, favicon, colores corporativos y datos de la empresa. Se aplica automáticamente a todas las bases de datos |
+| **Configuración fiscal** | Selector de régimen IVA (Península y Baleares) o IGIC (Canarias) con todos los tipos impositivos, posiciones fiscales y recargo de equivalencia |
+| **VeriFactu** | Soporte completo para el sistema de verificación de facturas de la AEAT (RD 1007/2023): registros de facturación, código QR, hash SHA-256 encadenado, envío telemático. Modos de pruebas y producción |
 | **Gestión de módulos OCA** | Más de 40 módulos OCA incluidos con sistema de estabilidad por versión. Actualizaciones seguras que solo tocan módulos estables |
 | **Backups automáticos** | Copias de seguridad diarias automatizadas con retención configurable. Backup y restauración por alumno |
 | **Reseteo de BD** | El profesor puede resetear la empresa de cualquier alumno a su estado inicial desde el panel |
 | **CSV de contraseñas** | Archivo CSV auto-generado con las credenciales de todos los alumnos para distribuir al inicio del curso |
-| **IGIC para Canarias** | Configuración fiscal adaptable: IVA (Península/Baleares) o IGIC (Canarias) con todos los tipos impositivos precargados y posiciones fiscales |
-| **VeriFactu (Veri\*Factu)** | Soporte para el sistema de verificación de facturas de la AEAT (RD 1007/2023), con generación de registros, código QR, hash encadenado y envío telemático. Modo pruebas y producción |
 | **Versiones múltiples** | Soporte para Odoo 14.0, 15.0, 16.0, 17.0 y 18.0 con análisis de compatibilidad de módulos OCA antes de migrar |
 
 ---
@@ -95,7 +96,7 @@ Antes de ejecutar el instalador, puedes editar las variables de configuración a
 nano odoo_install.sh
 ```
 
-Variables configurables:
+#### Variables generales
 
 | Variable | Valor por defecto | Descripción |
 |---|---|---|
@@ -104,23 +105,85 @@ Variables configurables:
 | `INSTALL_NGINX` | `true` | Instalar Nginx como proxy inverso (puerto 80) |
 | `ENABLE_SSL` | `false` | Habilitar HTTPS con certificado SSL |
 | `WEBSITE_NAME` | `_` | Dominio del servidor (para Nginx y SSL) |
+
+#### Panel de administración
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
 | `SUPERADMIN_USER` | `superadmin` | Usuario del panel de administración web |
 | `SUPERADMIN_PASSWORD` | `SuperAdmin2024!` | Contraseña del panel (cambiar tras instalar) |
+
+#### Centro educativo y grupos
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
 | `EDU_CENTRO_NOMBRE` | `Centro de Formación Profesional` | Nombre del centro educativo |
 | `EDU_GRUPOS` | `Grupo 1\|30\|empresa\|alumno\|Profesor\|profesor\|Profesor2024!` | Definición de grupos (ver formato abajo) |
+| `EDU_BACKUP_DIR` | `/var/backups/odoo` | Directorio de backups |
+| `EDU_BACKUP_RETENTION_DAYS` | `30` | Días de retención de backups |
+
+#### Branding / Marca blanca
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
 | `BRAND_COMPANY_NAME` | Nombre del centro | Nombre de la empresa para rebranding |
+| `BRAND_COMPANY_TAGLINE` | _(vacío)_ | Eslogan del centro |
+| `BRAND_COMPANY_WEBSITE` | _(vacío)_ | Sitio web del centro |
+| `BRAND_COMPANY_EMAIL` | _(vacío)_ | Email de contacto |
+| `BRAND_COMPANY_PHONE` | _(vacío)_ | Teléfono de contacto |
+| `BRAND_COMPANY_STREET` | _(vacío)_ | Dirección |
+| `BRAND_COMPANY_CITY` | _(vacío)_ | Ciudad |
+| `BRAND_COMPANY_ZIP` | _(vacío)_ | Código postal |
+| `BRAND_COMPANY_STATE` | _(vacío)_ | Provincia |
+| `BRAND_COMPANY_COUNTRY` | `ES` | País (código ISO) |
 | `BRAND_LOGO_URL` | _(vacío)_ | URL del logo del centro (PNG, 200x60px) |
 | `BRAND_FAVICON_URL` | _(vacío)_ | URL del favicon (PNG/ICO, 32x32px) |
 | `BRAND_PRIMARY_COLOR` | `#714B67` | Color primario de la interfaz |
 | `BRAND_SECONDARY_COLOR` | `#21b799` | Color secundario |
-| `FISCAL_REGIME` | `iva` | Régimen fiscal: `iva` (Península) o `igic` (Canarias) |
-| `FISCAL_RECARGO_EQUIVALENCIA` | `false` | Activar recargo de equivalencia para minoristas |
-| `VERIFACTU_ENABLED` | `false` | Activar VeriFactu (verificación de facturas AEAT) |
-| `VERIFACTU_ENVIRONMENT` | `test` | Entorno VeriFactu: `test` o `production` |
-| `VERIFACTU_NIF_TITULAR` | _(vacío)_ | NIF/CIF del titular obligado tributario |
-| `VERIFACTU_RAZON_SOCIAL` | _(vacío)_ | Razón social del titular |
 
-**Formato de `EDU_GRUPOS`** (separados por `;`):
+#### Configuración fiscal
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `FISCAL_REGIME` | `iva` | Régimen fiscal: `iva` (Península y Baleares) o `igic` (Canarias) |
+| `FISCAL_RECARGO_EQUIVALENCIA` | `false` | Activar recargo de equivalencia para comerciantes minoristas |
+
+**Tipos impositivos por régimen:**
+
+| IVA (Península y Baleares) | IGIC (Canarias) |
+|---|---|
+| 0% — Exento | 0% — Tipo cero |
+| 4% — Superreducido | 3% — Reducido |
+| 10% — Reducido | 5% — Reducido |
+| 21% — General | 7% — General |
+| | 9.5% — Incrementado |
+| | 15% — Especial incrementado |
+| | 20% — Especial |
+
+#### VeriFactu (RD 1007/2023)
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `VERIFACTU_ENABLED` | `false` | Activar el sistema de verificación de facturas |
+| `VERIFACTU_ENVIRONMENT` | `test` | Entorno: `test` (servidor de pruebas AEAT) o `production` (envío real) |
+| `VERIFACTU_NIF_TITULAR` | _(vacío)_ | NIF/CIF del obligado tributario |
+| `VERIFACTU_RAZON_SOCIAL` | _(vacío)_ | Razón social del titular |
+| `VERIFACTU_NIF_REPRESENTANTE` | _(vacío)_ | NIF del representante legal (opcional) |
+
+> **Nota**: VeriFactu será obligatorio a partir del **1 de julio de 2026** para todos los empresarios y profesionales que expidan facturas. Para entornos educativos se recomienda usar el modo de pruebas.
+
+Cuando VeriFactu está activado se configura automáticamente:
+- Generación del registro de facturación (alta/anulación) conforme al RD 1007/2023
+- Código QR de verificación enlazado a la sede electrónica de la AEAT
+- Hash SHA-256 encadenado entre registros para garantizar la integridad
+- Envío automático o bajo demanda al sistema VeriFactu de la Agencia Tributaria
+- Libro registro de facturas expedidas y recibidas
+- Firma electrónica con certificado de la FNMT o DNIe
+
+#### Formato de `EDU_GRUPOS`
+
+Cada grupo se define con campos separados por `|`, y los grupos entre sí se separan por `;`:
+
 ```
 nombre|numAlumnos|dbPrefix|passwordPrefix|profNombre|profUsuario|profPassword
 ```
@@ -142,10 +205,11 @@ El proceso tarda entre **10 y 20 minutos** dependiendo del servidor. El script:
 2. Instala y configura PostgreSQL
 3. Clona Odoo 17 CE desde el repositorio oficial
 4. Clona y configura más de 40 repositorios OCA
-5. Instala Nginx como proxy inverso (si está habilitado)
-6. Configura el servicio systemd, logrotate y firewall UFW
-7. Crea los scripts educativos auxiliares
-8. Configura backups automáticos diarios
+5. Configura la localización española, régimen fiscal (IVA/IGIC) y VeriFactu si está activado
+6. Instala Nginx como proxy inverso (si está habilitado)
+7. Configura el servicio systemd, logrotate y firewall UFW
+8. Crea los scripts educativos auxiliares
+9. Configura backups automáticos diarios
 
 ### 5. Acceder al panel de administración
 
@@ -161,6 +225,29 @@ Al finalizar, el script muestra las credenciales de acceso:
 ```
 
 > **Importante**: Cambia la contraseña del superadministrador en el primer acceso.
+
+---
+
+## Panel de administración web
+
+El panel web (`/admin`) ofrece una interfaz completa para gestionar el entorno educativo sin necesidad de usar la terminal.
+
+### Superadministrador
+
+| Sección | Funcionalidad |
+|---|---|
+| **Grupos** | Crear, editar y eliminar grupos de alumnos. Asignar profesor a cada grupo. Crear bases de datos y descargar CSV de credenciales |
+| **Branding** | Personalizar logo, favicon, colores corporativos, datos de empresa. Se aplica a todas las BD |
+| **Fiscalidad** | Selector IVA/IGIC con tipos impositivos. Recargo de equivalencia. VeriFactu (activar/desactivar, entorno pruebas/producción, datos del titular) |
+| **Actualizaciones** | Ver versión instalada. Analizar compatibilidad OCA para migrar versión. Actualizar módulos estables |
+
+### Profesor
+
+| Sección | Funcionalidad |
+|---|---|
+| **Su grupo** | Ver y gestionar los alumnos de su grupo asignado |
+| **Reseteos** | Resetear la BD de cualquier alumno de su grupo a su estado inicial |
+| **CSV** | Descargar archivo CSV con las credenciales de sus alumnos |
 
 ---
 
@@ -196,84 +283,85 @@ Características de seguridad:
 
 ---
 
-## Panel de administración web
-
-El panel web (`/admin`) tiene dos roles de acceso:
-
-### Superadministrador
-- **Grupos**: Crear, editar y eliminar grupos de alumnos con profesor asignado
-- **Branding**: Personalizar logo, favicon, colores, datos de empresa (se aplica a todas las BD)
-- **Actualizaciones**: Ver versión instalada, analizar compatibilidad para migrar, actualizar módulos OCA
-
-### Profesor
-- **Su grupo**: Ver y gestionar solo los alumnos de su grupo asignado
-- **Reseteos**: Resetear la BD de cualquier alumno de su grupo
-- **CSV**: Descargar archivo CSV con las credenciales de sus alumnos
-
----
-
 ## Módulos OCA incluidos
 
 Más de **40 módulos** de la Odoo Community Association, organizados por categoría:
 
 ### Contabilidad y Finanzas
-`l10n-spain` `account-financial-tools` `account-financial-reporting` `account-payment` `account-invoicing` `account-closing` `account-analytic` `account-reconcile` `bank-payment` `credit-control` `currency` `mis-builder`
+`l10n-spain` · `account-financial-tools` · `account-financial-reporting` · `account-payment` · `account-invoicing` · `account-closing` · `account-analytic` · `account-reconcile` · `bank-payment` · `credit-control` · `currency` · `mis-builder`
 
 ### Ventas y Compras
-`sale-workflow` `purchase-workflow` `product-attribute` `crm` `e-commerce` `pos`
+`sale-workflow` · `purchase-workflow` · `product-attribute` · `crm` · `e-commerce` · `pos`
 
 ### Logística y Almacén
-`stock-logistics-workflow` `stock-logistics-warehouse` `delivery-carrier` `intrastat-extrastat`
+`stock-logistics-workflow` · `stock-logistics-warehouse` · `delivery-carrier` · `intrastat-extrastat`
 
 ### Recursos Humanos
-`hr` `hr-attendance` `hr-expense` `hr-holidays`
+`hr` · `hr-attendance` · `hr-expense` · `hr-holidays`
 
 ### Producción y Proyectos
-`manufacture` `project` `management-system`
+`manufacture` · `project` · `management-system`
 
 ### Sistema y Herramientas
-`server-tools` `web` `queue` `connector` `edi` `reporting-engine` `community-data-files` `brand` `multi-company` `partner-contact`
+`server-tools` · `web` · `queue` · `connector` · `edi` · `reporting-engine` · `community-data-files` · `brand` · `multi-company` · `partner-contact`
 
 ---
 
 ## Estructura de archivos
 
+### Repositorio
+
 ```
 Odoo-Edu-Installer-Spanish/
-├── odoo_install.sh          # Script principal de instalación
+├── odoo_install.sh          # Script principal de instalación desatendida
 ├── bootstrap.sh             # Script de bootstrap (actualiza servidor + lanza instalación)
 ├── README.md                # Este archivo
 └── artifacts/
-    └── odoo-edu/            # Aplicación web del panel de administración
+    └── odoo-edu/            # Aplicación web (landing + panel de administración)
         ├── src/
         │   ├── pages/
-        │   │   ├── Landing.tsx      # Página principal con instrucciones
-        │   │   └── AdminPanel.tsx   # Panel de administración
-        │   └── App.tsx              # Router principal
+        │   │   ├── Landing.tsx      # Página principal con instrucciones de instalación
+        │   │   └── AdminPanel.tsx   # Panel de administración (grupos, branding, fiscal, actualizaciones)
+        │   ├── components/          # Componentes reutilizables (CodeBlock, SectionHeading)
+        │   └── App.tsx              # Router principal (/ y /admin)
         └── public/
-            └── images/              # Recursos gráficos
+            └── images/              # Logo, favicon, imágenes de fondo
 ```
 
-Tras la instalación, se generan en el servidor:
+### Tras la instalación (en el servidor)
 
 ```
 /opt/odoo17/                         # Directorio principal de Odoo
-├── odoo17-server/                   # Código fuente de Odoo
+├── odoo17-server/                   # Código fuente de Odoo CE
 ├── OCA/                             # Repositorios OCA clonados
 ├── custom/addons/                   # Módulos personalizados
-└── credenciales_odoo.txt            # Archivo con todas las credenciales
+└── credenciales_odoo.txt            # Credenciales completas (protegido con chmod 600)
 
 /usr/local/bin/
-├── odoo_crear_alumnos.sh            # Crear BDs de alumnos
+├── odoo_crear_alumnos.sh            # Crear BDs de alumnos por grupo
 ├── odoo_reset_alumno.sh             # Resetear BD de un alumno
-├── odoo_backup.sh                   # Backup manual
+├── odoo_backup.sh                   # Backup manual de todas las BD
 ├── odoo_restaurar_alumno.sh         # Restaurar BD desde backup
-└── odoo_actualizar_oca.sh           # Actualizar módulos OCA
+└── odoo_actualizar_oca.sh           # Actualizar módulos OCA (modo safe/check)
 
 /var/backups/odoo/                   # Backups automáticos diarios
 /var/log/odoo17/                     # Logs de Odoo y backups
-/etc/odoo17.conf                     # Configuración de Odoo
+/etc/odoo17.conf                     # Archivo de configuración de Odoo
 ```
+
+---
+
+## Versiones de Odoo soportadas
+
+| Versión | Estado | Soporte hasta | Compatibilidad OCA |
+|---|---|---|---|
+| 14.0 | EOL | Oct 2023 | ~75% módulos estables |
+| 15.0 | EOL | Oct 2024 | ~85% módulos estables |
+| 16.0 | LTS | Oct 2025 | ~95% módulos estables |
+| 17.0 | **Actual (LTS)** | Nov 2026 | ~92% módulos estables |
+| 18.0 | Desarrollo | Oct 2028 | ~70% módulos estables |
+
+> Para cambiar de versión, usa el panel de administración web que analiza la compatibilidad de todos los módulos OCA antes de la migración.
 
 ---
 
@@ -315,19 +403,12 @@ sudo systemctl restart nginx
 sudo cat /opt/odoo17/credenciales_odoo.txt
 ```
 
----
+### Verificar la configuración fiscal
 
-## Versiones de Odoo soportadas
-
-| Versión | Estado | Compatibilidad OCA |
-|---|---|---|
-| 14.0 | EOL | ~75% módulos estables |
-| 15.0 | EOL | ~85% módulos estables |
-| 16.0 | LTS | ~95% módulos estables |
-| 17.0 | **Actual (LTS)** | ~92% módulos estables |
-| 18.0 | Desarrollo | ~70% módulos estables |
-
-> Para cambiar de versión, usa el panel de administración web que analiza la compatibilidad de todos los módulos OCA antes de la migración.
+```bash
+# Comprobar que los módulos de localización están instalados
+sudo -u odoo17 psql -d NOMBRE_BD -c "SELECT name, state FROM ir_module_module WHERE name LIKE 'l10n_es%';"
+```
 
 ---
 
