@@ -31,6 +31,11 @@ set -euo pipefail
 # CONFIGURACION — Ajusta estos valores segun tus necesidades
 #===============================================================================
 
+# Versiones soportadas: 14.0, 15.0, 16.0, 17.0, 18.0
+# IMPORTANTE: Cambiar a una version superior requiere migracion de base de datos.
+# Use el panel de administracion web para evaluar la compatibilidad de los modulos OCA
+# antes de cambiar de version. No se recomienda migrar si algun modulo OCA critico
+# no tiene rama estable para la version destino.
 ODOO_VERSION="17.0"
 ODOO_USER="odoo17"
 ODOO_HOME="/opt/$ODOO_USER"
@@ -1270,6 +1275,182 @@ RESTORE_SCRIPT
 sed -i "s|BACKUP_DIR_PLACEHOLDER|$EDU_BACKUP_DIR|g" /usr/local/bin/odoo_restaurar_alumno.sh
 chmod +x /usr/local/bin/odoo_restaurar_alumno.sh
 
+# --- Script de actualizacion de modulos OCA ---
+cat > /usr/local/bin/odoo_actualizar_oca.sh << 'OCA_UPDATE_SCRIPT'
+#!/bin/bash
+#===============================================================================
+# Script de actualizacion segura de modulos OCA
+# Solo actualiza repositorios con rama estable para la version instalada.
+# Los repos en beta o sin rama se omiten automaticamente.
+#===============================================================================
+
+ODOO_USER="ODOO_USER_PLACEHOLDER"
+ODOO_HOME="ODOO_HOME_PLACEHOLDER"
+ODOO_VERSION="ODOO_VERSION_PLACEHOLDER"
+OCA_DIR="$ODOO_HOME/OCA"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}Este script debe ejecutarse como root (sudo).${NC}"
+    exit 1
+fi
+
+MODE="${1:-safe}"
+
+if [[ "$MODE" != "safe" && "$MODE" != "check" ]]; then
+    echo -e "${RED}Modo no reconocido: $MODE${NC}"
+    echo "Uso: sudo odoo_actualizar_oca.sh [safe|check]"
+    echo "  safe  — Actualiza solo repos con rama estable (por defecto)"
+    echo "  check — Solo muestra que repos tienen actualizaciones pendientes"
+    exit 1
+fi
+
+echo ""
+echo "=================================================================="
+echo "  ACTUALIZACION DE MODULOS OCA"
+echo "  Version Odoo: $ODOO_VERSION"
+echo "  Modo: $MODE"
+echo "=================================================================="
+echo ""
+
+# Marcar directorio OCA como seguro para git (evitar "dubious ownership")
+git config --global --add safe.directory "$OCA_DIR" 2>/dev/null || true
+for d in "$OCA_DIR"/*/; do
+    git config --global --add safe.directory "$d" 2>/dev/null || true
+done
+
+updated=0
+skipped=0
+skipped_no_branch=0
+skipped_wrong_branch=0
+failed=0
+up_to_date=0
+skipped_no_branch_list=""
+skipped_wrong_branch_list=""
+
+for repo_dir in "$OCA_DIR"/*/; do
+    repo_name=$(basename "$repo_dir")
+
+    if [[ ! -d "$repo_dir/.git" ]]; then
+        continue
+    fi
+
+    cd "$repo_dir"
+
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+
+    # Verificar si el repo esta en la rama de la version instalada
+    if [[ "$current_branch" != "$ODOO_VERSION" ]]; then
+        echo -e "${YELLOW}[OMITIDO]${NC} $repo_name — rama actual ($current_branch) distinta a $ODOO_VERSION"
+        skipped=$((skipped + 1))
+        skipped_wrong_branch=$((skipped_wrong_branch + 1))
+        skipped_wrong_branch_list="$skipped_wrong_branch_list $repo_name($current_branch)"
+        continue
+    fi
+
+    # Verificar si existe rama remota para la version (seguridad adicional)
+    has_version_branch=$(git ls-remote --heads origin "$ODOO_VERSION" 2>/dev/null | wc -l || echo "0")
+
+    if [[ "$has_version_branch" -eq 0 ]]; then
+        echo -e "${YELLOW}[OMITIDO]${NC} $repo_name — sin rama remota $ODOO_VERSION"
+        skipped=$((skipped + 1))
+        skipped_no_branch=$((skipped_no_branch + 1))
+        skipped_no_branch_list="$skipped_no_branch_list $repo_name"
+        continue
+    fi
+
+    # Comprobar si hay actualizaciones disponibles
+    if ! sudo -u "$ODOO_USER" git fetch origin "$ODOO_VERSION" --quiet 2>/dev/null; then
+        echo -e "${YELLOW}[WARN]${NC} $repo_name — no se pudo conectar al remoto, omitiendo"
+        skipped=$((skipped + 1))
+        continue
+    fi
+
+    local_hash=$(git rev-parse HEAD 2>/dev/null || echo "")
+    remote_hash=$(git rev-parse "origin/$ODOO_VERSION" 2>/dev/null || echo "")
+
+    if [[ "$local_hash" == "$remote_hash" ]]; then
+        echo -e "${GREEN}[OK]${NC} $repo_name — ya actualizado"
+        up_to_date=$((up_to_date + 1))
+        continue
+    fi
+
+    behind=$(git rev-list HEAD.."origin/$ODOO_VERSION" --count 2>/dev/null || echo "?")
+
+    if [[ "$MODE" == "check" ]]; then
+        echo -e "${BLUE}[PENDIENTE]${NC} $repo_name — $behind commits nuevos disponibles"
+        continue
+    fi
+
+    echo -e "${BLUE}[ACTUALIZANDO]${NC} $repo_name ($behind commits)..."
+    if sudo -u "$ODOO_USER" git pull origin "$ODOO_VERSION" --quiet 2>/dev/null; then
+        echo -e "${GREEN}[OK]${NC} $repo_name — actualizado correctamente"
+        updated=$((updated + 1))
+    else
+        echo -e "${RED}[ERROR]${NC} $repo_name — fallo la actualizacion (se mantiene version anterior)"
+        failed=$((failed + 1))
+    fi
+done
+
+echo ""
+echo "=================================================================="
+echo "  RESUMEN"
+echo "  Ya actualizados:        $up_to_date"
+echo "  Actualizados ahora:     $updated"
+echo "  Omitidos:               $skipped"
+if [[ $skipped_no_branch -gt 0 ]]; then
+echo "    - Sin rama remota:    $skipped_no_branch"
+fi
+if [[ $skipped_wrong_branch -gt 0 ]]; then
+echo "    - Rama diferente:     $skipped_wrong_branch"
+fi
+echo "  Fallidos:               $failed"
+echo "=================================================================="
+
+if [[ $skipped_no_branch -gt 0 ]]; then
+    echo ""
+    echo -e "${YELLOW}Modulos sin rama remota $ODOO_VERSION:${NC}"
+    echo "  $skipped_no_branch_list"
+fi
+
+if [[ $skipped_wrong_branch -gt 0 ]]; then
+    echo ""
+    echo -e "${YELLOW}Modulos en rama diferente (no se tocan):${NC}"
+    echo "  $skipped_wrong_branch_list"
+fi
+
+if [[ $skipped -gt 0 ]]; then
+    echo ""
+    echo -e "${YELLOW}NOTA: Los modulos omitidos siguen funcionando con la"
+    echo "version que tienen instalada. Solo se actualizan los repos"
+    echo "que estan en la rama $ODOO_VERSION y tienen rama remota"
+    echo "confirmada en GitHub.${NC}"
+fi
+
+if [[ "$MODE" != "check" && $updated -gt 0 ]]; then
+    echo ""
+    echo "Reiniciando servicio Odoo..."
+    systemctl restart ${ODOO_USER}.service
+    echo -e "${GREEN}Servicio reiniciado.${NC}"
+fi
+
+echo ""
+echo "Uso: sudo odoo_actualizar_oca.sh [safe|check]"
+echo "  safe  — Actualiza solo repos con rama estable (por defecto)"
+echo "  check — Solo muestra que repos tienen actualizaciones pendientes"
+echo ""
+OCA_UPDATE_SCRIPT
+
+sed -i "s|ODOO_USER_PLACEHOLDER|$ODOO_USER|g" /usr/local/bin/odoo_actualizar_oca.sh
+sed -i "s|ODOO_HOME_PLACEHOLDER|$ODOO_HOME|g" /usr/local/bin/odoo_actualizar_oca.sh
+sed -i "s|ODOO_VERSION_PLACEHOLDER|$ODOO_VERSION|g" /usr/local/bin/odoo_actualizar_oca.sh
+chmod +x /usr/local/bin/odoo_actualizar_oca.sh
+
 log_success "Scripts auxiliares educativos creados."
 
 #===============================================================================
@@ -1419,6 +1600,7 @@ Scripts educativos:
   /usr/local/bin/odoo_reset_alumno.sh
   /usr/local/bin/odoo_backup.sh
   /usr/local/bin/odoo_restaurar_alumno.sh
+  /usr/local/bin/odoo_actualizar_oca.sh
 ============================================================
 EOF
 

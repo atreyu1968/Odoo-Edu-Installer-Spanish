@@ -6,7 +6,9 @@ import {
   Plus, Trash2, Save, CheckCircle2, AlertTriangle,
   Building2, Image, Globe, Mail, Phone, MapPin,
   Server, Database, Shield,
-  Download, RotateCcw
+  Download, RotateCcw, ChevronDown, Info,
+  ShieldCheck, ShieldAlert, ShieldX, GitBranch,
+  ArrowUpCircle, Clock, ExternalLink, Ban
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -49,6 +51,61 @@ interface AuthState {
 }
 
 type Tab = "grupos" | "branding" | "actualizaciones";
+
+type OdooVersionId = "14.0" | "15.0" | "16.0" | "17.0" | "18.0";
+type StabilityLevel = "stable" | "beta" | "unavailable";
+
+interface OdooVersion {
+  id: OdooVersionId;
+  name: string;
+  releaseDate: string;
+  eolDate: string;
+  isLTS: boolean;
+  current: boolean;
+}
+
+interface OcaModuleStatus {
+  repo: string;
+  category: string;
+  branches: Record<OdooVersionId, StabilityLevel>;
+  lastUpdate: string;
+  pendingCommits: number;
+}
+
+const ODOO_VERSIONS: OdooVersion[] = [
+  { id: "14.0", name: "Odoo 14.0 CE", releaseDate: "Oct 2020", eolDate: "Oct 2023", isLTS: false, current: false },
+  { id: "15.0", name: "Odoo 15.0 CE", releaseDate: "Oct 2021", eolDate: "Oct 2024", isLTS: false, current: false },
+  { id: "16.0", name: "Odoo 16.0 CE", releaseDate: "Oct 2022", eolDate: "Oct 2025", isLTS: true, current: false },
+  { id: "17.0", name: "Odoo 17.0 CE", releaseDate: "Nov 2023", eolDate: "Nov 2026", isLTS: true, current: true },
+  { id: "18.0", name: "Odoo 18.0 CE", releaseDate: "Oct 2025", eolDate: "Oct 2028", isLTS: false, current: false },
+];
+
+const OCA_MODULES: OcaModuleStatus[] = [
+  { repo: "l10n-spain", category: "Localización", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 3 días", pendingCommits: 0 },
+  { repo: "account-financial-tools", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 5 días", pendingCommits: 2 },
+  { repo: "account-financial-reporting", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 1 semana", pendingCommits: 0 },
+  { repo: "account-payment", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 2 días", pendingCommits: 1 },
+  { repo: "account-invoicing", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 4 días", pendingCommits: 0 },
+  { repo: "bank-payment", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 6 días", pendingCommits: 0 },
+  { repo: "reporting-engine", category: "Sistema", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 1 día", pendingCommits: 3 },
+  { repo: "server-tools", category: "Sistema", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 2 días", pendingCommits: 5 },
+  { repo: "web", category: "Sistema", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 3 días", pendingCommits: 1 },
+  { repo: "multi-company", category: "Multiempresa", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 1 semana", pendingCommits: 0 },
+  { repo: "brand", category: "Branding", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "unavailable" }, lastUpdate: "Hace 2 semanas", pendingCommits: 0 },
+  { repo: "sale-workflow", category: "Ventas", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 4 días", pendingCommits: 2 },
+  { repo: "purchase-workflow", category: "Compras", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 5 días", pendingCommits: 0 },
+  { repo: "stock-logistics-workflow", category: "Logística", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 1 semana", pendingCommits: 0 },
+  { repo: "stock-logistics-warehouse", category: "Logística", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "unavailable" }, lastUpdate: "Hace 2 semanas", pendingCommits: 0 },
+  { repo: "hr", category: "RRHH", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 3 días", pendingCommits: 1 },
+  { repo: "project", category: "Proyectos", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 5 días", pendingCommits: 0 },
+  { repo: "manufacture", category: "Producción", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "unavailable" }, lastUpdate: "Hace 3 semanas", pendingCommits: 0 },
+  { repo: "connector", category: "Sistema", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 1 semana", pendingCommits: 0 },
+  { repo: "queue", category: "Sistema", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 4 días", pendingCommits: 0 },
+  { repo: "crm", category: "Ventas", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 6 días", pendingCommits: 0 },
+  { repo: "community-data-files", category: "Sistema", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 1 día", pendingCommits: 0 },
+  { repo: "partner-contact", category: "Contactos", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "stable" }, lastUpdate: "Hace 2 días", pendingCommits: 0 },
+  { repo: "mis-builder", category: "Contabilidad", branches: { "14.0": "stable", "15.0": "stable", "16.0": "stable", "17.0": "stable", "18.0": "beta" }, lastUpdate: "Hace 1 semana", pendingCommits: 0 },
+];
 
 const defaultBranding: BrandingConfig = {
   companyName: "Centro de Formacion Profesional",
@@ -586,76 +643,455 @@ export default function AdminPanel() {
 
         {/* UPDATES TAB */}
         {activeTab === "actualizaciones" && isSuperadmin && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-display font-bold text-slate-900">Actualizaciones</h2>
-              <p className="text-slate-500 text-sm mt-1">Gestiona las actualizaciones de Odoo y los módulos OCA.</p>
+          <UpdatesTab />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UpdatesTab() {
+  const [installedVersion, setInstalledVersion] = useState<OdooVersionId>("17.0");
+  const [selectedVersion, setSelectedVersion] = useState<OdooVersionId>("17.0");
+  const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+  const [ocaFilter, setOcaFilter] = useState<"all" | "pending" | "unstable">("all");
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [updatingModules, setUpdatingModules] = useState(false);
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
+  const [showMigrationWarning, setShowMigrationWarning] = useState(false);
+  const [moduleUpdateResults, setModuleUpdateResults] = useState<Record<string, "success" | "skipped" | null>>({});
+
+  const currentVersionData = ODOO_VERSIONS.find(v => v.id === installedVersion)!;
+  const targetVersionData = ODOO_VERSIONS.find(v => v.id === selectedVersion)!;
+  const isMajorUpgrade = selectedVersion !== installedVersion;
+
+  const getCompatibility = (version: OdooVersionId) => {
+    const total = OCA_MODULES.length;
+    const stable = OCA_MODULES.filter(m => m.branches[version] === "stable").length;
+    const beta = OCA_MODULES.filter(m => m.branches[version] === "beta").length;
+    const unavailable = OCA_MODULES.filter(m => m.branches[version] === "unavailable").length;
+    return { total, stable, beta, unavailable, percent: Math.round((stable / total) * 100) };
+  };
+
+  const compatibility = getCompatibility(selectedVersion);
+  const pendingModules = OCA_MODULES.filter(m => m.pendingCommits > 0);
+  const unstableModules = OCA_MODULES.filter(m => m.branches[selectedVersion] !== "stable");
+
+  const filteredModules = ocaFilter === "pending"
+    ? pendingModules
+    : ocaFilter === "unstable"
+      ? unstableModules
+      : OCA_MODULES;
+
+  const handleCheckUpdates = () => {
+    setCheckingUpdates(true);
+    setTimeout(() => {
+      setCheckingUpdates(false);
+      setLastChecked("Ahora mismo");
+    }, 2000);
+  };
+
+  const handleUpdateStableModules = () => {
+    const stableWithPending = OCA_MODULES.filter(
+      m => m.branches[installedVersion] === "stable" && m.pendingCommits > 0
+    );
+    if (stableWithPending.length === 0) return;
+    setUpdatingModules(true);
+    setTimeout(() => {
+      const results: Record<string, "success" | "skipped" | null> = {};
+      stableWithPending.forEach(m => { results[m.repo] = "success"; });
+      setModuleUpdateResults(results);
+      setUpdatingModules(false);
+    }, 3000);
+  };
+
+  const handleVersionSelect = (v: OdooVersionId) => {
+    setSelectedVersion(v);
+    setShowVersionDropdown(false);
+    if (v !== installedVersion) {
+      setShowMigrationWarning(true);
+    } else {
+      setShowMigrationWarning(false);
+    }
+  };
+
+  const stabilityBadge = (level: StabilityLevel) => {
+    switch (level) {
+      case "stable":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+            <ShieldCheck className="w-3 h-3" /> Estable
+          </span>
+        );
+      case "beta":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+            <ShieldAlert className="w-3 h-3" /> Beta
+          </span>
+        );
+      case "unavailable":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+            <ShieldX className="w-3 h-3" /> No disponible
+          </span>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-display font-bold text-slate-900">Versión y Actualizaciones</h2>
+        <p className="text-slate-500 text-sm mt-1">Gestiona la versión de Odoo y el estado de los módulos OCA instalados.</p>
+      </div>
+
+      {/* VERSION MANAGEMENT */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Current Version Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
+              <Server className="w-5 h-5" />
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
-                      <Server className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900">Odoo 17.0 CE</h3>
-                      <p className="text-xs text-slate-500">Community Edition</p>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
-                    Actualizado
-                  </span>
-                </div>
-                <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-colors">
-                  <RefreshCw className="w-4 h-4" />
-                  Buscar actualizaciones
-                </button>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                      <Database className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900">Módulos OCA</h3>
-                      <p className="text-xs text-slate-500">40+ repositorios</p>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
-                    Actualizado
-                  </span>
-                </div>
-                <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-600 text-white font-semibold hover:bg-amber-700 transition-colors">
-                  <RefreshCw className="w-4 h-4" />
-                  Actualizar módulos OCA
-                </button>
-              </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-slate-900">Versión Instalada</h3>
+              <p className="text-xs text-slate-500">Odoo Community Edition</p>
             </div>
+          </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Estado del Sistema</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  { label: "Servicio Odoo", status: "Activo", color: "emerald" },
-                  { label: "PostgreSQL", status: "Activo", color: "emerald" },
-                  { label: "Nginx", status: "Activo", color: "emerald" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                    <div className={`w-3 h-3 rounded-full bg-${item.color}-500`} />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{item.label}</p>
-                      <p className={`text-xs text-${item.color}-600`}>{item.status}</p>
-                    </div>
-                  </div>
-                ))}
+          <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-display font-bold text-violet-900">{currentVersionData.name}</p>
+                <p className="text-xs text-violet-600 mt-1">
+                  Lanzamiento: {currentVersionData.releaseDate} · Soporte hasta: {currentVersionData.eolDate}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {currentVersionData.isLTS && (
+                  <span className="px-2 py-0.5 rounded-full bg-violet-200 text-violet-800 text-xs font-semibold">LTS</span>
+                )}
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">Actual</span>
               </div>
             </div>
           </div>
-        )}
+
+          <button
+            onClick={handleCheckUpdates}
+            disabled={checkingUpdates}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-colors disabled:opacity-60"
+          >
+            <RefreshCw className={`w-4 h-4 ${checkingUpdates ? "animate-spin" : ""}`} />
+            {checkingUpdates ? "Comprobando..." : "Buscar actualizaciones menores"}
+          </button>
+          {lastChecked && (
+            <p className="text-center text-xs text-slate-500 mt-2 flex items-center justify-center gap-1">
+              <Clock className="w-3 h-3" /> Última comprobación: {lastChecked}
+            </p>
+          )}
+        </div>
+
+        {/* Version Selector Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+              <ArrowUpCircle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-slate-900">Cambiar Versión</h3>
+              <p className="text-xs text-slate-500">Evalúa la compatibilidad antes de migrar</p>
+            </div>
+          </div>
+
+          {/* Version dropdown */}
+          <div className="relative mb-4">
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Versión objetivo</label>
+            <button
+              onClick={() => setShowVersionDropdown(v => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 hover:bg-white transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <GitBranch className="w-4 h-4 text-slate-400" />
+                {targetVersionData.name}
+                {selectedVersion === installedVersion && <span className="text-xs text-slate-400">(actual)</span>}
+              </span>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showVersionDropdown ? "rotate-180" : ""}`} />
+            </button>
+            {showVersionDropdown && (
+              <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+                {ODOO_VERSIONS.map(v => {
+                  const compat = getCompatibility(v.id);
+                  const isEol = new Date(v.eolDate.replace(/(\w+)\s(\d+)/, "$1 1, $2")) < new Date();
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => handleVersionSelect(v.id)}
+                      className={`w-full flex items-center justify-between px-4 py-3 text-sm hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 ${
+                        v.id === selectedVersion ? "bg-blue-50" : ""
+                      } ${isEol ? "opacity-50" : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-slate-900">{v.name}</span>
+                        {v.isLTS && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-bold">LTS</span>}
+                        {v.id === installedVersion && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">Actual</span>}
+                        {isEol && <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-bold">EOL</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${compat.percent}%` }} />
+                        </div>
+                        <span className="text-xs text-slate-500 w-8 text-right">{compat.percent}%</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Compatibility overview */}
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <p className="text-xs font-semibold text-slate-700 mb-3">Compatibilidad de módulos OCA para {selectedVersion}</p>
+            <div className="flex gap-3 mb-3">
+              <div className="flex-1 text-center p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+                <p className="text-lg font-bold text-emerald-700">{compatibility.stable}</p>
+                <p className="text-[10px] text-emerald-600">Estables</p>
+              </div>
+              <div className="flex-1 text-center p-2 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-lg font-bold text-amber-700">{compatibility.beta}</p>
+                <p className="text-[10px] text-amber-600">Beta</p>
+              </div>
+              <div className="flex-1 text-center p-2 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-lg font-bold text-red-700">{compatibility.unavailable}</p>
+                <p className="text-[10px] text-red-600">No disponibles</p>
+              </div>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden flex">
+              <div className="h-full bg-emerald-500" style={{ width: `${(compatibility.stable / compatibility.total) * 100}%` }} />
+              <div className="h-full bg-amber-400" style={{ width: `${(compatibility.beta / compatibility.total) * 100}%` }} />
+              <div className="h-full bg-red-400" style={{ width: `${(compatibility.unavailable / compatibility.total) * 100}%` }} />
+            </div>
+          </div>
+
+          {isMajorUpgrade && (
+            <button
+              disabled={compatibility.unavailable > 0}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-colors mt-4 ${
+                compatibility.unavailable > 0
+                  ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              {compatibility.unavailable > 0 ? (
+                <>
+                  <Ban className="w-4 h-4" />
+                  Migración no recomendada
+                </>
+              ) : (
+                <>
+                  <ArrowUpCircle className="w-4 h-4" />
+                  Iniciar migración a {selectedVersion}
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* MIGRATION WARNING */}
+      {showMigrationWarning && isMajorUpgrade && (
+        <div className={`rounded-2xl border p-6 ${
+          compatibility.unavailable > 0
+            ? "bg-red-50 border-red-200"
+            : compatibility.beta > 3
+              ? "bg-amber-50 border-amber-200"
+              : "bg-blue-50 border-blue-200"
+        }`}>
+          <div className="flex items-start gap-4">
+            <div className={`p-2 rounded-lg shrink-0 ${
+              compatibility.unavailable > 0
+                ? "bg-red-100 text-red-600"
+                : compatibility.beta > 3
+                  ? "bg-amber-100 text-amber-600"
+                  : "bg-blue-100 text-blue-600"
+            }`}>
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <h4 className={`font-bold mb-2 ${
+                compatibility.unavailable > 0 ? "text-red-900" : compatibility.beta > 3 ? "text-amber-900" : "text-blue-900"
+              }`}>
+                {compatibility.unavailable > 0
+                  ? "Migración NO recomendada"
+                  : compatibility.beta > 3
+                    ? "Migración posible pero con riesgos"
+                    : "Migración viable"}
+                {" "}— de {installedVersion} a {selectedVersion}
+              </h4>
+
+              <div className="space-y-2 text-sm">
+                {compatibility.unavailable > 0 && (
+                  <p className="text-red-800">
+                    <strong>{compatibility.unavailable} módulos no tienen rama para {selectedVersion}</strong>. Estos módulos dejarán de funcionar tras la migración, lo que puede causar errores graves en el sistema. Se recomienda esperar a que la OCA publique ramas estables.
+                  </p>
+                )}
+                {compatibility.beta > 0 && (
+                  <p className={compatibility.unavailable > 0 ? "text-red-700" : "text-amber-800"}>
+                    <strong>{compatibility.beta} módulos están en fase beta</strong> para {selectedVersion}. Pueden contener errores, funcionalidades incompletas o incompatibilidades. No se garantiza estabilidad en producción.
+                  </p>
+                )}
+
+                <div className="bg-white/60 rounded-lg p-4 mt-3 border border-slate-200/50">
+                  <p className="font-semibold text-slate-800 mb-2">Antes de migrar, ten en cuenta:</p>
+                  <ul className="space-y-1.5 text-slate-700">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      El cambio de versión mayor requiere <strong>migración de base de datos</strong> (openupgradelib).
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      Se creará un <strong>backup automático</strong> antes de iniciar la migración.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      Los módulos en beta pueden fallar. <strong>Prueba primero en un entorno de pruebas</strong>.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      Los módulos no disponibles se desactivarán automáticamente.
+                    </li>
+                  </ul>
+                </div>
+
+                {compatibility.unavailable > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-red-800 mb-1">Módulos sin soporte para {selectedVersion}:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {OCA_MODULES.filter(m => m.branches[selectedVersion] === "unavailable").map(m => (
+                        <span key={m.repo} className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-mono">{m.repo}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OCA MODULES DETAIL */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Módulos OCA Instalados</h3>
+                <p className="text-xs text-slate-500">{OCA_MODULES.length} repositorios · {pendingModules.length} con actualizaciones pendientes</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex bg-slate-100 rounded-lg p-0.5">
+                {([
+                  { id: "all" as const, label: "Todos", count: OCA_MODULES.length },
+                  { id: "pending" as const, label: "Pendientes", count: pendingModules.length },
+                  { id: "unstable" as const, label: "Inestables", count: unstableModules.length },
+                ]).map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setOcaFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      ocaFilter === f.id
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {f.label} ({f.count})
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={handleUpdateStableModules}
+                disabled={updatingModules || pendingModules.filter(m => m.branches[installedVersion] === "stable").length === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${updatingModules ? "animate-spin" : ""}`} />
+                {updatingModules ? "Actualizando..." : "Actualizar estables"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Info banner about stability */}
+        <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-start gap-3">
+          <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-800">
+            <strong>Solo se actualizan los módulos marcados como "Estable"</strong>. Los módulos en beta o sin rama disponible para tu versión se omiten automáticamente para evitar errores en producción. Cada módulo OCA publica su código por ramas de versión (17.0, 18.0, etc.) — si la rama no existe o no ha pasado los tests de CI, no se considera estable.
+          </p>
+        </div>
+
+        {/* Module list */}
+        <div className="divide-y divide-slate-100">
+          {filteredModules.map(mod => (
+            <div key={mod.repo} className="flex items-center justify-between px-6 py-3.5 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="font-mono text-sm font-medium text-slate-900 truncate">{mod.repo}</span>
+                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-medium shrink-0">{mod.category}</span>
+              </div>
+              <div className="flex items-center gap-4 shrink-0">
+                {mod.pendingCommits > 0 && (
+                  <span className="flex items-center gap-1 text-xs text-blue-600 font-medium">
+                    <GitBranch className="w-3 h-3" />
+                    {mod.pendingCommits} {mod.pendingCommits === 1 ? "commit" : "commits"}
+                  </span>
+                )}
+                <span className="text-xs text-slate-400 hidden sm:block">{mod.lastUpdate}</span>
+                {stabilityBadge(mod.branches[selectedVersion])}
+                {moduleUpdateResults[mod.repo] === "success" && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> OK
+                  </span>
+                )}
+                <a
+                  href={`https://github.com/OCA/${mod.repo}/tree/${selectedVersion}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                  title={`Ver en GitHub (rama ${selectedVersion})`}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+          ))}
+          {filteredModules.length === 0 && (
+            <div className="px-6 py-8 text-center text-slate-500 text-sm">
+              No hay módulos que coincidan con el filtro seleccionado.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* SYSTEM STATUS */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Estado del Sistema</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { label: "Servicio Odoo", status: "Activo", color: "bg-emerald-500", textColor: "text-emerald-600" },
+            { label: "PostgreSQL", status: "Activo", color: "bg-emerald-500", textColor: "text-emerald-600" },
+            { label: "Nginx", status: "Activo", color: "bg-emerald-500", textColor: "text-emerald-600" },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
+              <div className={`w-3 h-3 rounded-full ${item.color}`} />
+              <div>
+                <p className="text-sm font-medium text-slate-900">{item.label}</p>
+                <p className={`text-xs ${item.textColor}`}>{item.status}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
