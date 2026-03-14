@@ -760,6 +760,17 @@ upstream admin_api {
     server 127.0.0.1:3001;
 }
 
+map \$http_x_forwarded_proto \$forwarded_proto {
+    default \$scheme;
+    https   https;
+    http    http;
+}
+
+map \$http_cf_connecting_ip \$real_client_ip {
+    default \$http_cf_connecting_ip;
+    ""      \$remote_addr;
+}
+
 server {
     listen 80;
     server_name $WEBSITE_NAME;
@@ -770,8 +781,8 @@ server {
 
     proxy_set_header X-Forwarded-Host \$host;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-Proto \$forwarded_proto;
+    proxy_set_header X-Real-IP \$real_client_ip;
     proxy_set_header Host \$http_host;
 
     access_log /var/log/nginx/odoo.access.log;
@@ -801,7 +812,7 @@ server {
     location /api/ {
         proxy_pass http://admin_api;
         proxy_set_header Host \$http_host;
-        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Real-IP \$real_client_ip;
     }
 
     location /web {
@@ -814,9 +825,11 @@ server {
     }
 
     location /websocket {
+        proxy_http_version 1.1;
         proxy_pass http://odoochat;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400s;
     }
 
     location ~* /web/static/ {
@@ -824,6 +837,10 @@ server {
         proxy_buffering on;
         expires 864000;
         proxy_pass http://odoo;
+    }
+
+    location / {
+        try_files \$uri \$uri/ @odoo;
     }
 
     location @odoo {
@@ -1601,13 +1618,10 @@ if [[ -d "$REPO_DIR/artifacts" ]]; then
     cd "$REPO_DIR/artifacts/api-server"
     if pnpm run build; then
         cp -r dist/* "$ADMIN_DIR/api/dist/" 2>/dev/null || true
-        cp package.json "$ADMIN_DIR/api/" 2>/dev/null || true
         log_success "API server compilado."
     else
         log_error "Error al compilar el API server. Revisa los logs."
     fi
-
-    cd "$ADMIN_DIR/api" && npm install --omit=dev 2>/dev/null || true
 
     chown -R "$ODOO_USER":"$ODOO_USER" "$ADMIN_DIR"
 
