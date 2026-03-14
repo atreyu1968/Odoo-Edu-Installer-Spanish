@@ -417,17 +417,22 @@ log_info "Creando entorno virtual de Python e instalando dependencias..."
 
 VENV_DIR="$ODOO_HOME/venv"
 
+if [[ -d "$VENV_DIR" ]] && ! "$VENV_DIR/bin/python3" --version &>/dev/null; then
+    log_warn "Entorno virtual existente esta danado. Recreando..."
+    rm -rf "$VENV_DIR"
+fi
+
 if [[ ! -d "$VENV_DIR" ]]; then
-    ${PYTHON_VERSION} -m venv "$VENV_DIR"
+    ${PYTHON_EXACT} -m venv "$VENV_DIR"
 fi
 
 source "$VENV_DIR/bin/activate"
 
-pip install --upgrade pip setuptools wheel
+pip install --no-cache-dir --upgrade pip setuptools wheel
 
-pip install -r "$ODOO_HOME_EXT/requirements.txt"
+pip install --no-cache-dir -r "$ODOO_HOME_EXT/requirements.txt"
 
-pip install \
+pip install --no-cache-dir \
     phonenumbers \
     num2words \
     python-stdnum \
@@ -449,7 +454,7 @@ pip install \
     python-dateutil \
     vatnumber 2>/dev/null || true
 
-pip install \
+pip install --no-cache-dir \
     odoo-test-helper \
     openupgradelib 2>/dev/null || true
 
