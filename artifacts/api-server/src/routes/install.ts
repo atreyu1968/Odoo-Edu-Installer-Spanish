@@ -6,17 +6,14 @@ import os from "os";
 
 const router: IRouter = Router();
 
-interface Profesor {
-  nombre: string;
-  usuario: string;
-  password: string;
-}
-
 interface GrupoAlumnos {
   nombre: string;
   numAlumnos: number;
   dbPrefix: string;
   passwordPrefix: string;
+  profesorNombre: string;
+  profesorUsuario: string;
+  profesorPassword: string;
 }
 
 interface InstallConfig {
@@ -28,7 +25,6 @@ interface InstallConfig {
   enableSsl: boolean;
   installWkhtmltopdf: boolean;
   eduMode: boolean;
-  eduProfesores: Profesor[];
   eduGrupos: GrupoAlumnos[];
   eduCentroNombre: string;
   eduBackupDir: string;
@@ -127,11 +123,8 @@ EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
 EDU_BACKUP_DIR="${config.eduBackupDir}"
 EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
 
-# Profesores: nombre|usuario|password (separados por ;)
-EDU_PROFESORES="${config.eduProfesores.map((p: Profesor) => `${p.nombre}|${p.usuario}|${p.password}`).join(";")}"
-
-# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
-EDU_GRUPOS="${config.eduGrupos.map((g: GrupoAlumnos) => `${g.nombre}|${g.numAlumnos}|${g.dbPrefix}|${g.passwordPrefix}`).join(";")}"
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix|profNombre|profUsuario|profPassword (separados por ;)
+EDU_GRUPOS="${config.eduGrupos.map((g: GrupoAlumnos) => `${g.nombre}|${g.numAlumnos}|${g.dbPrefix}|${g.passwordPrefix}|${g.profesorNombre}|${g.profesorUsuario}|${g.profesorPassword}`).join(";")}"
 
 # --- Branding / Marca Blanca ---
 BRAND_COMPANY_NAME="${config.brandCompanyName}"

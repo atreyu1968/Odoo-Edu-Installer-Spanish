@@ -10,17 +10,14 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 
-interface Profesor {
-  nombre: string;
-  usuario: string;
-  password: string;
-}
-
 interface GrupoAlumnos {
   nombre: string;
   numAlumnos: number;
   dbPrefix: string;
   passwordPrefix: string;
+  profesorNombre: string;
+  profesorUsuario: string;
+  profesorPassword: string;
 }
 
 interface ConfigState {
@@ -32,7 +29,6 @@ interface ConfigState {
   enableSsl: boolean;
   installWkhtmltopdf: boolean;
   eduMode: boolean;
-  eduProfesores: Profesor[];
   eduGrupos: GrupoAlumnos[];
   eduCentroNombre: string;
   eduBackupDir: string;
@@ -75,11 +71,8 @@ const defaultConfig: ConfigState = {
   enableSsl: false,
   installWkhtmltopdf: true,
   eduMode: true,
-  eduProfesores: [
-    { nombre: "Profesor", usuario: "profesor", password: "Profesor2024!" },
-  ],
   eduGrupos: [
-    { nombre: "Grupo 1", numAlumnos: 30, dbPrefix: "empresa", passwordPrefix: "alumno" },
+    { nombre: "Grupo 1", numAlumnos: 30, dbPrefix: "empresa", passwordPrefix: "alumno", profesorNombre: "Profesor", profesorUsuario: "profesor", profesorPassword: "Profesor2024!" },
   ],
   eduCentroNombre: "Centro de Formacion Profesional",
   eduBackupDir: "/var/backups/odoo",
@@ -310,11 +303,8 @@ EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
 EDU_BACKUP_DIR="${config.eduBackupDir}"
 EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
 
-# Profesores: nombre|usuario|password (separados por ;)
-EDU_PROFESORES="${config.eduProfesores.map(p => `${p.nombre}|${p.usuario}|${p.password}`).join(";")}"
-
-# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
-EDU_GRUPOS="${config.eduGrupos.map(g => `${g.nombre}|${g.numAlumnos}|${g.dbPrefix}|${g.passwordPrefix}`).join(";")}"
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix|profNombre|profUsuario|profPassword (separados por ;)
+EDU_GRUPOS="${config.eduGrupos.map(g => `${g.nombre}|${g.numAlumnos}|${g.dbPrefix}|${g.passwordPrefix}|${g.profesorNombre}|${g.profesorUsuario}|${g.profesorPassword}`).join(";")}"
 
 # --- Branding / Marca Blanca ---
 BRAND_COMPANY_NAME="${config.brandCompanyName}"
@@ -765,10 +755,9 @@ export default function Configurator() {
               </p>
               <ul className="text-sm text-slate-600 mb-6 space-y-1 ml-4">
                 <li>• Centro: <strong>{config.eduCentroNombre}</strong></li>
-                <li>• <strong>{config.eduProfesores.length}</strong> {config.eduProfesores.length === 1 ? "profesor" : "profesores"}: {config.eduProfesores.map(p => p.usuario).join(", ")}</li>
                 <li>• <strong>{config.eduGrupos.length}</strong> {config.eduGrupos.length === 1 ? "grupo" : "grupos"} con <strong>{config.eduGrupos.reduce((s, g) => s + g.numAlumnos, 0)}</strong> alumnos total</li>
                 {config.eduGrupos.map((g, i) => (
-                  <li key={i} className="ml-4 text-xs">— {g.nombre}: {g.numAlumnos} alumnos ({g.passwordPrefix}01...{g.passwordPrefix}{String(g.numAlumnos).padStart(2, "0")})</li>
+                  <li key={i} className="ml-4 text-xs">— {g.nombre}: {g.numAlumnos} alumnos · Profesor: {g.profesorUsuario}</li>
                 ))}
                 <li>• <strong>{activeOcaCount}</strong> módulos OCA</li>
                 <li>• Nginx: {config.installNginx ? "Sí" : "No"}</li>
@@ -905,102 +894,6 @@ export default function Configurator() {
 
                     <div className="border-t border-slate-100" />
 
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-blue-600" />
-                          <h4 className="text-sm font-semibold text-blue-800">Profesores</h4>
-                        </div>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                          {config.eduProfesores.length} {config.eduProfesores.length === 1 ? "profesor" : "profesores"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-blue-600 mb-4">Cada profesor tendrá acceso de administrador a todas las bases de datos de todos los grupos.</p>
-
-                      <div className="space-y-3">
-                        {config.eduProfesores.map((prof, idx) => (
-                          <div key={idx} className="bg-white rounded-lg p-3 border border-blue-200 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-blue-700">Profesor {idx + 1}</span>
-                              {config.eduProfesores.length > 1 && (
-                                <button
-                                  type="button"
-                                  disabled={formDisabled}
-                                  onClick={() => {
-                                    const updated = config.eduProfesores.filter((_, i) => i !== idx);
-                                    updateConfig("eduProfesores", updated);
-                                  }}
-                                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                                  title="Eliminar profesor"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <div>
-                                <label className="block text-xs font-medium text-slate-600 mb-1">Nombre</label>
-                                <TextInput
-                                  value={prof.nombre}
-                                  onChange={(v) => {
-                                    const updated = [...config.eduProfesores];
-                                    updated[idx] = { ...updated[idx], nombre: v };
-                                    updateConfig("eduProfesores", updated);
-                                  }}
-                                  placeholder="Nombre completo"
-                                  disabled={formDisabled}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-slate-600 mb-1">Usuario</label>
-                                <TextInput
-                                  value={prof.usuario}
-                                  onChange={(v) => {
-                                    const updated = [...config.eduProfesores];
-                                    updated[idx] = { ...updated[idx], usuario: v };
-                                    updateConfig("eduProfesores", updated);
-                                  }}
-                                  placeholder="login"
-                                  disabled={formDisabled}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña</label>
-                                <TextInput
-                                  value={prof.password}
-                                  onChange={(v) => {
-                                    const updated = [...config.eduProfesores];
-                                    updated[idx] = { ...updated[idx], password: v };
-                                    updateConfig("eduProfesores", updated);
-                                  }}
-                                  type="password"
-                                  disabled={formDisabled}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-
-                        <button
-                          type="button"
-                          disabled={formDisabled}
-                          onClick={() => {
-                            const n = config.eduProfesores.length + 1;
-                            updateConfig("eduProfesores", [
-                              ...config.eduProfesores,
-                              { nombre: `Profesor ${n}`, usuario: `profesor${n}`, password: `Profesor${n}2024!` },
-                            ]);
-                          }}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 border-dashed border-blue-300 text-blue-600 text-sm font-medium hover:bg-blue-100/50 hover:border-blue-400 transition-colors disabled:opacity-50"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Añadir profesor
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-slate-100" />
-
                     <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
@@ -1012,7 +905,7 @@ export default function Configurator() {
                         </span>
                       </div>
                       <p className="text-xs text-emerald-600 mb-4">
-                        Cada grupo puede representar una clase, ciclo o asignatura. Cada alumno de cada grupo recibe su propia base de datos y empresa aislada. Los prefijos deben ser únicos entre grupos.
+                        Cada grupo tiene su propio profesor asignado. Cada alumno recibe su propia base de datos y empresa aislada. El profesor solo tiene acceso a las BDs de su grupo. Los prefijos deben ser únicos entre grupos.
                       </p>
 
                       <div className="space-y-3">
@@ -1097,6 +990,54 @@ export default function Configurator() {
                                 <p className="text-[10px] text-slate-400 mt-0.5">User/Pass: {grupo.passwordPrefix}01, {grupo.passwordPrefix}02...</p>
                               </div>
                             </div>
+
+                            <div className="border-t border-emerald-100 pt-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Users className="w-3.5 h-3.5 text-blue-600" />
+                                <span className="text-xs font-semibold text-blue-700">Profesor del grupo</span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div>
+                                  <label className="block text-xs font-medium text-slate-600 mb-1">Nombre</label>
+                                  <TextInput
+                                    value={grupo.profesorNombre}
+                                    onChange={(v) => {
+                                      const updated = [...config.eduGrupos];
+                                      updated[idx] = { ...updated[idx], profesorNombre: v };
+                                      updateConfig("eduGrupos", updated);
+                                    }}
+                                    placeholder="Nombre completo"
+                                    disabled={formDisabled}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-slate-600 mb-1">Usuario</label>
+                                  <TextInput
+                                    value={grupo.profesorUsuario}
+                                    onChange={(v) => {
+                                      const updated = [...config.eduGrupos];
+                                      updated[idx] = { ...updated[idx], profesorUsuario: v };
+                                      updateConfig("eduGrupos", updated);
+                                    }}
+                                    placeholder="login"
+                                    disabled={formDisabled}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña</label>
+                                  <TextInput
+                                    value={grupo.profesorPassword}
+                                    onChange={(v) => {
+                                      const updated = [...config.eduGrupos];
+                                      updated[idx] = { ...updated[idx], profesorPassword: v };
+                                      updateConfig("eduGrupos", updated);
+                                    }}
+                                    type="password"
+                                    disabled={formDisabled}
+                                  />
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         ))}
 
@@ -1107,7 +1048,7 @@ export default function Configurator() {
                             const n = config.eduGrupos.length + 1;
                             updateConfig("eduGrupos", [
                               ...config.eduGrupos,
-                              { nombre: `Grupo ${n}`, numAlumnos: 30, dbPrefix: `grupo${n}_empresa`, passwordPrefix: `grupo${n}_alumno` },
+                              { nombre: `Grupo ${n}`, numAlumnos: 30, dbPrefix: `grupo${n}_empresa`, passwordPrefix: `grupo${n}_alumno`, profesorNombre: `Profesor ${n}`, profesorUsuario: `profesor${n}`, profesorPassword: `Profesor${n}2024!` },
                             ]);
                           }}
                           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 border-dashed border-emerald-300 text-emerald-600 text-sm font-medium hover:bg-emerald-100/50 hover:border-emerald-400 transition-colors disabled:opacity-50"

@@ -32,8 +32,8 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 - `odoo_install.sh` — Main unattended installer for Odoo 17 CE with:
   - Spanish localization (OCA/l10n-spain)
   - Multi-company support for educational use
-  - **Multi-professor / multi-group model**: multiple professors and student groups, each with independent DB/user prefixes
-    - Serialized as pipe-delimited fields, semicolon-delimited entries: `EDU_PROFESORES="name|user|pwd;..."`, `EDU_GRUPOS="name|num|dbPrefix|pwdPrefix;..."`
+  - **Multi-group model with per-group professor**: each group has its own assigned professor (1:1 relationship). Professor only has admin access to their own group's databases.
+    - Serialized as pipe-delimited fields, semicolon-delimited entries: `EDU_GRUPOS="nombre|numAlumnos|dbPrefix|pwdPrefix|profNombre|profUsuario|profPassword;..."`
   - Full branding/marca blanca: logo (PNG 200×60px), favicon (32×32px), corporate colors, company data (name, tagline, website, email, phone, address)
   - Rebranding via OCA brand/server-brand modules
   - 40+ OCA module repositories

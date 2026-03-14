@@ -59,11 +59,8 @@ EDU_CENTRO_NOMBRE="Centro de Formacion Profesional"
 EDU_BACKUP_DIR="/var/backups/odoo"
 EDU_BACKUP_RETENTION_DAYS=30
 
-# Profesores: nombre|usuario|password (separados por ;)
-EDU_PROFESORES="Profesor|profesor|Profesor2024!"
-
-# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
-EDU_GRUPOS="Grupo 1|30|empresa|alumno"
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix|profNombre|profUsuario|profPassword (separados por ;)
+EDU_GRUPOS="Grupo 1|30|empresa|alumno|Profesor|profesor|Profesor2024!"
 
 # --- Branding / Marca Blanca ---
 # Logo principal: PNG con fondo transparente, 200x60 px recomendado (max 300x100 px)
@@ -169,7 +166,6 @@ log_info "Contrasena admin:     $ADMIN_PASSWORD"
 log_info "Contrasena BD:        $DB_PASSWORD"
 log_info "Modo educativo:       $EDU_MODE"
 log_info "Centro:               $EDU_CENTRO_NOMBRE"
-log_info "Profesores:           $EDU_PROFESORES"
 log_info "Grupos:               $EDU_GRUPOS"
 log_info "Empresa (branding):   $BRAND_COMPANY_NAME"
 [[ -n "$BRAND_LOGO_URL" ]] && log_info "Logo:                 $BRAND_LOGO_URL"
@@ -865,10 +861,7 @@ ODOO_CONF="ODOO_CONF_PLACEHOLDER"
 VENV_DIR="$ODOO_HOME/venv"
 ODOO_BIN="$ODOO_HOME/ODOO_USER_PLACEHOLDER-server/odoo-bin"
 
-# Profesores: nombre|usuario|password (separados por ;)
-EDU_PROFESORES="EDU_PROFESORES_PLACEHOLDER"
-
-# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix (separados por ;)
+# Grupos: nombre|numAlumnos|dbPrefix|passwordPrefix|profNombre|profUsuario|profPassword (separados por ;)
 EDU_GRUPOS="EDU_GRUPOS_PLACEHOLDER"
 
 # Branding
@@ -884,10 +877,9 @@ BRAND_LOGO_URL="BRAND_LOGO_URL_PLACEHOLDER"
 BRAND_FAVICON_URL="BRAND_FAVICON_URL_PLACEHOLDER"
 
 CREDENTIALS_FILE="$ODOO_HOME/credenciales_alumnos.csv"
-echo "grupo,alumno,base_datos,usuario,contrasena,url" > "$CREDENTIALS_FILE"
+echo "grupo,profesor,alumno,base_datos,usuario,contrasena,url" > "$CREDENTIALS_FILE"
 
 SERVER_IP=$(hostname -I | awk '{print $1}')
-ALL_DB_NAMES=()
 
 # Descargar logo una sola vez si se proporcionó URL
 LOGO_B64=""
@@ -908,18 +900,21 @@ if [[ -n "$BRAND_FAVICON_URL" ]]; then
     fi
 fi
 
-# Iterar sobre los grupos
+# Iterar sobre los grupos (cada uno con su profesor asignado)
 IFS=';' read -ra GRUPOS <<< "$EDU_GRUPOS"
 for GRUPO_DEF in "${GRUPOS[@]}"; do
-    IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX <<< "$GRUPO_DEF"
+    IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX PROF_NOMBRE PROF_USER PROF_PWD <<< "$GRUPO_DEF"
 
     echo ""
     echo "============================================================"
     echo " Grupo: $GRUPO_NOMBRE"
+    echo " Profesor: $PROF_NOMBRE ($PROF_USER)"
     echo " Creando $GRUPO_NUM bases de datos"
     echo " Prefijo BD: ${GRUPO_DB_PREFIX}"
     echo " Prefijo usuario: ${GRUPO_PWD_PREFIX}"
     echo "============================================================"
+
+    GRUPO_DB_NAMES=()
 
     for i in $(seq -w 1 "$GRUPO_NUM"); do
         DB_NAME="${GRUPO_DB_PREFIX}${i}"
@@ -931,7 +926,7 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
 
         sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 && {
             echo "ya existe, saltando."
-            ALL_DB_NAMES+=("$DB_NAME")
+            GRUPO_DB_NAMES+=("$DB_NAME")
             continue
         }
 
@@ -982,27 +977,18 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
                 WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$USER_LOGIN');
             " 2>/dev/null
 
-            ALL_DB_NAMES+=("$DB_NAME")
-            echo "$GRUPO_NOMBRE,$USER_LOGIN,$DB_NAME,$USER_LOGIN,$USER_PWD,http://${SERVER_IP}/web?db=$DB_NAME" >> "$CREDENTIALS_FILE"
+            GRUPO_DB_NAMES+=("$DB_NAME")
+            echo "$GRUPO_NOMBRE,$PROF_USER,$USER_LOGIN,$DB_NAME,$USER_LOGIN,$USER_PWD,http://${SERVER_IP}/web?db=$DB_NAME" >> "$CREDENTIALS_FILE"
             echo "OK"
         else
             echo "ERROR"
         fi
     done
-done
 
-# Crear todos los profesores con acceso a todas las BD de todos los grupos
-echo ""
-echo "============================================================"
-echo " Creando profesores en todas las bases de datos..."
-echo "============================================================"
-
-IFS=';' read -ra PROFESORES <<< "$EDU_PROFESORES"
-for PROF_DEF in "${PROFESORES[@]}"; do
-    IFS='|' read -r PROF_NOMBRE PROF_USER PROF_PWD <<< "$PROF_DEF"
-    echo "  Profesor: $PROF_NOMBRE ($PROF_USER)"
-
-    for DB_NAME in "${ALL_DB_NAMES[@]}"; do
+    # Crear el profesor de este grupo SOLO en las BDs de su grupo
+    echo ""
+    echo "  Creando profesor '$PROF_NOMBRE' en las BDs de '$GRUPO_NOMBRE'..."
+    for DB_NAME in "${GRUPO_DB_NAMES[@]}"; do
         sudo -u postgres psql -d "$DB_NAME" -c "
             INSERT INTO res_users (login, password, name, company_id, active, notification_type)
             SELECT '$PROF_USER', '$PROF_PWD', '$PROF_NOMBRE', 1, true, 'email'
@@ -1017,6 +1003,7 @@ for PROF_DEF in "${PROFESORES[@]}"; do
             ) WHERE login='$PROF_USER';
         " 2>/dev/null || true
     done
+    echo "  Profesor '$PROF_NOMBRE' creado en ${#GRUPO_DB_NAMES[@]} bases de datos."
 done
 
 chmod 600 "$CREDENTIALS_FILE"
@@ -1028,17 +1015,12 @@ echo " ALUMNOS CREADOS EXITOSAMENTE"
 echo "============================================================"
 echo " Archivo de credenciales: $CREDENTIALS_FILE"
 echo ""
-echo " Profesores (acceso a TODAS las bases de datos):"
-for PROF_DEF in "${PROFESORES[@]}"; do
-    IFS='|' read -r PROF_NOMBRE PROF_USER PROF_PWD <<< "$PROF_DEF"
-    echo "   - $PROF_NOMBRE: usuario=$PROF_USER"
-done
-echo ""
-echo " Grupos:"
+echo " Grupos (cada profesor solo accede a su grupo):"
 IFS=';' read -ra GRUPOS_FIN <<< "$EDU_GRUPOS"
 for GRUPO_DEF in "${GRUPOS_FIN[@]}"; do
-    IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX <<< "$GRUPO_DEF"
+    IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX PROF_NOMBRE PROF_USER PROF_PWD <<< "$GRUPO_DEF"
     echo "   - $GRUPO_NOMBRE: ${GRUPO_NUM} alumnos (BD: ${GRUPO_DB_PREFIX}XX, User: ${GRUPO_PWD_PREFIX}XX)"
+    echo "     Profesor: $PROF_NOMBRE (usuario: $PROF_USER)"
 done
 echo "============================================================"
 ALUMNOS_SCRIPT
@@ -1046,7 +1028,6 @@ ALUMNOS_SCRIPT
 sed -i "s|ODOO_USER_PLACEHOLDER|$ODOO_USER|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_HOME_PLACEHOLDER|$ODOO_HOME|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_CONF_PLACEHOLDER|$ODOO_CONF|g" /usr/local/bin/odoo_crear_alumnos.sh
-sed -i "s|EDU_PROFESORES_PLACEHOLDER|$EDU_PROFESORES|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|EDU_GRUPOS_PLACEHOLDER|$EDU_GRUPOS|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_WEBSITE_PLACEHOLDER|$BRAND_COMPANY_WEBSITE|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_EMAIL_PLACEHOLDER|$BRAND_COMPANY_EMAIL|g" /usr/local/bin/odoo_crear_alumnos.sh
@@ -1403,8 +1384,7 @@ Base de datos:
   Host: $DB_HOST
   Puerto: $DB_PORT
 
-Profesores: $EDU_PROFESORES
-Grupos: $EDU_GRUPOS
+Grupos (profesor incluido): $EDU_GRUPOS
 
 Archivo de configuracion:  $ODOO_CONF
 Directorio de Odoo:        $ODOO_HOME_EXT
