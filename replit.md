@@ -32,11 +32,12 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 - `odoo_install.sh` — Main unattended installer for Odoo 17 CE with:
   - Spanish localization (OCA/l10n-spain)
   - Multi-company support for educational use
-  - Rebranding (OCA brand/server-brand)
+  - Full branding/marca blanca: logo (PNG 200×60px), favicon (32×32px), corporate colors, company data (name, tagline, website, email, phone, address)
+  - Rebranding via OCA brand/server-brand modules
   - 40+ OCA module repositories
   - PostgreSQL, Nginx, systemd, UFW, logrotate
   - Automatic backup cron job
-  - Educational scripts for student/teacher management
+  - Educational scripts for student/teacher management (with branding propagation)
 
 - Auxiliary scripts created by installer at `/usr/local/bin/`:
   - `odoo_crear_alumnos.sh` — Mass student account creation

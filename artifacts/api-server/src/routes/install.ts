@@ -21,9 +21,22 @@ interface InstallConfig {
   eduProfesorUser: string;
   eduProfesorPassword: string;
   eduCentroNombre: string;
-  eduCentroLogo: string;
   eduBackupDir: string;
   eduBackupRetentionDays: number;
+  brandCompanyName: string;
+  brandCompanyTagline: string;
+  brandCompanyWebsite: string;
+  brandCompanyEmail: string;
+  brandCompanyPhone: string;
+  brandCompanyStreet: string;
+  brandCompanyCity: string;
+  brandCompanyZip: string;
+  brandCompanyState: string;
+  brandCompanyCountry: string;
+  brandLogoUrl: string;
+  brandFaviconUrl: string;
+  brandPrimaryColor: string;
+  brandSecondaryColor: string;
   ocaL10nSpain: boolean;
   ocaAccountFinancialTools: boolean;
   ocaAccountPayment: boolean;
@@ -106,9 +119,24 @@ EDU_DB_PREFIX="${config.eduDbPrefix}"
 EDU_PROFESOR_USER="${config.eduProfesorUser}"
 EDU_PROFESOR_PASSWORD="${config.eduProfesorPassword}"
 EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
-EDU_CENTRO_LOGO="${config.eduCentroLogo}"
 EDU_BACKUP_DIR="${config.eduBackupDir}"
 EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
+
+# --- Branding / Marca Blanca ---
+BRAND_COMPANY_NAME="${config.brandCompanyName}"
+BRAND_COMPANY_TAGLINE="${config.brandCompanyTagline}"
+BRAND_COMPANY_WEBSITE="${config.brandCompanyWebsite}"
+BRAND_COMPANY_EMAIL="${config.brandCompanyEmail}"
+BRAND_COMPANY_PHONE="${config.brandCompanyPhone}"
+BRAND_COMPANY_STREET="${config.brandCompanyStreet}"
+BRAND_COMPANY_CITY="${config.brandCompanyCity}"
+BRAND_COMPANY_ZIP="${config.brandCompanyZip}"
+BRAND_COMPANY_STATE="${config.brandCompanyState}"
+BRAND_COMPANY_COUNTRY="${config.brandCompanyCountry}"
+BRAND_LOGO_URL="${config.brandLogoUrl}"
+BRAND_FAVICON_URL="${config.brandFaviconUrl}"
+BRAND_PRIMARY_COLOR="${config.brandPrimaryColor}"
+BRAND_SECONDARY_COLOR="${config.brandSecondaryColor}"
 
 # --- Modulos OCA ---
 OCA_L10N_SPAIN=${b(config.ocaL10nSpain)}

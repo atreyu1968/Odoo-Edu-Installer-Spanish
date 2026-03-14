@@ -4,7 +4,8 @@ import {
   Settings, Server, Package, Download,
   ChevronLeft, Eye, EyeOff, Copy, Check, GraduationCap,
   RefreshCw, Info, Play, Square, Terminal,
-  CheckCircle2, XCircle, AlertTriangle, Loader2
+  CheckCircle2, XCircle, AlertTriangle, Loader2,
+  Palette, Building2, Upload, Image, Globe, Mail, Phone, MapPin
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -23,9 +24,22 @@ interface ConfigState {
   eduProfesorUser: string;
   eduProfesorPassword: string;
   eduCentroNombre: string;
-  eduCentroLogo: string;
   eduBackupDir: string;
   eduBackupRetentionDays: number;
+  brandCompanyName: string;
+  brandCompanyTagline: string;
+  brandCompanyWebsite: string;
+  brandCompanyEmail: string;
+  brandCompanyPhone: string;
+  brandCompanyStreet: string;
+  brandCompanyCity: string;
+  brandCompanyZip: string;
+  brandCompanyState: string;
+  brandCompanyCountry: string;
+  brandLogoUrl: string;
+  brandFaviconUrl: string;
+  brandPrimaryColor: string;
+  brandSecondaryColor: string;
   ocaL10nSpain: boolean;
   ocaAccountFinancialTools: boolean;
   ocaAccountPayment: boolean;
@@ -56,9 +70,22 @@ const defaultConfig: ConfigState = {
   eduProfesorUser: "profesor",
   eduProfesorPassword: "Profesor2024!",
   eduCentroNombre: "Centro de Formacion Profesional",
-  eduCentroLogo: "",
   eduBackupDir: "/var/backups/odoo",
   eduBackupRetentionDays: 30,
+  brandCompanyName: "Centro de Formacion Profesional",
+  brandCompanyTagline: "",
+  brandCompanyWebsite: "",
+  brandCompanyEmail: "",
+  brandCompanyPhone: "",
+  brandCompanyStreet: "",
+  brandCompanyCity: "",
+  brandCompanyZip: "",
+  brandCompanyState: "",
+  brandCompanyCountry: "ES",
+  brandLogoUrl: "",
+  brandFaviconUrl: "",
+  brandPrimaryColor: "#714B67",
+  brandSecondaryColor: "#21b799",
   ocaL10nSpain: true,
   ocaAccountFinancialTools: true,
   ocaAccountPayment: true,
@@ -194,6 +221,32 @@ function TextInput({ value, onChange, placeholder, type = "text", disabled }: {
   );
 }
 
+function ColorInput({ value, onChange, disabled }: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="w-10 h-10 rounded-lg border border-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed p-0.5"
+      />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        placeholder="#714B67"
+        className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+      />
+    </div>
+  );
+}
+
 function NumberInput({ value, onChange, min, max, disabled }: {
   value: number;
   onChange: (v: number) => void;
@@ -247,9 +300,24 @@ EDU_DB_PREFIX="${config.eduDbPrefix}"
 EDU_PROFESOR_USER="${config.eduProfesorUser}"
 EDU_PROFESOR_PASSWORD="${config.eduProfesorPassword}"
 EDU_CENTRO_NOMBRE="${config.eduCentroNombre}"
-EDU_CENTRO_LOGO="${config.eduCentroLogo}"
 EDU_BACKUP_DIR="${config.eduBackupDir}"
 EDU_BACKUP_RETENTION_DAYS=${config.eduBackupRetentionDays}
+
+# --- Branding / Marca Blanca ---
+BRAND_COMPANY_NAME="${config.brandCompanyName}"
+BRAND_COMPANY_TAGLINE="${config.brandCompanyTagline}"
+BRAND_COMPANY_WEBSITE="${config.brandCompanyWebsite}"
+BRAND_COMPANY_EMAIL="${config.brandCompanyEmail}"
+BRAND_COMPANY_PHONE="${config.brandCompanyPhone}"
+BRAND_COMPANY_STREET="${config.brandCompanyStreet}"
+BRAND_COMPANY_CITY="${config.brandCompanyCity}"
+BRAND_COMPANY_ZIP="${config.brandCompanyZip}"
+BRAND_COMPANY_STATE="${config.brandCompanyState}"
+BRAND_COMPANY_COUNTRY="${config.brandCompanyCountry}"
+BRAND_LOGO_URL="${config.brandLogoUrl}"
+BRAND_FAVICON_URL="${config.brandFaviconUrl}"
+BRAND_PRIMARY_COLOR="${config.brandPrimaryColor}"
+BRAND_SECONDARY_COLOR="${config.brandSecondaryColor}"
 
 # --- Modulos OCA ---
 OCA_L10N_SPAIN=${b(config.ocaL10nSpain)}
@@ -595,6 +663,7 @@ export default function Configurator() {
   const sections = [
     { id: "general", label: "General", icon: Server },
     { id: "education", label: "Educación", icon: GraduationCap },
+    { id: "branding", label: "Branding", icon: Palette },
     { id: "oca", label: "Módulos OCA", icon: Package },
     { id: "preview", label: "Vista Previa", icon: Eye },
     ...(showInstallPanel ? [{ id: "install", label: "Instalación", icon: Terminal }] : []),
@@ -838,13 +907,10 @@ export default function Configurator() {
 
                     <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
                       <h4 className="text-sm font-semibold text-violet-800 mb-1">Centro Educativo</h4>
-                      <p className="text-xs text-violet-600 mb-4">Información para el rebranding de Odoo.</p>
+                      <p className="text-xs text-violet-600 mb-4">Nombre del centro para identificar la instalación.</p>
                       <div className="space-y-4">
                         <FieldRow label="Nombre del centro">
                           <TextInput value={config.eduCentroNombre} onChange={(v) => updateConfig("eduCentroNombre", v)} disabled={formDisabled} />
-                        </FieldRow>
-                        <FieldRow label="URL del logo" description="Opcional. URL pública del logo del centro">
-                          <TextInput value={config.eduCentroLogo} onChange={(v) => updateConfig("eduCentroLogo", v)} placeholder="https://..." disabled={formDisabled} />
                         </FieldRow>
                       </div>
                     </div>
@@ -858,6 +924,161 @@ export default function Configurator() {
                     </FieldRow>
                   </>
                 )}
+              </SectionCard>
+            </div>
+
+            <div id="section-branding">
+              <SectionCard icon={Palette} title="Branding / Marca Blanca" color="purple">
+                <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 mb-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Info className="w-4 h-4 text-violet-600" />
+                    <h4 className="text-sm font-semibold text-violet-800">Personalización de Odoo</h4>
+                  </div>
+                  <p className="text-xs text-violet-600 leading-relaxed">
+                    Configura la identidad visual de tu centro en Odoo. El logo, colores y datos de empresa se aplicarán automáticamente a todas las bases de datos durante la instalación. Requiere el módulo OCA <strong>Brand</strong> activado.
+                  </p>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Building2 className="w-4 h-4 text-slate-600" />
+                    <h4 className="text-sm font-semibold text-slate-800">Datos de la Empresa</h4>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4">Información de la empresa que aparecerá en informes, facturas y comunicaciones.</p>
+                  <div className="space-y-4">
+                    <FieldRow label="Nombre de la empresa" description="Nombre oficial que aparece en Odoo">
+                      <TextInput value={config.brandCompanyName} onChange={(v) => updateConfig("brandCompanyName", v)} placeholder="IES Manuel Martín González" disabled={formDisabled} />
+                    </FieldRow>
+                    <FieldRow label="Eslogan / Lema" description="Texto breve bajo el nombre (opcional)">
+                      <TextInput value={config.brandCompanyTagline} onChange={(v) => updateConfig("brandCompanyTagline", v)} placeholder="Formación Profesional de calidad" disabled={formDisabled} />
+                    </FieldRow>
+                    <div className="border-t border-slate-100" />
+                    <FieldRow label="Sitio web" description="URL pública del centro">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <TextInput value={config.brandCompanyWebsite} onChange={(v) => updateConfig("brandCompanyWebsite", v)} placeholder="https://www.micentro.es" disabled={formDisabled} />
+                      </div>
+                    </FieldRow>
+                    <FieldRow label="Email de contacto">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <TextInput value={config.brandCompanyEmail} onChange={(v) => updateConfig("brandCompanyEmail", v)} placeholder="info@micentro.es" disabled={formDisabled} />
+                      </div>
+                    </FieldRow>
+                    <FieldRow label="Teléfono">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <TextInput value={config.brandCompanyPhone} onChange={(v) => updateConfig("brandCompanyPhone", v)} placeholder="+34 922 000 000" disabled={formDisabled} />
+                      </div>
+                    </FieldRow>
+                    <div className="border-t border-slate-100" />
+                    <FieldRow label="Dirección (calle)" description="Dirección postal del centro">
+                      <TextInput value={config.brandCompanyStreet} onChange={(v) => updateConfig("brandCompanyStreet", v)} placeholder="C/ Ejemplo, 1" disabled={formDisabled} />
+                    </FieldRow>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
+                        <TextInput value={config.brandCompanyCity} onChange={(v) => updateConfig("brandCompanyCity", v)} placeholder="Santa Cruz de Tenerife" disabled={formDisabled} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
+                        <TextInput value={config.brandCompanyZip} onChange={(v) => updateConfig("brandCompanyZip", v)} placeholder="38001" disabled={formDisabled} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Provincia / Comunidad</label>
+                        <TextInput value={config.brandCompanyState} onChange={(v) => updateConfig("brandCompanyState", v)} placeholder="Santa Cruz de Tenerife" disabled={formDisabled} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">País (código ISO)</label>
+                        <TextInput value={config.brandCompanyCountry} onChange={(v) => updateConfig("brandCompanyCountry", v)} placeholder="ES" disabled={formDisabled} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Image className="w-4 h-4 text-amber-600" />
+                    <h4 className="text-sm font-semibold text-amber-800">Logo y Favicon</h4>
+                  </div>
+                  <p className="text-xs text-amber-600 mb-4">Proporciona URLs públicas de tus imágenes. Se descargarán durante la instalación.</p>
+                  <div className="space-y-4">
+                    <FieldRow label="URL del Logo" description="Formato PNG con fondo transparente. Tamaño recomendado: 200×60 px (máx. 300×100 px)">
+                      <TextInput value={config.brandLogoUrl} onChange={(v) => updateConfig("brandLogoUrl", v)} placeholder="https://ejemplo.com/mi-logo.png" disabled={formDisabled} />
+                    </FieldRow>
+                    <div className="bg-white rounded-lg p-3 border border-amber-100">
+                      <p className="text-xs text-amber-700 font-medium mb-1">Requisitos del logo:</p>
+                      <ul className="text-xs text-amber-600 space-y-0.5 ml-3 list-disc">
+                        <li>Formato: <strong>PNG</strong> (con transparencia) o <strong>SVG</strong></li>
+                        <li>Tamaño recomendado: <strong>200 × 60 px</strong></li>
+                        <li>Tamaño máximo: <strong>300 × 100 px</strong></li>
+                        <li>Se muestra en la barra superior, login, informes y correos</li>
+                      </ul>
+                    </div>
+                    {config.brandLogoUrl && (
+                      <div className="bg-white rounded-lg p-4 border border-amber-100 flex items-center justify-center">
+                        <img
+                          src={config.brandLogoUrl}
+                          alt="Vista previa del logo"
+                          className="max-h-16 max-w-[250px] object-contain"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+                    <div className="border-t border-amber-100" />
+                    <FieldRow label="URL del Favicon" description="Icono de pestaña del navegador. Formato: PNG o ICO, tamaño: 32×32 px">
+                      <TextInput value={config.brandFaviconUrl} onChange={(v) => updateConfig("brandFaviconUrl", v)} placeholder="https://ejemplo.com/favicon.png" disabled={formDisabled} />
+                    </FieldRow>
+                    <div className="bg-white rounded-lg p-3 border border-amber-100">
+                      <p className="text-xs text-amber-700 font-medium mb-1">Requisitos del favicon:</p>
+                      <ul className="text-xs text-amber-600 space-y-0.5 ml-3 list-disc">
+                        <li>Formato: <strong>PNG</strong> o <strong>ICO</strong></li>
+                        <li>Tamaño: <strong>32 × 32 px</strong></li>
+                        <li>Se muestra como icono en la pestaña del navegador</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100" />
+
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Palette className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-sm font-semibold text-blue-800">Colores Corporativos</h4>
+                  </div>
+                  <p className="text-xs text-blue-600 mb-4">Personaliza los colores de la interfaz de Odoo. Formato hexadecimal (#RRGGBB).</p>
+                  <div className="space-y-4">
+                    <FieldRow label="Color principal" description="Barra superior, botones principales y acentos">
+                      <ColorInput value={config.brandPrimaryColor} onChange={(v) => updateConfig("brandPrimaryColor", v)} disabled={formDisabled} />
+                    </FieldRow>
+                    <FieldRow label="Color secundario" description="Elementos secundarios y hover">
+                      <ColorInput value={config.brandSecondaryColor} onChange={(v) => updateConfig("brandSecondaryColor", v)} disabled={formDisabled} />
+                    </FieldRow>
+                    <div className="bg-white rounded-lg p-3 border border-blue-100">
+                      <p className="text-xs text-blue-700 font-medium mb-2">Vista previa de colores:</p>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg shadow-sm border border-slate-200" style={{ backgroundColor: config.brandPrimaryColor }} />
+                          <span className="text-xs text-slate-600 font-mono">{config.brandPrimaryColor}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg shadow-sm border border-slate-200" style={{ backgroundColor: config.brandSecondaryColor }} />
+                          <span className="text-xs text-slate-600 font-mono">{config.brandSecondaryColor}</span>
+                        </div>
+                        <div className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-white font-medium" style={{ backgroundColor: config.brandPrimaryColor }}>
+                          Botón ejemplo
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </SectionCard>
             </div>
 

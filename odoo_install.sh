@@ -61,9 +61,27 @@ EDU_DB_PREFIX="empresa"
 EDU_PROFESOR_USER="profesor"
 EDU_PROFESOR_PASSWORD="Profesor2024!"
 EDU_CENTRO_NOMBRE="Centro de Formacion Profesional"
-EDU_CENTRO_LOGO=""
 EDU_BACKUP_DIR="/var/backups/odoo"
 EDU_BACKUP_RETENTION_DAYS=30
+
+# --- Branding / Marca Blanca ---
+# Logo principal: PNG con fondo transparente, 200x60 px recomendado (max 300x100 px)
+# Favicon: PNG o ICO, 32x32 px
+# Colores: formato hexadecimal (#RRGGBB)
+BRAND_COMPANY_NAME="Centro de Formacion Profesional"
+BRAND_COMPANY_TAGLINE=""
+BRAND_COMPANY_WEBSITE=""
+BRAND_COMPANY_EMAIL=""
+BRAND_COMPANY_PHONE=""
+BRAND_COMPANY_STREET=""
+BRAND_COMPANY_CITY=""
+BRAND_COMPANY_ZIP=""
+BRAND_COMPANY_STATE=""
+BRAND_COMPANY_COUNTRY="ES"
+BRAND_LOGO_URL=""
+BRAND_FAVICON_URL=""
+BRAND_PRIMARY_COLOR="#714B67"
+BRAND_SECONDARY_COLOR="#21b799"
 
 # --- Modulos OCA ---
 OCA_L10N_SPAIN=true
@@ -151,6 +169,9 @@ log_info "Contrasena BD:        $DB_PASSWORD"
 log_info "Modo educativo:       $EDU_MODE"
 log_info "Num. alumnos:         $EDU_NUM_ALUMNOS"
 log_info "Centro:               $EDU_CENTRO_NOMBRE"
+log_info "Empresa (branding):   $BRAND_COMPANY_NAME"
+[[ -n "$BRAND_LOGO_URL" ]] && log_info "Logo:                 $BRAND_LOGO_URL"
+[[ -n "$BRAND_PRIMARY_COLOR" ]] && log_info "Color principal:      $BRAND_PRIMARY_COLOR"
 log_info "============================================================"
 
 #===============================================================================
@@ -846,6 +867,18 @@ PWD_PREFIX="PWD_PREFIX_PLACEHOLDER"
 PROFESOR_USER="PROFESOR_USER_PLACEHOLDER"
 PROFESOR_PWD="PROFESOR_PWD_PLACEHOLDER"
 
+# Branding
+BRAND_COMPANY_WEBSITE="BRAND_WEBSITE_PLACEHOLDER"
+BRAND_COMPANY_EMAIL="BRAND_EMAIL_PLACEHOLDER"
+BRAND_COMPANY_PHONE="BRAND_PHONE_PLACEHOLDER"
+BRAND_COMPANY_STREET="BRAND_STREET_PLACEHOLDER"
+BRAND_COMPANY_CITY="BRAND_CITY_PLACEHOLDER"
+BRAND_COMPANY_ZIP="BRAND_ZIP_PLACEHOLDER"
+BRAND_PRIMARY_COLOR="BRAND_PRIMARY_COLOR_PLACEHOLDER"
+BRAND_SECONDARY_COLOR="BRAND_SECONDARY_COLOR_PLACEHOLDER"
+BRAND_LOGO_URL="BRAND_LOGO_URL_PLACEHOLDER"
+BRAND_FAVICON_URL="BRAND_FAVICON_URL_PLACEHOLDER"
+
 echo "============================================================"
 echo " Creando $NUM bases de datos para alumnos"
 echo " Prefijo BD: ${DB_PREFIX}"
@@ -881,6 +914,59 @@ for i in $(seq -w 1 "$NUM"); do
             UPDATE res_company SET name='$EMPRESA_NOMBRE' WHERE id=1;
             UPDATE res_partner SET name='$EMPRESA_NOMBRE' WHERE id=1;
         " 2>/dev/null
+
+        # Aplicar branding a la empresa
+        BRAND_SQL="UPDATE res_company SET"
+        BRAND_SQL="$BRAND_SQL name='$EMPRESA_NOMBRE'"
+        [[ -n "$BRAND_COMPANY_WEBSITE" ]] && BRAND_SQL="$BRAND_SQL, website='$BRAND_COMPANY_WEBSITE'"
+        [[ -n "$BRAND_COMPANY_EMAIL" ]] && BRAND_SQL="$BRAND_SQL, email='$BRAND_COMPANY_EMAIL'"
+        [[ -n "$BRAND_COMPANY_PHONE" ]] && BRAND_SQL="$BRAND_SQL, phone='$BRAND_COMPANY_PHONE'"
+        [[ -n "$BRAND_COMPANY_STREET" ]] && BRAND_SQL="$BRAND_SQL, street='$BRAND_COMPANY_STREET'"
+        [[ -n "$BRAND_COMPANY_CITY" ]] && BRAND_SQL="$BRAND_SQL, city='$BRAND_COMPANY_CITY'"
+        [[ -n "$BRAND_COMPANY_ZIP" ]] && BRAND_SQL="$BRAND_SQL, zip='$BRAND_COMPANY_ZIP'"
+        [[ -n "$BRAND_PRIMARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, primary_color='$BRAND_PRIMARY_COLOR'"
+        [[ -n "$BRAND_SECONDARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, secondary_color='$BRAND_SECONDARY_COLOR'"
+        BRAND_SQL="$BRAND_SQL WHERE id=1;"
+        sudo -u postgres psql -d "$DB_NAME" -c "$BRAND_SQL" 2>/dev/null
+
+        # Aplicar branding al partner de la empresa
+        PARTNER_SQL="UPDATE res_partner SET name='$EMPRESA_NOMBRE'"
+        [[ -n "$BRAND_COMPANY_WEBSITE" ]] && PARTNER_SQL="$PARTNER_SQL, website='$BRAND_COMPANY_WEBSITE'"
+        [[ -n "$BRAND_COMPANY_EMAIL" ]] && PARTNER_SQL="$PARTNER_SQL, email='$BRAND_COMPANY_EMAIL'"
+        [[ -n "$BRAND_COMPANY_PHONE" ]] && PARTNER_SQL="$PARTNER_SQL, phone='$BRAND_COMPANY_PHONE'"
+        [[ -n "$BRAND_COMPANY_STREET" ]] && PARTNER_SQL="$PARTNER_SQL, street='$BRAND_COMPANY_STREET'"
+        [[ -n "$BRAND_COMPANY_CITY" ]] && PARTNER_SQL="$PARTNER_SQL, city='$BRAND_COMPANY_CITY'"
+        [[ -n "$BRAND_COMPANY_ZIP" ]] && PARTNER_SQL="$PARTNER_SQL, zip='$BRAND_COMPANY_ZIP'"
+        PARTNER_SQL="$PARTNER_SQL WHERE id=1;"
+        sudo -u postgres psql -d "$DB_NAME" -c "$PARTNER_SQL" 2>/dev/null
+
+        # Descargar y aplicar logo si se proporcionó URL
+        if [[ -n "$BRAND_LOGO_URL" ]]; then
+            LOGO_TMP="/tmp/brand_logo_$$.png"
+            if wget -q -O "$LOGO_TMP" "$BRAND_LOGO_URL" 2>/dev/null; then
+                LOGO_B64=$(base64 -w0 "$LOGO_TMP" 2>/dev/null)
+                if [[ -n "$LOGO_B64" ]]; then
+                    sudo -u postgres psql -d "$DB_NAME" -c "
+                        UPDATE res_company SET logo=decode('$LOGO_B64','base64') WHERE id=1;
+                    " 2>/dev/null
+                fi
+                rm -f "$LOGO_TMP"
+            fi
+        fi
+
+        # Descargar y aplicar favicon si se proporcionó URL
+        if [[ -n "$BRAND_FAVICON_URL" ]]; then
+            FAV_TMP="/tmp/brand_favicon_$$.png"
+            if wget -q -O "$FAV_TMP" "$BRAND_FAVICON_URL" 2>/dev/null; then
+                FAV_B64=$(base64 -w0 "$FAV_TMP" 2>/dev/null)
+                if [[ -n "$FAV_B64" ]]; then
+                    sudo -u postgres psql -d "$DB_NAME" -c "
+                        UPDATE res_company SET favicon=decode('$FAV_B64','base64') WHERE id=1;
+                    " 2>/dev/null
+                fi
+                rm -f "$FAV_TMP"
+            fi
+        fi
 
         sudo -u postgres psql -d "$DB_NAME" -c "
             INSERT INTO res_users (login, password, name, company_id, active, notification_type)
@@ -944,6 +1030,16 @@ sed -i "s|DB_PREFIX_PLACEHOLDER|$EDU_DB_PREFIX|g" /usr/local/bin/odoo_crear_alum
 sed -i "s|PWD_PREFIX_PLACEHOLDER|$EDU_PASSWORD_PREFIX|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|PROFESOR_USER_PLACEHOLDER|$EDU_PROFESOR_USER|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|PROFESOR_PWD_PLACEHOLDER|$EDU_PROFESOR_PASSWORD|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_WEBSITE_PLACEHOLDER|$BRAND_COMPANY_WEBSITE|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_EMAIL_PLACEHOLDER|$BRAND_COMPANY_EMAIL|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_PHONE_PLACEHOLDER|$BRAND_COMPANY_PHONE|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_STREET_PLACEHOLDER|$BRAND_COMPANY_STREET|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_CITY_PLACEHOLDER|$BRAND_COMPANY_CITY|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_ZIP_PLACEHOLDER|$BRAND_COMPANY_ZIP|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_PRIMARY_COLOR_PLACEHOLDER|$BRAND_PRIMARY_COLOR|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_SECONDARY_COLOR_PLACEHOLDER|$BRAND_SECONDARY_COLOR|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_LOGO_URL_PLACEHOLDER|$BRAND_LOGO_URL|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s|BRAND_FAVICON_URL_PLACEHOLDER|$BRAND_FAVICON_URL|g" /usr/local/bin/odoo_crear_alumnos.sh
 chmod +x /usr/local/bin/odoo_crear_alumnos.sh
 
 # --- Script: Resetear BD de un alumno ---
@@ -973,6 +1069,18 @@ VENV_DIR="$ODOO_HOME/venv"
 ODOO_BIN="$ODOO_HOME/ODOO_USER_PLACEHOLDER-server/odoo-bin"
 DB_PREFIX="DB_PREFIX_PLACEHOLDER"
 BACKUP_DIR="BACKUP_DIR_PLACEHOLDER"
+
+# Branding
+BRAND_COMPANY_WEBSITE="BRAND_WEBSITE_PLACEHOLDER"
+BRAND_COMPANY_EMAIL="BRAND_EMAIL_PLACEHOLDER"
+BRAND_COMPANY_PHONE="BRAND_PHONE_PLACEHOLDER"
+BRAND_COMPANY_STREET="BRAND_STREET_PLACEHOLDER"
+BRAND_COMPANY_CITY="BRAND_CITY_PLACEHOLDER"
+BRAND_COMPANY_ZIP="BRAND_ZIP_PLACEHOLDER"
+BRAND_PRIMARY_COLOR="BRAND_PRIMARY_COLOR_PLACEHOLDER"
+BRAND_SECONDARY_COLOR="BRAND_SECONDARY_COLOR_PLACEHOLDER"
+BRAND_LOGO_URL="BRAND_LOGO_URL_PLACEHOLDER"
+BRAND_FAVICON_URL="BRAND_FAVICON_URL_PLACEHOLDER"
 
 NUM=$(echo "$ALUMNO" | grep -o '[0-9]\+$')
 DB_NAME="${DB_PREFIX}$(printf '%02d' $NUM)"
@@ -1006,11 +1114,38 @@ sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
     --without-demo=False \
     --stop-after-init 2>/dev/null
 
-# Reconfigurar
+# Reconfigurar nombre
 sudo -u postgres psql -d "$DB_NAME" -c "
     UPDATE res_company SET name='$EMPRESA_NOMBRE' WHERE id=1;
     UPDATE res_partner SET name='$EMPRESA_NOMBRE' WHERE id=1;
 " 2>/dev/null
+
+# Aplicar branding
+BRAND_SQL="UPDATE res_company SET name='$EMPRESA_NOMBRE'"
+[[ -n "$BRAND_COMPANY_WEBSITE" ]] && BRAND_SQL="$BRAND_SQL, website='$BRAND_COMPANY_WEBSITE'"
+[[ -n "$BRAND_COMPANY_EMAIL" ]] && BRAND_SQL="$BRAND_SQL, email='$BRAND_COMPANY_EMAIL'"
+[[ -n "$BRAND_COMPANY_PHONE" ]] && BRAND_SQL="$BRAND_SQL, phone='$BRAND_COMPANY_PHONE'"
+[[ -n "$BRAND_COMPANY_STREET" ]] && BRAND_SQL="$BRAND_SQL, street='$BRAND_COMPANY_STREET'"
+[[ -n "$BRAND_COMPANY_CITY" ]] && BRAND_SQL="$BRAND_SQL, city='$BRAND_COMPANY_CITY'"
+[[ -n "$BRAND_COMPANY_ZIP" ]] && BRAND_SQL="$BRAND_SQL, zip='$BRAND_COMPANY_ZIP'"
+[[ -n "$BRAND_PRIMARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, primary_color='$BRAND_PRIMARY_COLOR'"
+[[ -n "$BRAND_SECONDARY_COLOR" ]] && BRAND_SQL="$BRAND_SQL, secondary_color='$BRAND_SECONDARY_COLOR'"
+BRAND_SQL="$BRAND_SQL WHERE id=1;"
+sudo -u postgres psql -d "$DB_NAME" -c "$BRAND_SQL" 2>/dev/null
+
+# Descargar y aplicar logo si se proporcionó URL
+if [[ -n "$BRAND_LOGO_URL" ]]; then
+    LOGO_TMP="/tmp/brand_logo_$$.png"
+    if wget -q -O "$LOGO_TMP" "$BRAND_LOGO_URL" 2>/dev/null; then
+        LOGO_B64=$(base64 -w0 "$LOGO_TMP" 2>/dev/null)
+        if [[ -n "$LOGO_B64" ]]; then
+            sudo -u postgres psql -d "$DB_NAME" -c "
+                UPDATE res_company SET logo=decode('$LOGO_B64','base64') WHERE id=1;
+            " 2>/dev/null
+        fi
+        rm -f "$LOGO_TMP"
+    fi
+fi
 
 sudo -u postgres psql -d "$DB_NAME" -c "
     INSERT INTO res_users (login, password, name, company_id, active, notification_type)
@@ -1031,6 +1166,16 @@ sed -i "s|ODOO_HOME_PLACEHOLDER|$ODOO_HOME|g" /usr/local/bin/odoo_reset_alumno.s
 sed -i "s|ODOO_CONF_PLACEHOLDER|$ODOO_CONF|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|DB_PREFIX_PLACEHOLDER|$EDU_DB_PREFIX|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|BACKUP_DIR_PLACEHOLDER|$EDU_BACKUP_DIR|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_WEBSITE_PLACEHOLDER|$BRAND_COMPANY_WEBSITE|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_EMAIL_PLACEHOLDER|$BRAND_COMPANY_EMAIL|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_PHONE_PLACEHOLDER|$BRAND_COMPANY_PHONE|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_STREET_PLACEHOLDER|$BRAND_COMPANY_STREET|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_CITY_PLACEHOLDER|$BRAND_COMPANY_CITY|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_ZIP_PLACEHOLDER|$BRAND_COMPANY_ZIP|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_PRIMARY_COLOR_PLACEHOLDER|$BRAND_PRIMARY_COLOR|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_SECONDARY_COLOR_PLACEHOLDER|$BRAND_SECONDARY_COLOR|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_LOGO_URL_PLACEHOLDER|$BRAND_LOGO_URL|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|BRAND_FAVICON_URL_PLACEHOLDER|$BRAND_FAVICON_URL|g" /usr/local/bin/odoo_reset_alumno.sh
 chmod +x /usr/local/bin/odoo_reset_alumno.sh
 
 # --- Script: Backup manual ---
