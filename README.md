@@ -36,6 +36,7 @@
 | **Reseteo de BD** | El profesor puede resetear la empresa de cualquier alumno a su estado inicial desde el panel |
 | **CSV de contraseñas** | Archivo CSV auto-generado con las credenciales de todos los alumnos para distribuir al inicio del curso |
 | **IGIC para Canarias** | Configuración fiscal adaptable: IVA (Península/Baleares) o IGIC (Canarias) con todos los tipos impositivos precargados y posiciones fiscales |
+| **VeriFactu (Veri\*Factu)** | Soporte para el sistema de verificación de facturas de la AEAT (RD 1007/2023), con generación de registros, código QR, hash encadenado y envío telemático. Modo pruebas y producción |
 | **Versiones múltiples** | Soporte para Odoo 14.0, 15.0, 16.0, 17.0 y 18.0 con análisis de compatibilidad de módulos OCA antes de migrar |
 
 ---
@@ -114,6 +115,10 @@ Variables configurables:
 | `BRAND_SECONDARY_COLOR` | `#21b799` | Color secundario |
 | `FISCAL_REGIME` | `iva` | Régimen fiscal: `iva` (Península) o `igic` (Canarias) |
 | `FISCAL_RECARGO_EQUIVALENCIA` | `false` | Activar recargo de equivalencia para minoristas |
+| `VERIFACTU_ENABLED` | `false` | Activar VeriFactu (verificación de facturas AEAT) |
+| `VERIFACTU_ENVIRONMENT` | `test` | Entorno VeriFactu: `test` o `production` |
+| `VERIFACTU_NIF_TITULAR` | _(vacío)_ | NIF/CIF del titular obligado tributario |
+| `VERIFACTU_RAZON_SOCIAL` | _(vacío)_ | Razón social del titular |
 
 **Formato de `EDU_GRUPOS`** (separados por `;`):
 ```

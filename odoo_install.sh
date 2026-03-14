@@ -96,6 +96,15 @@ BRAND_SECONDARY_COLOR="#21b799"
 FISCAL_REGIME="iva"
 FISCAL_RECARGO_EQUIVALENCIA=false
 
+# --- VeriFactu (RD 1007/2023) ---
+# Obligatorio a partir del 1 de julio de 2026
+# Activa el modulo l10n_es_aeat_verifactu para verificacion de facturas
+VERIFACTU_ENABLED=false
+VERIFACTU_ENVIRONMENT="test"    # "test" o "production"
+VERIFACTU_NIF_TITULAR=""
+VERIFACTU_RAZON_SOCIAL=""
+VERIFACTU_NIF_REPRESENTANTE=""
+
 # --- Modulos OCA ---
 OCA_L10N_SPAIN=true
 OCA_ACCOUNT_FINANCIAL_TOOLS=true
@@ -1594,6 +1603,7 @@ Superadministrador:
 
 Regimen fiscal: $FISCAL_REGIME
 Recargo de equivalencia: $FISCAL_RECARGO_EQUIVALENCIA
+VeriFactu: $VERIFACTU_ENABLED ($VERIFACTU_ENVIRONMENT)
 
 Grupos (profesor incluido): $EDU_GRUPOS
 

@@ -8,7 +8,8 @@ import {
   Server, Database, Shield,
   Download, RotateCcw, ChevronDown, Info,
   ShieldCheck, ShieldAlert, ShieldX, GitBranch,
-  ArrowUpCircle, Clock, ExternalLink, Ban
+  ArrowUpCircle, Clock, ExternalLink, Ban,
+  FileCheck, FileWarning, CalendarClock
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -28,9 +29,20 @@ interface GrupoAlumnos {
 
 type FiscalRegime = "iva" | "igic";
 
+interface VerifactuConfig {
+  enabled: boolean;
+  environment: "production" | "test";
+  nifRepresentante: string;
+  nombreRazonSocial: string;
+  nifTitular: string;
+  softwareName: string;
+  softwareVersion: string;
+}
+
 interface FiscalConfig {
   regime: FiscalRegime;
   recargo: boolean;
+  verifactu: VerifactuConfig;
 }
 
 interface BrandingConfig {
@@ -161,7 +173,19 @@ const defaultBranding: BrandingConfig = {
   faviconUrl: "",
   primaryColor: "#714B67",
   secondaryColor: "#017e84",
-  fiscal: { regime: "iva", recargo: false },
+  fiscal: {
+    regime: "iva",
+    recargo: false,
+    verifactu: {
+      enabled: false,
+      environment: "test",
+      nifRepresentante: "",
+      nombreRazonSocial: "",
+      nifTitular: "",
+      softwareName: "OdooEdu",
+      softwareVersion: "17.0",
+    },
+  },
 };
 
 const SUPERADMIN_USER = "superadmin";
@@ -706,6 +730,151 @@ export default function AdminPanel() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                <div className="mt-6 border-t border-slate-200 pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="w-5 h-5 text-slate-600" />
+                      <h4 className="text-base font-bold text-slate-900">VeriFactu</h4>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Reglamento Veri*Factu</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={branding.fiscal.verifactu.enabled}
+                        onChange={e => setBranding(b => ({
+                          ...b,
+                          fiscal: { ...b.fiscal, verifactu: { ...b.fiscal.verifactu, enabled: e.target.checked } }
+                        }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                    </label>
+                  </div>
+
+                  <p className="text-xs text-slate-500 mb-4">
+                    Sistema de verificación de facturas de la AEAT (RD 1007/2023). Obligatorio a partir del <strong>1 de julio de 2026</strong> para 
+                    todos los empresarios y profesionales que expidan facturas.
+                  </p>
+
+                  {!branding.fiscal.verifactu.enabled && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3">
+                      <CalendarClock className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+                      <div className="text-sm text-slate-600">
+                        <strong>Pendiente de activar.</strong> VeriFactu será obligatorio para la mayoría de contribuyentes a partir del 1 de julio de 2026. 
+                        Al activarlo se configurarán los módulos OCA necesarios (<code className="bg-slate-200 px-1 rounded text-xs">l10n_es_aeat_verifactu</code>) 
+                        y se habilitará el envío de registros de facturación a la AEAT.
+                      </div>
+                    </div>
+                  )}
+
+                  {branding.fiscal.verifactu.enabled && (
+                    <div className="space-y-4">
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3 mb-4">
+                        <FileCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                        <div className="text-sm text-emerald-800">
+                          <strong>VeriFactu activado.</strong> Se instalarán y configurarán los módulos de facturación verificable en todas las bases de datos.
+                          Las facturas generarán automáticamente el registro de facturación y el código QR de verificación.
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 mb-2">
+                        {([
+                          { id: "test" as const, label: "Entorno de pruebas", desc: "Envíos al servidor de pruebas de la AEAT" },
+                          { id: "production" as const, label: "Producción", desc: "Envíos reales al sistema VeriFactu de la AEAT" },
+                        ]).map(env => (
+                          <button
+                            key={env.id}
+                            onClick={() => setBranding(b => ({
+                              ...b,
+                              fiscal: { ...b.fiscal, verifactu: { ...b.fiscal.verifactu, environment: env.id } }
+                            }))}
+                            className={`p-3 rounded-xl border-2 text-left transition-all ${
+                              branding.fiscal.verifactu.environment === env.id
+                                ? env.id === "production"
+                                  ? "border-amber-500 bg-amber-50 ring-1 ring-amber-200"
+                                  : "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                                : "border-slate-200 hover:border-slate-300 bg-white"
+                            }`}
+                          >
+                            <div className={`font-semibold text-sm ${
+                              branding.fiscal.verifactu.environment === env.id
+                                ? env.id === "production" ? "text-amber-700" : "text-blue-700"
+                                : "text-slate-800"
+                            }`}>
+                              {env.label}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-0.5">{env.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {branding.fiscal.verifactu.environment === "production" && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+                          <FileWarning className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <p className="text-xs text-amber-800">
+                            <strong>Modo producción:</strong> Las facturas se enviarán al sistema real de la AEAT. 
+                            Asegúrate de que el NIF y los datos fiscales son correctos antes de activar este modo.
+                            Para entornos educativos se recomienda usar el modo de pruebas.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="space-y-3 mt-2">
+                        <div className="grid grid-cols-2 gap-3">
+                          <InputField
+                            label="NIF/CIF del titular"
+                            value={branding.fiscal.verifactu.nifTitular}
+                            onChange={v => setBranding(b => ({
+                              ...b,
+                              fiscal: { ...b.fiscal, verifactu: { ...b.fiscal.verifactu, nifTitular: v } }
+                            }))}
+                          />
+                          <InputField
+                            label="Razón social"
+                            value={branding.fiscal.verifactu.nombreRazonSocial}
+                            onChange={v => setBranding(b => ({
+                              ...b,
+                              fiscal: { ...b.fiscal, verifactu: { ...b.fiscal.verifactu, nombreRazonSocial: v } }
+                            }))}
+                          />
+                        </div>
+                        <InputField
+                          label="NIF del representante (opcional)"
+                          value={branding.fiscal.verifactu.nifRepresentante}
+                          onChange={v => setBranding(b => ({
+                            ...b,
+                            fiscal: { ...b.fiscal, verifactu: { ...b.fiscal.verifactu, nifRepresentante: v } }
+                          }))}
+                        />
+                      </div>
+
+                      <div className="border border-slate-200 rounded-xl overflow-hidden mt-3">
+                        <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200">
+                          <h5 className="text-sm font-semibold text-slate-700">Funcionalidad VeriFactu incluida</h5>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                          {[
+                            { feature: "Registro de facturación", desc: "Generación automática del registro de alta/anulación conforme al RD 1007/2023" },
+                            { feature: "Código QR en facturas", desc: "Código QR de verificación enlazado a la sede electrónica de la AEAT" },
+                            { feature: "Huella y encadenamiento", desc: "Hash SHA-256 encadenado entre registros para garantizar la integridad" },
+                            { feature: "Envío a la AEAT", desc: "Remisión automática o bajo demanda al sistema VeriFactu de la Agencia Tributaria" },
+                            { feature: "Libro de facturas", desc: "Consulta del libro registro de facturas expedidas y recibidas" },
+                            { feature: "Certificado digital", desc: "Firma electrónica con certificado de la FNMT o DNIe del titular" },
+                          ].map(item => (
+                            <div key={item.feature} className="px-4 py-3 flex items-start gap-3">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-slate-800">{item.feature}</div>
+                                <div className="text-xs text-slate-500">{item.desc}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
