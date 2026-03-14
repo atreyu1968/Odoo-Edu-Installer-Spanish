@@ -1,0 +1,49 @@
+{
+  "superadmin": {
+    "username": "superadmin",
+    "password": "SuperAdmin2024!"
+  },
+  "grupos": [
+    {
+      "nombre": "Grupo 1",
+      "numAlumnos": 30,
+      "dbPrefix": "empresa",
+      "passwordPrefix": "alumno",
+      "profesorNombre": "Profesor",
+      "profesorUsuario": "profesor",
+      "profesorPassword": "Profesor2024!"
+    }
+  ],
+  "branding": {
+    "companyName": "Centro de Formación Profesional",
+    "companyTagline": "Formación de calidad",
+    "companyWebsite": "",
+    "companyEmail": "",
+    "companyPhone": "",
+    "companyStreet": "",
+    "companyCity": "",
+    "companyZip": "",
+    "companyState": "",
+    "companyCountry": "ES",
+    "logoUrl": "",
+    "faviconUrl": "",
+    "primaryColor": "#714B67",
+    "secondaryColor": "#21b6a8",
+    "fiscalRegime": "iva",
+    "fiscalRecargo": false,
+    "verifactuEnabled": false,
+    "verifactuEnvironment": "test",
+    "verifactuNifTitular": "",
+    "verifactuRazonSocial": "",
+    "verifactuNifRepresentante": ""
+  },
+  "odoo": {
+    "version": "17.0",
+    "port": 8069,
+    "adminPassword": "",
+    "dbUser": "odoo17",
+    "dbPassword": "",
+    "home": "/opt/odoo17",
+    "confPath": "/etc/odoo17.conf"
+  }
+}

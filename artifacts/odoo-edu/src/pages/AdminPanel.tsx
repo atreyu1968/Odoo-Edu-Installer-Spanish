@@ -1,5 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+
+const API_BASE = `${import.meta.env.BASE_URL}api`;
 import {
   Lock, Eye, EyeOff, LogOut,
   Users, GraduationCap, Palette, RefreshCw,
@@ -69,6 +71,8 @@ interface AuthState {
   role: UserRole;
   username: string;
   grupoIndex?: number;
+  token?: string;
+  grupoNombre?: string;
 }
 
 type Tab = "grupos" | "branding" | "actualizaciones";
@@ -188,60 +192,177 @@ const defaultBranding: BrandingConfig = {
   },
 };
 
-const SUPERADMIN_USER = "superadmin";
-const SUPERADMIN_PASSWORD = "SuperAdmin2024!";
-
 export default function AdminPanel() {
-  const [auth, setAuth] = useState<AuthState>({ authenticated: false, role: "superadmin", username: "" });
+  const [auth, setAuth] = useState<AuthState>(() => {
+    const saved = localStorage.getItem("odoo-edu-auth");
+    if (saved) {
+      try { return JSON.parse(saved); } catch {}
+    }
+    return { authenticated: false, role: "superadmin" as UserRole, username: "" };
+  });
   const [loginUser, setLoginUser] = useState("");
   const [loginPass, setLoginPass] = useState("");
   const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("grupos");
-  const [grupos, setGrupos] = useState<GrupoAlumnos[]>([
-    {
-      nombre: "Grupo 1",
-      numAlumnos: 30,
-      dbPrefix: "empresa",
-      passwordPrefix: "alumno",
-      profesor: { nombre: "Profesor", usuario: "profesor", password: "Profesor2024!" }
-    }
-  ]);
+  const [grupos, setGrupos] = useState<GrupoAlumnos[]>([]);
   const [branding, setBranding] = useState<BrandingConfig>(defaultBranding);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
-  const handleLogin = useCallback(() => {
+  const apiFetch = useCallback(async (path: string, options?: RequestInit) => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (auth.token) headers["Authorization"] = `Bearer ${auth.token}`;
+    const res = await fetch(`${API_BASE}${path}`, { ...options, headers: { ...headers, ...options?.headers } });
+    return res;
+  }, [auth.token]);
+
+  useEffect(() => {
+    if (auth.authenticated && auth.token) {
+      apiFetch("/groups").then(r => r.json()).then(data => {
+        if (data.grupos) {
+          setGrupos(data.grupos.map((g: any) => ({
+            nombre: g.nombre,
+            numAlumnos: g.numAlumnos,
+            dbPrefix: g.dbPrefix,
+            passwordPrefix: g.passwordPrefix,
+            profesor: { nombre: g.profesorNombre, usuario: g.profesorUsuario, password: g.profesorPassword }
+          })));
+        }
+      }).catch(() => {});
+      apiFetch("/branding").then(r => r.json()).then(data => {
+        if (data.branding) {
+          const b = data.branding;
+          setBranding({
+            companyName: b.companyName || "",
+            companyTagline: b.companyTagline || "",
+            companyWebsite: b.companyWebsite || "",
+            companyEmail: b.companyEmail || "",
+            companyPhone: b.companyPhone || "",
+            companyStreet: b.companyStreet || "",
+            companyCity: b.companyCity || "",
+            companyZip: b.companyZip || "",
+            companyState: b.companyState || "",
+            logoUrl: b.logoUrl || "",
+            faviconUrl: b.faviconUrl || "",
+            primaryColor: b.primaryColor || "#714B67",
+            secondaryColor: b.secondaryColor || "#017e84",
+            fiscal: {
+              regime: b.fiscalRegime || "iva",
+              recargo: b.fiscalRecargo || false,
+              verifactu: {
+                enabled: b.verifactuEnabled || false,
+                environment: b.verifactuEnvironment || "test",
+                nifRepresentante: b.verifactuNifRepresentante || "",
+                nombreRazonSocial: b.verifactuRazonSocial || "",
+                nifTitular: b.verifactuNifTitular || "",
+                softwareName: "OdooEdu",
+                softwareVersion: "17.0",
+              },
+            },
+          });
+        }
+      }).catch(() => {});
+    }
+  }, [auth.authenticated, auth.token]);
+
+  const handleLogin = useCallback(async () => {
     setLoginError("");
-
-    if (loginUser === SUPERADMIN_USER && loginPass === SUPERADMIN_PASSWORD) {
-      setAuth({ authenticated: true, role: "superadmin", username: loginUser });
-      return;
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: loginUser, password: loginPass }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLoginError(data.error || "Error de autenticación");
+        return;
+      }
+      const newAuth: AuthState = {
+        authenticated: true,
+        role: data.role,
+        username: data.user,
+        token: data.token,
+        grupoNombre: data.grupo,
+      };
+      setAuth(newAuth);
+      localStorage.setItem("odoo-edu-auth", JSON.stringify(newAuth));
+    } catch {
+      setLoginError("No se pudo conectar con el servidor.");
     }
+  }, [loginUser, loginPass]);
 
-    const profIdx = grupos.findIndex(g => g.profesor.usuario === loginUser && g.profesor.password === loginPass);
-    if (profIdx !== -1) {
-      setAuth({ authenticated: true, role: "profesor", username: loginUser, grupoIndex: profIdx });
-      return;
+  const handleLogout = useCallback(async () => {
+    if (auth.token) {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth.token}` },
+      }).catch(() => {});
     }
-
-    setLoginError("Usuario o contraseña incorrectos.");
-  }, [loginUser, loginPass, grupos]);
-
-  const handleLogout = useCallback(() => {
+    localStorage.removeItem("odoo-edu-auth");
     setAuth({ authenticated: false, role: "superadmin", username: "" });
     setLoginUser("");
     setLoginPass("");
     setLoginError("");
-  }, []);
+  }, [auth.token]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     setSaveStatus("saving");
-    setTimeout(() => {
+    try {
+      const gruposApi = grupos.map(g => ({
+        nombre: g.nombre,
+        numAlumnos: g.numAlumnos,
+        dbPrefix: g.dbPrefix,
+        passwordPrefix: g.passwordPrefix,
+        profesorNombre: g.profesor.nombre,
+        profesorUsuario: g.profesor.usuario,
+        profesorPassword: g.profesor.password,
+      }));
+
+      const groupRes = await apiFetch("/groups/bulk", {
+        method: "PUT",
+        body: JSON.stringify({ grupos: gruposApi }),
+      });
+      if (!groupRes.ok) throw new Error("Error al guardar grupos");
+
+      const brandingApi = {
+        companyName: branding.companyName,
+        companyTagline: branding.companyTagline,
+        companyWebsite: branding.companyWebsite,
+        companyEmail: branding.companyEmail,
+        companyPhone: branding.companyPhone,
+        companyStreet: branding.companyStreet,
+        companyCity: branding.companyCity,
+        companyZip: branding.companyZip,
+        companyState: branding.companyState,
+        companyCountry: "ES",
+        logoUrl: branding.logoUrl,
+        faviconUrl: branding.faviconUrl,
+        primaryColor: branding.primaryColor,
+        secondaryColor: branding.secondaryColor,
+        fiscalRegime: branding.fiscal.regime,
+        fiscalRecargo: branding.fiscal.recargo,
+        verifactuEnabled: branding.fiscal.verifactu.enabled,
+        verifactuEnvironment: branding.fiscal.verifactu.environment,
+        verifactuNifTitular: branding.fiscal.verifactu.nifTitular,
+        verifactuRazonSocial: branding.fiscal.verifactu.nombreRazonSocial,
+        verifactuNifRepresentante: branding.fiscal.verifactu.nifRepresentante,
+      };
+
+      const brandRes = await apiFetch("/branding", {
+        method: "PUT",
+        body: JSON.stringify(brandingApi),
+      });
+      if (!brandRes.ok) throw new Error("Error al guardar branding");
+
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
-    }, 800);
-  }, []);
+    } catch {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }, [grupos, branding, apiFetch]);
 
   const addGrupo = useCallback(() => {
     const n = grupos.length + 1;
@@ -363,7 +484,7 @@ export default function AdminPanel() {
   }
 
   const isSuperadmin = auth.role === "superadmin";
-  const visibleGrupos = isSuperadmin ? grupos : [grupos[auth.grupoIndex!]];
+  const visibleGrupos = isSuperadmin ? grupos : grupos.filter(g => g.nombre === auth.grupoNombre);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -471,7 +592,7 @@ export default function AdminPanel() {
 
             <div className="space-y-4">
               {visibleGrupos.map((grupo, displayIdx) => {
-                const realIdx = isSuperadmin ? displayIdx : auth.grupoIndex!;
+                const realIdx = isSuperadmin ? displayIdx : grupos.findIndex(g => g.nombre === auth.grupoNombre);
                 return (
                   <div key={realIdx} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-slate-100">

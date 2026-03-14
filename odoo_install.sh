@@ -1525,7 +1525,245 @@ else
 fi
 
 #===============================================================================
-# 20. RESUMEN DE LA INSTALACION
+# 20. PANEL DE ADMINISTRACION WEB
+#===============================================================================
+
+log_info "Instalando el panel de administracion web..."
+
+ADMIN_DIR="$ODOO_HOME/admin-panel"
+ADMIN_PORT=3001
+ADMIN_CONFIG="$ODOO_HOME/admin-config.json"
+
+if ! command -v node &>/dev/null || [[ $(node -v 2>/dev/null | sed 's/v//' | cut -d. -f1) -lt 18 ]]; then
+    log_info "Instalando Node.js 20 LTS..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
+    apt-get install -y -qq nodejs
+fi
+
+if ! command -v pnpm &>/dev/null; then
+    npm install -g pnpm >/dev/null 2>&1
+fi
+
+REPO_DIR=$(cd "$(dirname "$0")" && pwd)
+
+if [[ -d "$REPO_DIR/artifacts" ]]; then
+    log_info "Compilando el panel de administracion..."
+
+    rm -rf "$ADMIN_DIR"
+    mkdir -p "$ADMIN_DIR/public"
+
+    cd "$REPO_DIR"
+    pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+
+    cd "$REPO_DIR/artifacts/odoo-edu"
+    PORT=3000 BASE_PATH="/" NODE_ENV=production pnpm run build 2>/dev/null
+    cp -r dist/public/* "$ADMIN_DIR/public/" 2>/dev/null || true
+
+    cd "$REPO_DIR/artifacts/api-server"
+    pnpm run build 2>/dev/null || {
+        log_info "Copiando API server directamente..."
+        mkdir -p "$ADMIN_DIR/api"
+        cp -r src/* "$ADMIN_DIR/api/" 2>/dev/null || true
+        cp package.json "$ADMIN_DIR/api/" 2>/dev/null || true
+    }
+
+    if [[ -d "$REPO_DIR/artifacts/api-server/dist" ]]; then
+        mkdir -p "$ADMIN_DIR/api"
+        cp -r "$REPO_DIR/artifacts/api-server/dist/"* "$ADMIN_DIR/api/" 2>/dev/null || true
+        cp "$REPO_DIR/artifacts/api-server/package.json" "$ADMIN_DIR/api/" 2>/dev/null || true
+    fi
+
+    cd "$ADMIN_DIR/api" 2>/dev/null && npm install --omit=dev 2>/dev/null || true
+
+    log_success "Panel de administracion compilado."
+else
+    log_warn "No se encontro el codigo fuente del panel. Omitiendo."
+fi
+
+cat > "$ADMIN_CONFIG" << ADMINEOF
+{
+  "superadmin": {
+    "username": "$SUPERADMIN_USER",
+    "password": "$SUPERADMIN_PASSWORD"
+  },
+  "grupos": [$(echo "$EDU_GRUPOS" | tr ';' '\n' | while IFS='|' read -r gNombre gNum gDb gPwd gProfNombre gProfUsuario gProfPassword; do
+    echo "{\"nombre\":\"$gNombre\",\"numAlumnos\":$gNum,\"dbPrefix\":\"$gDb\",\"passwordPrefix\":\"$gPwd\",\"profesorNombre\":\"$gProfNombre\",\"profesorUsuario\":\"$gProfUsuario\",\"profesorPassword\":\"$gProfPassword\"},"
+  done | sed '$ s/,$//')],
+  "branding": {
+    "companyName": "$BRAND_COMPANY_NAME",
+    "companyTagline": "$BRAND_COMPANY_TAGLINE",
+    "companyWebsite": "$BRAND_COMPANY_WEBSITE",
+    "companyEmail": "$BRAND_COMPANY_EMAIL",
+    "companyPhone": "$BRAND_COMPANY_PHONE",
+    "companyStreet": "$BRAND_COMPANY_STREET",
+    "companyCity": "$BRAND_COMPANY_CITY",
+    "companyZip": "$BRAND_COMPANY_ZIP",
+    "companyState": "$BRAND_COMPANY_STATE",
+    "companyCountry": "$BRAND_COMPANY_COUNTRY",
+    "logoUrl": "$BRAND_LOGO_URL",
+    "faviconUrl": "$BRAND_FAVICON_URL",
+    "primaryColor": "$BRAND_PRIMARY_COLOR",
+    "secondaryColor": "$BRAND_SECONDARY_COLOR",
+    "fiscalRegime": "${FISCAL_REGIME:-iva}",
+    "fiscalRecargo": ${FISCAL_RECARGO_EQUIVALENCIA:-false},
+    "verifactuEnabled": ${VERIFACTU_ENABLED:-false},
+    "verifactuEnvironment": "${VERIFACTU_ENVIRONMENT:-test}",
+    "verifactuNifTitular": "${VERIFACTU_NIF_TITULAR:-}",
+    "verifactuRazonSocial": "${VERIFACTU_RAZON_SOCIAL:-}",
+    "verifactuNifRepresentante": "${VERIFACTU_NIF_REPRESENTANTE:-}"
+  },
+  "odoo": {
+    "version": "$ODOO_VERSION",
+    "port": $ODOO_PORT,
+    "adminPassword": "$ADMIN_PASSWORD",
+    "dbUser": "$DB_USER",
+    "dbPassword": "$DB_PASSWORD",
+    "home": "$ODOO_HOME",
+    "confPath": "$ODOO_CONF"
+  }
+}
+ADMINEOF
+
+chown "$ODOO_USER":"$ODOO_USER" "$ADMIN_CONFIG"
+chmod 600 "$ADMIN_CONFIG"
+
+cat > /etc/systemd/system/odoo-edu-admin.service << SVCEOF
+[Unit]
+Description=OdooEdu Admin Panel API
+After=network.target postgresql.service ${ODOO_USER}.service
+Wants=${ODOO_USER}.service
+
+[Service]
+Type=simple
+User=$ODOO_USER
+Group=$ODOO_USER
+WorkingDirectory=$ADMIN_DIR/api
+ExecStart=/usr/bin/node dist/index.cjs
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=$ADMIN_PORT
+Environment=ADMIN_CONFIG_PATH=$ADMIN_CONFIG
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=odoo-edu-admin
+
+[Install]
+WantedBy=multi-user.target
+SVCEOF
+
+systemctl daemon-reload
+systemctl enable odoo-edu-admin.service
+systemctl start odoo-edu-admin.service
+
+sleep 2
+
+if systemctl is-active --quiet odoo-edu-admin.service; then
+    log_success "Panel de administracion iniciado en puerto $ADMIN_PORT."
+else
+    log_warn "El panel de administracion no se inicio. Revisa: journalctl -u odoo-edu-admin"
+fi
+
+if [[ "$INSTALL_NGINX" == true ]] && [[ -f /etc/nginx/sites-available/$ODOO_USER ]]; then
+    log_info "Actualizando Nginx para incluir el panel de administracion..."
+
+    cat > /etc/nginx/sites-available/$ODOO_USER << NGINXEOF
+upstream odoo {
+    server 127.0.0.1:$ODOO_PORT;
+}
+upstream odoochat {
+    server 127.0.0.1:$ODOO_LONGPOLLING_PORT;
+}
+upstream admin_api {
+    server 127.0.0.1:$ADMIN_PORT;
+}
+
+server {
+    listen 80;
+    server_name $WEBSITE_NAME;
+
+    proxy_read_timeout 720s;
+    proxy_connect_timeout 720s;
+    proxy_send_timeout 720s;
+
+    proxy_set_header X-Forwarded-Host \$host;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header Host \$http_host;
+
+    access_log /var/log/nginx/odoo.access.log;
+    error_log /var/log/nginx/odoo.error.log;
+
+    location = / {
+        root $ADMIN_DIR/public;
+        try_files /index.html =404;
+    }
+
+    location /assets/ {
+        root $ADMIN_DIR/public;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /images/ {
+        root $ADMIN_DIR/public;
+        expires 30d;
+    }
+
+    location /admin {
+        root $ADMIN_DIR/public;
+        try_files /index.html =404;
+    }
+
+    location /api/ {
+        proxy_pass http://admin_api;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+
+    location /odoo/ {
+        rewrite ^/odoo(.*)\$ \$1 break;
+        proxy_redirect off;
+        proxy_pass http://odoo;
+    }
+
+    location /web {
+        proxy_redirect off;
+        proxy_pass http://odoo;
+    }
+
+    location /longpolling {
+        proxy_pass http://odoochat;
+    }
+
+    location /websocket {
+        proxy_pass http://odoochat;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location ~* /web/static/ {
+        proxy_cache_valid 200 90m;
+        proxy_buffering on;
+        expires 864000;
+        proxy_pass http://odoo;
+    }
+
+    client_max_body_size 200m;
+
+    gzip_types text/css text/scss text/plain text/xml application/xml
+               application/json application/javascript;
+    gzip on;
+}
+NGINXEOF
+
+    nginx -t && systemctl reload nginx
+    log_success "Nginx actualizado con rutas del panel de administracion."
+fi
+
+#===============================================================================
+# 21. RESUMEN DE LA INSTALACION
 #===============================================================================
 
 SERVER_IP=$(hostname -I | awk '{print $1}')
