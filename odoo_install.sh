@@ -1140,7 +1140,7 @@ ALUMNOS_SCRIPT
 sed -i "s|ODOO_USER_PLACEHOLDER|$ODOO_USER|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_HOME_PLACEHOLDER|$ODOO_HOME|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|ODOO_CONF_PLACEHOLDER|$ODOO_CONF|g" /usr/local/bin/odoo_crear_alumnos.sh
-sed -i "s|EDU_GRUPOS_PLACEHOLDER|$EDU_GRUPOS|g" /usr/local/bin/odoo_crear_alumnos.sh
+sed -i "s%EDU_GRUPOS_PLACEHOLDER%$EDU_GRUPOS%g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_WEBSITE_PLACEHOLDER|$BRAND_COMPANY_WEBSITE|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_EMAIL_PLACEHOLDER|$BRAND_COMPANY_EMAIL|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_PHONE_PLACEHOLDER|$BRAND_COMPANY_PHONE|g" /usr/local/bin/odoo_crear_alumnos.sh
