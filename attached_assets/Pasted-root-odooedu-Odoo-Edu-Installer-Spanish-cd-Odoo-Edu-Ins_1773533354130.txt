@@ -1,0 +1,545 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# cd ~/Odoo-Edu-Installer-Spanish
+git pull origin master
+sudo bash odoo_install.sh
+fatal: unable to access 'https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish.git/': GnuTLS, handshake failed: The TLS connection was non-properly terminated.
+[AVISO] 2026-03-15 00:07:03 - Ubuntu 'plucky' (25.04) no es una version LTS oficialmente probada.
+[AVISO] 2026-03-15 00:07:03 - Las versiones probadas son: Ubuntu 22.04 (jammy) y 24.04 (noble).
+[AVISO] 2026-03-15 00:07:03 - Algunos repositorios externos (PostgreSQL, wkhtmltopdf) pueden no estar disponibles.
+
+[INFO] 2026-03-15 00:07:03 - Se usaran los paquetes de los repositorios del sistema cuando sea necesario.
+
+[INFO] 2026-03-15 00:07:03 - Sistema operativo detectado: ubuntu 25.04 (plucky)
+
+[INFO] 2026-03-15 00:07:03 - ============================================================
+
+[INFO] 2026-03-15 00:07:03 -  Instalacion Desatendida de Odoo 17.0
+
+[INFO] 2026-03-15 00:07:03 -  EDICION EDUCATIVA con Multiempresa
+
+[INFO] 2026-03-15 00:07:03 -  Localizacion Espanola OCA/l10n-spain + Rebranding
+
+[INFO] 2026-03-15 00:07:03 - ============================================================
+
+[INFO] 2026-03-15 00:07:03 - Usuario Odoo:         odoo17
+
+[INFO] 2026-03-15 00:07:03 - Directorio:           /opt/odoo17
+
+[INFO] 2026-03-15 00:07:03 - Puerto:               8069
+
+[INFO] 2026-03-15 00:07:03 - Contrasena admin:     vW7HrHsquHVYFQJp
+
+[INFO] 2026-03-15 00:07:03 - Contrasena BD:        qaqu5FV5EwPkepnx
+
+[INFO] 2026-03-15 00:07:03 - Modo educativo:       true
+
+[INFO] 2026-03-15 00:07:03 - Centro:               Centro de Formacion Profesional
+
+[INFO] 2026-03-15 00:07:03 - Grupos:               Grupo 1|30|empresa|alumno|Profesor|profesor|Profesor2024!
+
+[INFO] 2026-03-15 00:07:03 - Empresa (branding):   Centro de Formacion Profesional
+
+[INFO] 2026-03-15 00:07:03 - Color principal:      #714B67
+
+[INFO] 2026-03-15 00:07:03 - ============================================================
+
+[INFO] 2026-03-15 00:07:03 - Actualizando el sistema...
+[OK] 2026-03-15 00:07:06 - Sistema actualizado.
+
+[INFO] 2026-03-15 00:07:06 - Instalando dependencias del sistema...
+
+[INFO] 2026-03-15 00:07:07 - Python detectado: python3.13
+(Reading database ... 67851 files and directories currently installed.)
+Removing libjpeg62-dev:amd64 (1:6b2-4) ...
+Selecting previously unselected package libjpeg-turbo8-dev:amd64.
+(Reading database ... 67834 files and directories currently installed.)
+Preparing to unpack .../libjpeg-turbo8-dev_2.1.5-3ubuntu2_amd64.deb ...
+Unpacking libjpeg-turbo8-dev:amd64 (2.1.5-3ubuntu2) ...
+Selecting previously unselected package libjpeg8-dev:amd64.
+Preparing to unpack .../libjpeg8-dev_8c-2ubuntu11_amd64.deb ...
+Unpacking libjpeg8-dev:amd64 (8c-2ubuntu11) ...
+Selecting previously unselected package libjpeg-dev:amd64.
+Preparing to unpack .../libjpeg-dev_8c-2ubuntu11_amd64.deb ...
+Unpacking libjpeg-dev:amd64 (8c-2ubuntu11) ...
+Setting up libjpeg-turbo8-dev:amd64 (2.1.5-3ubuntu2) ...
+Setting up libjpeg8-dev:amd64 (8c-2ubuntu11) ...
+Setting up libjpeg-dev:amd64 (8c-2ubuntu11) ...
+Selecting previously unselected package libtiff-dev:amd64.
+(Reading database ... 67860 files and directories currently installed.)
+Preparing to unpack .../libtiff-dev_4.5.1+git230720-4ubuntu4.2_amd64.deb ...
+Unpacking libtiff-dev:amd64 (4.5.1+git230720-4ubuntu4.2) ...
+Selecting previously unselected package libtiff5-dev:amd64.
+Preparing to unpack .../libtiff5-dev_4.5.1+git230720-4ubuntu4.2_amd64.deb ...
+Unpacking libtiff5-dev:amd64 (4.5.1+git230720-4ubuntu4.2) ...
+Setting up libtiff-dev:amd64 (4.5.1+git230720-4ubuntu4.2) ...
+Setting up libtiff5-dev:amd64 (4.5.1+git230720-4ubuntu4.2) ...
+Processing triggers for man-db (2.13.0-1) ...
+(Reading database ... 67934 files and directories currently installed.)
+Removing libtiff5-dev:amd64 (4.5.1+git230720-4ubuntu4.2) ...
+Removing libtiff-dev:amd64 (4.5.1+git230720-4ubuntu4.2) ...
+Removing libjpeg-dev:amd64 (8c-2ubuntu11) ...
+Removing libjpeg8-dev:amd64 (8c-2ubuntu11) ...
+Removing libjpeg-turbo8-dev:amd64 (2.1.5-3ubuntu2) ...
+Selecting previously unselected package libjpeg62-dev:amd64.
+(Reading database ... 67834 files and directories currently installed.)
+Preparing to unpack .../libjpeg62-dev_1%3a6b2-4_amd64.deb ...
+Unpacking libjpeg62-dev:amd64 (1:6b2-4) ...
+Setting up libjpeg62-dev:amd64 (1:6b2-4) ...
+Processing triggers for man-db (2.13.0-1) ...
+
+changed 27 packages in 1s
+
+5 packages are looking for funding
+  run `npm fund` for details
+[OK] 2026-03-15 00:07:22 - Dependencias del sistema instaladas.
+
+[INFO] 2026-03-15 00:07:22 - Instalando PostgreSQL...
+Synchronizing state of postgresql.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable postgresql
+ALTER ROLE
+[OK] 2026-03-15 00:07:24 - PostgreSQL instalado y configurado.
+
+[INFO] 2026-03-15 00:07:24 - Instalando wkhtmltopdf...
+[OK] 2026-03-15 00:07:24 - wkhtmltopdf instalado.
+
+[INFO] 2026-03-15 00:07:24 - Creando usuario del sistema para Odoo...
+[OK] 2026-03-15 00:07:24 - Usuario odoo17 creado.
+
+[INFO] 2026-03-15 00:07:24 - Descargando Odoo 17.0 desde GitHub...
+
+[INFO] 2026-03-15 00:07:24 - Odoo ya descargado, actualizando...
+fatal: detected dubious ownership in repository at '/opt/odoo17/odoo17-server'
+To add an exception for this directory, call:
+
+        git config --global --add safe.directory /opt/odoo17/odoo17-server
+[OK] 2026-03-15 00:07:24 - Odoo 17.0 descargado.
+
+[INFO] 2026-03-15 00:07:24 - Creando entorno virtual de Python e instalando dependencias...
+Requirement already satisfied: pip in /opt/odoo17/venv/lib/python3.13/site-packages (26.0.1)
+Requirement already satisfied: setuptools<81 in /opt/odoo17/venv/lib/python3.13/site-packages (80.10.2)
+Requirement already satisfied: wheel in /opt/odoo17/venv/lib/python3.13/site-packages (0.46.3)
+Requirement already satisfied: packaging>=24.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from wheel) (26.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (5.2.1)
+Requirement already satisfied: psycopg2-binary in /opt/odoo17/venv/lib/python3.13/site-packages (2.9.11)
+Ignoring Babel: markers 'python_version < "3.11"' don't match your environment
+Ignoring Babel: markers 'python_version >= "3.11" and python_version < "3.13"' don't match your environment
+Ignoring chardet: markers 'python_version < "3.11"' don't match your environment
+Ignoring cryptography: markers 'python_version < "3.12"' don't match your environment
+Ignoring decorator: markers 'python_version < "3.11"' don't match your environment
+Ignoring docutils: markers 'python_version < "3.11"' don't match your environment
+Ignoring freezegun: markers 'python_version < "3.11"' don't match your environment
+Ignoring freezegun: markers 'python_version >= "3.11" and python_version < "3.13"' don't match your environment
+Ignoring gevent: markers 'sys_platform != "win32" and python_version == "3.10"' don't match your environment
+Ignoring gevent: markers 'sys_platform != "win32" and python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring gevent: markers 'sys_platform != "win32" and python_version >= "3.12" and python_version < "3.13"' don't match your environment
+Ignoring greenlet: markers 'sys_platform != "win32" and python_version == "3.10"' don't match your environment
+Ignoring greenlet: markers 'sys_platform != "win32" and python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring greenlet: markers 'sys_platform != "win32" and python_version >= "3.12" and python_version < "3.13"' don't match your environment
+Ignoring idna: markers 'python_version < "3.12"' don't match your environment
+Ignoring Jinja2: markers 'python_version <= "3.10"' don't match your environment
+Ignoring libsass: markers 'python_version < "3.11"' don't match your environment
+Ignoring lxml: markers 'python_version <= "3.10"' don't match your environment
+Ignoring lxml: markers 'python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring MarkupSafe: markers 'python_version <= "3.10"' don't match your environment
+Ignoring MarkupSafe: markers 'python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring num2words: markers 'python_version < "3.12"' don't match your environment
+Ignoring Pillow: markers 'python_version <= "3.10"' don't match your environment
+Ignoring Pillow: markers 'python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring Pillow: markers 'python_version >= "3.12" and python_version < "3.13"' don't match your environment
+Ignoring psutil: markers 'python_version <= "3.10"' don't match your environment
+Ignoring psutil: markers 'python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring pyopenssl: markers 'python_version < "3.12"' don't match your environment
+Ignoring PyPDF2: markers 'python_version <= "3.10"' don't match your environment
+Ignoring PyPDF2: markers 'python_version > "3.10" and python_version < "3.13"' don't match your environment
+Ignoring pypiwin32: markers 'sys_platform == "win32"' don't match your environment
+Ignoring python-dateutil: markers 'python_version < "3.11"' don't match your environment
+Ignoring python-ldap: markers 'sys_platform != "win32" and python_version < "3.12"' don't match your environment
+Ignoring python-stdnum: markers 'python_version < "3.11"' don't match your environment
+Ignoring qrcode: markers 'python_version < "3.11"' don't match your environment
+Ignoring reportlab: markers 'python_version <= "3.10"' don't match your environment
+Ignoring reportlab: markers 'python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring requests: markers 'python_version < "3.11"' don't match your environment
+Ignoring rjsmin: markers 'python_version < "3.11"' don't match your environment
+Ignoring rl-renderPM: markers 'sys_platform == "win32" and python_version >= "3.12"' don't match your environment
+Ignoring urllib3: markers 'python_version < "3.12"' don't match your environment
+Ignoring Werkzeug: markers 'python_version <= "3.10"' don't match your environment
+Ignoring Werkzeug: markers 'python_version > "3.10" and python_version < "3.12"' don't match your environment
+Ignoring xlrd: markers 'python_version < "3.12"' don't match your environment
+Ignoring XlsxWriter: markers 'python_version < "3.12"' don't match your environment
+Ignoring zeep: markers 'python_version < "3.11"' don't match your environment
+Ignoring zeep: markers 'python_version >= "3.11" and python_version < "3.13"' don't match your environment
+Requirement already satisfied: Babel==2.17.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 5)) (2.17.0)
+Requirement already satisfied: chardet==5.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 7)) (5.2.0)
+Requirement already satisfied: cryptography==42.0.8 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 9)) (42.0.8)
+Requirement already satisfied: decorator==5.1.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 11)) (5.1.1)
+Requirement already satisfied: docutils==0.20.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 13)) (0.20.1)
+Requirement already satisfied: ebaysdk==2.1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 14)) (2.1.5)
+Requirement already satisfied: freezegun==1.5.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 17)) (1.5.1)
+Requirement already satisfied: geoip2==2.9.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 18)) (2.9.0)
+Requirement already satisfied: gevent==24.11.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 22)) (24.11.1)
+Requirement already satisfied: greenlet==3.1.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 26)) (3.1.1)
+Requirement already satisfied: idna==3.6 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 28)) (3.6)
+Requirement already satisfied: Jinja2==3.1.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 30)) (3.1.2)
+Requirement already satisfied: libsass==0.22.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 32)) (0.22.0)
+Requirement already satisfied: lxml==5.2.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 35)) (5.2.1)
+Requirement already satisfied: lxml-html-clean in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 36)) (0.4.4)
+Requirement already satisfied: MarkupSafe==2.1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 39)) (2.1.5)
+Requirement already satisfied: num2words==0.5.13 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 41)) (0.5.13)
+Requirement already satisfied: ofxparse==0.21 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 42)) (0.21)
+Requirement already satisfied: passlib==1.7.4 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 43)) (1.7.4)
+Requirement already satisfied: Pillow==11.1.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 47)) (11.1.0)
+Requirement already satisfied: polib==1.1.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 48)) (1.1.1)
+Requirement already satisfied: psutil==5.9.8 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 51)) (5.9.8)
+Requirement already satisfied: psycopg2-binary in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 52)) (2.9.11)
+Requirement already satisfied: pydot==1.4.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 56)) (1.4.2)
+Requirement already satisfied: pyopenssl==24.1.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 58)) (24.1.0)
+Requirement already satisfied: PyPDF==5.4.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 61)) (5.4.0)
+Requirement already satisfied: pyserial==3.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 63)) (3.5)
+Requirement already satisfied: python-dateutil==2.8.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 65)) (2.8.2)
+Requirement already satisfied: python-ldap==3.4.4 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 67)) (3.4.4)
+Requirement already satisfied: python-stdnum==1.19 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 69)) (1.19)
+Requirement already satisfied: pytz in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 70)) (2026.1.post1)
+Requirement already satisfied: pyusb==1.2.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 71)) (1.2.1)
+Requirement already satisfied: qrcode==7.4.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 73)) (7.4.2)
+Requirement already satisfied: reportlab==4.1.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 76)) (4.1.0)
+Requirement already satisfied: requests==2.31.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 78)) (2.31.0)
+Requirement already satisfied: rjsmin==1.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 80)) (1.2.0)
+Requirement already satisfied: urllib3==2.0.7 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 83)) (2.0.7)
+Requirement already satisfied: vobject==0.9.6.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 84)) (0.9.6.1)
+Requirement already satisfied: Werkzeug==3.0.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 87)) (3.0.1)
+Requirement already satisfied: xlrd==2.0.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 89)) (2.0.1)
+Requirement already satisfied: XlsxWriter==3.1.9 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 91)) (3.1.9)
+Requirement already satisfied: xlwt==1.3.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 92)) (1.3.0)
+Requirement already satisfied: zeep==4.3.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/odoo17-server/requirements.txt (line 95)) (4.3.1)
+Requirement already satisfied: cffi>=1.12 in /opt/odoo17/venv/lib/python3.13/site-packages (from cryptography==42.0.8->-r /opt/odoo17/odoo17-server/requirements.txt (line 9)) (2.0.0)
+Requirement already satisfied: maxminddb>=1.4.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from geoip2==2.9.0->-r /opt/odoo17/odoo17-server/requirements.txt (line 18)) (3.1.1)
+Requirement already satisfied: zope.event in /opt/odoo17/venv/lib/python3.13/site-packages (from gevent==24.11.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 22)) (6.1)
+Requirement already satisfied: zope.interface in /opt/odoo17/venv/lib/python3.13/site-packages (from gevent==24.11.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 22)) (8.2)
+Requirement already satisfied: docopt>=0.6.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from num2words==0.5.13->-r /opt/odoo17/odoo17-server/requirements.txt (line 41)) (0.6.2)
+Requirement already satisfied: beautifulsoup4 in /opt/odoo17/venv/lib/python3.13/site-packages (from ofxparse==0.21->-r /opt/odoo17/odoo17-server/requirements.txt (line 42)) (4.14.3)
+Requirement already satisfied: six in /opt/odoo17/venv/lib/python3.13/site-packages (from ofxparse==0.21->-r /opt/odoo17/odoo17-server/requirements.txt (line 42)) (1.17.0)
+Requirement already satisfied: pyparsing>=2.1.4 in /opt/odoo17/venv/lib/python3.13/site-packages (from pydot==1.4.2->-r /opt/odoo17/odoo17-server/requirements.txt (line 56)) (3.3.2)
+Requirement already satisfied: pyasn1>=0.3.7 in /opt/odoo17/venv/lib/python3.13/site-packages (from python-ldap==3.4.4->-r /opt/odoo17/odoo17-server/requirements.txt (line 67)) (0.6.2)
+Requirement already satisfied: pyasn1_modules>=0.1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from python-ldap==3.4.4->-r /opt/odoo17/odoo17-server/requirements.txt (line 67)) (0.4.2)
+Requirement already satisfied: typing-extensions in /opt/odoo17/venv/lib/python3.13/site-packages (from qrcode==7.4.2->-r /opt/odoo17/odoo17-server/requirements.txt (line 73)) (4.15.0)
+Requirement already satisfied: pypng in /opt/odoo17/venv/lib/python3.13/site-packages (from qrcode==7.4.2->-r /opt/odoo17/odoo17-server/requirements.txt (line 73)) (0.20220715.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests==2.31.0->-r /opt/odoo17/odoo17-server/requirements.txt (line 78)) (3.4.5)
+Requirement already satisfied: certifi>=2017.4.17 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests==2.31.0->-r /opt/odoo17/odoo17-server/requirements.txt (line 78)) (2026.2.25)
+Requirement already satisfied: attrs>=17.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep==4.3.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 95)) (25.4.0)
+Requirement already satisfied: isodate>=0.5.4 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep==4.3.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 95)) (0.7.2)
+Requirement already satisfied: platformdirs>=1.4.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep==4.3.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 95)) (4.9.4)
+Requirement already satisfied: requests-toolbelt>=0.7.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep==4.3.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 95)) (1.0.0)
+Requirement already satisfied: requests-file>=1.5.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep==4.3.1->-r /opt/odoo17/odoo17-server/requirements.txt (line 95)) (3.0.1)
+Requirement already satisfied: pycparser in /opt/odoo17/venv/lib/python3.13/site-packages (from cffi>=1.12->cryptography==42.0.8->-r /opt/odoo17/odoo17-server/requirements.txt (line 9)) (3.0)
+Requirement already satisfied: soupsieve>=1.6.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from beautifulsoup4->ofxparse==0.21->-r /opt/odoo17/odoo17-server/requirements.txt (line 42)) (2.8.3)
+Collecting phonenumbers
+  Downloading phonenumbers-9.0.26-py2.py3-none-any.whl.metadata (10 kB)
+Requirement already satisfied: num2words in /opt/odoo17/venv/lib/python3.13/site-packages (0.5.13)
+Requirement already satisfied: python-stdnum in /opt/odoo17/venv/lib/python3.13/site-packages (1.19)
+Requirement already satisfied: pyOpenSSL in /opt/odoo17/venv/lib/python3.13/site-packages (24.1.0)
+Requirement already satisfied: cryptography in /opt/odoo17/venv/lib/python3.13/site-packages (42.0.8)
+Requirement already satisfied: chardet in /opt/odoo17/venv/lib/python3.13/site-packages (5.2.0)
+Requirement already satisfied: unidecode in /opt/odoo17/venv/lib/python3.13/site-packages (1.4.0)
+Requirement already satisfied: xlrd in /opt/odoo17/venv/lib/python3.13/site-packages (2.0.1)
+Requirement already satisfied: xlsxwriter in /opt/odoo17/venv/lib/python3.13/site-packages (3.1.9)
+Requirement already satisfied: openpyxl in /opt/odoo17/venv/lib/python3.13/site-packages (3.1.5)
+Requirement already satisfied: pycryptodome in /opt/odoo17/venv/lib/python3.13/site-packages (3.23.0)
+Collecting suds-community
+  Downloading suds_community-1.2.0-py3-none-any.whl.metadata (1.6 kB)
+Requirement already satisfied: zeep in /opt/odoo17/venv/lib/python3.13/site-packages (4.3.1)
+Requirement already satisfied: odoo-test-helper in /opt/odoo17/venv/lib/python3.13/site-packages (2.1.3)
+Requirement already satisfied: openupgradelib in /opt/odoo17/venv/lib/python3.13/site-packages (3.12.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib) (5.2.1)
+Requirement already satisfied: cssselect in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib) (1.4.0)
+[OK] 2026-03-15 00:07:32 - Entorno virtual y dependencias instaladas.
+
+[INFO] 2026-03-15 00:07:32 - Instalando modulos OCA...
+
+[INFO] 2026-03-15 00:07:32 - OCA/l10n-spain ya existe, actualizando...
+Requirement already satisfied: chardet in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 2)) (5.2.0)
+Requirement already satisfied: deepdiff<8 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 3)) (7.0.1)
+Requirement already satisfied: pycountry in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 4)) (26.2.16)
+Requirement already satisfied: pycryptodome in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 5)) (3.23.0)
+Requirement already satisfied: requests in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 6)) (2.31.0)
+Requirement already satisfied: suds-py3 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 7)) (1.4.5.0)
+Requirement already satisfied: unidecode in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 8)) (1.4.0)
+Requirement already satisfied: xmlsig in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 9)) (1.0.1)
+Requirement already satisfied: zeep in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (4.3.1)
+Requirement already satisfied: ordered-set<4.2.0,>=4.1.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from deepdiff<8->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 3)) (4.1.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 6)) (3.4.5)
+Requirement already satisfied: idna<4,>=2.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 6)) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 6)) (2.0.7)
+Requirement already satisfied: certifi>=2017.4.17 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 6)) (2026.2.25)
+Requirement already satisfied: lxml>=3.0.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from xmlsig->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 9)) (5.2.1)
+Requirement already satisfied: cryptography in /opt/odoo17/venv/lib/python3.13/site-packages (from xmlsig->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 9)) (42.0.8)
+Requirement already satisfied: attrs>=17.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (25.4.0)
+Requirement already satisfied: isodate>=0.5.4 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (0.7.2)
+Requirement already satisfied: platformdirs>=1.4.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (4.9.4)
+Requirement already satisfied: requests-toolbelt>=0.7.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (1.0.0)
+Requirement already satisfied: requests-file>=1.5.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (3.0.1)
+Requirement already satisfied: pytz in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 10)) (2026.1.post1)
+Requirement already satisfied: cffi>=1.12 in /opt/odoo17/venv/lib/python3.13/site-packages (from cryptography->xmlsig->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 9)) (2.0.0)
+Requirement already satisfied: pycparser in /opt/odoo17/venv/lib/python3.13/site-packages (from cffi>=1.12->cryptography->xmlsig->-r /opt/odoo17/OCA/l10n-spain/requirements.txt (line 9)) (3.0)
+
+[INFO] 2026-03-15 00:07:33 - OCA/multi-company ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:33 - OCA/brand ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:33 - OCA/server-brand ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:33 - OCA/account-financial-tools ya existe, actualizando...
+Requirement already satisfied: numpy-financial<=1.0.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/account-financial-tools/requirements.txt (line 2)) (1.0.0)
+Requirement already satisfied: numpy>=1.15 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/account-financial-tools/requirements.txt (line 3)) (2.4.3)
+Requirement already satisfied: python-dateutil in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/account-financial-tools/requirements.txt (line 4)) (2.8.2)
+Requirement already satisfied: six>=1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from python-dateutil->-r /opt/odoo17/OCA/account-financial-tools/requirements.txt (line 4)) (1.17.0)
+
+[INFO] 2026-03-15 00:07:34 - OCA/account-payment ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:34 - OCA/bank-payment ya existe, actualizando...
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/bank-payment/requirements.txt (line 2)) (5.2.1)
+Requirement already satisfied: unidecode in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/bank-payment/requirements.txt (line 3)) (1.4.0)
+
+[INFO] 2026-03-15 00:07:35 - OCA/reporting-engine ya existe, actualizando...
+Ignoring endesive: markers 'python_version < "3.12"' don't match your environment
+Requirement already satisfied: cryptography in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 2)) (42.0.8)
+Requirement already satisfied: endesive in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (2.19.3)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 5)) (5.2.1)
+Requirement already satisfied: openpyxl in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 6)) (3.1.5)
+Requirement already satisfied: py3o.formats in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 7)) (0.3)
+Requirement already satisfied: py3o.template in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 8)) (0.10.0)
+Requirement already satisfied: xlrd in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 9)) (2.0.1)
+Requirement already satisfied: xlsxwriter in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 10)) (3.1.9)
+Requirement already satisfied: cffi>=1.12 in /opt/odoo17/venv/lib/python3.13/site-packages (from cryptography->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 2)) (2.0.0)
+Requirement already satisfied: asn1crypto in /opt/odoo17/venv/lib/python3.13/site-packages (from endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (1.5.1)
+Requirement already satisfied: pykcs11 in /opt/odoo17/venv/lib/python3.13/site-packages (from endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (1.5.18)
+Requirement already satisfied: Pillow in /opt/odoo17/venv/lib/python3.13/site-packages (from endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (11.1.0)
+Requirement already satisfied: requests in /opt/odoo17/venv/lib/python3.13/site-packages (from endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (2.31.0)
+Requirement already satisfied: paramiko in /opt/odoo17/venv/lib/python3.13/site-packages (from endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (3.5.1)
+Requirement already satisfied: et-xmlfile in /opt/odoo17/venv/lib/python3.13/site-packages (from openpyxl->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 6)) (2.0.0)
+Requirement already satisfied: setuptools in /opt/odoo17/venv/lib/python3.13/site-packages (from py3o.formats->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 7)) (80.10.2)
+Requirement already satisfied: babel in /opt/odoo17/venv/lib/python3.13/site-packages (from py3o.template->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 8)) (2.17.0)
+Requirement already satisfied: genshi>=0.7 in /opt/odoo17/venv/lib/python3.13/site-packages (from py3o.template->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 8)) (0.7.10)
+Requirement already satisfied: pyjon.utils>0.6 in /opt/odoo17/venv/lib/python3.13/site-packages (from py3o.template->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 8)) (0.7)
+Requirement already satisfied: six>=1.9 in /opt/odoo17/venv/lib/python3.13/site-packages (from py3o.template->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 8)) (1.17.0)
+Requirement already satisfied: pycparser in /opt/odoo17/venv/lib/python3.13/site-packages (from cffi>=1.12->cryptography->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 2)) (3.0)
+Requirement already satisfied: bcrypt>=3.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from paramiko->endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (5.0.0)
+Requirement already satisfied: pynacl>=1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from paramiko->endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (1.6.2)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (3.4.5)
+Requirement already satisfied: idna<4,>=2.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (2.0.7)
+Requirement already satisfied: certifi>=2017.4.17 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->endesive->-r /opt/odoo17/OCA/reporting-engine/requirements.txt (line 3)) (2026.2.25)
+
+[INFO] 2026-03-15 00:07:36 - OCA/community-data-files ya existe, actualizando...
+Requirement already satisfied: pycountry in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/community-data-files/requirements.txt (line 2)) (26.2.16)
+Requirement already satisfied: schwifty==2024.4.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/community-data-files/requirements.txt (line 3)) (2024.4.0)
+Requirement already satisfied: iso3166 in /opt/odoo17/venv/lib/python3.13/site-packages (from schwifty==2024.4.0->-r /opt/odoo17/OCA/community-data-files/requirements.txt (line 3)) (2.1.1)
+
+[INFO] 2026-03-15 00:07:37 - OCA/server-tools ya existe, actualizando...
+Requirement already satisfied: cryptography in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 2)) (42.0.8)
+Requirement already satisfied: dataclasses in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 3)) (0.6)
+Requirement already satisfied: mako in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 4)) (1.3.10)
+Requirement already satisfied: odoo_test_helper in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 5)) (2.1.3)
+Requirement already satisfied: odoorpc in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 6)) (0.10.1)
+Requirement already satisfied: openupgradelib in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 7)) (3.12.0)
+Requirement already satisfied: paramiko<4.0.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 8)) (3.5.1)
+Requirement already satisfied: pygount in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (3.1.1)
+Requirement already satisfied: pysftp in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 10)) (0.2.9)
+Requirement already satisfied: sentry_sdk<=1.9.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/server-tools/requirements.txt (line 11)) (1.9.0)
+Requirement already satisfied: bcrypt>=3.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from paramiko<4.0.0->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 8)) (5.0.0)
+Requirement already satisfied: pynacl>=1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from paramiko<4.0.0->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 8)) (1.6.2)
+Requirement already satisfied: urllib3>=1.10.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from sentry_sdk<=1.9.0->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 11)) (2.0.7)
+Requirement already satisfied: certifi in /opt/odoo17/venv/lib/python3.13/site-packages (from sentry_sdk<=1.9.0->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 11)) (2026.2.25)
+Requirement already satisfied: cffi>=1.12 in /opt/odoo17/venv/lib/python3.13/site-packages (from cryptography->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 2)) (2.0.0)
+Requirement already satisfied: MarkupSafe>=0.9.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from mako->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 4)) (2.1.5)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 7)) (5.2.1)
+Requirement already satisfied: cssselect in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 7)) (1.4.0)
+Requirement already satisfied: chardet<6,>=5 in /opt/odoo17/venv/lib/python3.13/site-packages (from pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (5.2.0)
+Requirement already satisfied: gitpython~=3.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (3.1.46)
+Requirement already satisfied: pygments<3,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (2.19.2)
+Requirement already satisfied: rich>=14 in /opt/odoo17/venv/lib/python3.13/site-packages (from pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (14.3.3)
+Requirement already satisfied: gitdb<5,>=4.0.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from gitpython~=3.1->pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (4.0.12)
+Requirement already satisfied: smmap<6,>=3.0.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from gitdb<5,>=4.0.1->gitpython~=3.1->pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (5.0.3)
+Requirement already satisfied: pycparser in /opt/odoo17/venv/lib/python3.13/site-packages (from cffi>=1.12->cryptography->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 2)) (3.0)
+Requirement already satisfied: markdown-it-py>=2.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from rich>=14->pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (4.0.0)
+Requirement already satisfied: mdurl~=0.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from markdown-it-py>=2.2.0->rich>=14->pygount->-r /opt/odoo17/OCA/server-tools/requirements.txt (line 9)) (0.1.2)
+
+[INFO] 2026-03-15 00:07:38 - OCA/web ya existe, actualizando...
+Requirement already satisfied: beautifulsoup4 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/web/requirements.txt (line 2)) (4.14.3)
+Requirement already satisfied: bokeh==3.4.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/web/requirements.txt (line 3)) (3.4.1)
+Requirement already satisfied: mpld3==0.5.10 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/web/requirements.txt (line 4)) (0.5.10)
+Requirement already satisfied: plotly==5.22.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/web/requirements.txt (line 5)) (5.22.0)
+Requirement already satisfied: Jinja2>=2.9 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (3.1.2)
+Requirement already satisfied: contourpy>=1.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (1.3.3)
+Requirement already satisfied: numpy>=1.16 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (2.4.3)
+Requirement already satisfied: packaging>=16.8 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (26.0)
+Requirement already satisfied: pandas>=1.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (3.0.1)
+Requirement already satisfied: pillow>=7.1.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (11.1.0)
+Requirement already satisfied: PyYAML>=3.10 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (6.0.3)
+Requirement already satisfied: tornado>=6.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (6.5.5)
+Requirement already satisfied: xyzservices>=2021.09.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (2025.11.0)
+Requirement already satisfied: matplotlib in /opt/odoo17/venv/lib/python3.13/site-packages (from mpld3==0.5.10->-r /opt/odoo17/OCA/web/requirements.txt (line 4)) (3.10.8)
+Requirement already satisfied: tenacity>=6.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from plotly==5.22.0->-r /opt/odoo17/OCA/web/requirements.txt (line 5)) (9.1.4)
+Requirement already satisfied: soupsieve>=1.6.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from beautifulsoup4->-r /opt/odoo17/OCA/web/requirements.txt (line 2)) (2.8.3)
+Requirement already satisfied: typing-extensions>=4.0.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from beautifulsoup4->-r /opt/odoo17/OCA/web/requirements.txt (line 2)) (4.15.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from Jinja2>=2.9->bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (2.1.5)
+Requirement already satisfied: python-dateutil>=2.8.2 in /opt/odoo17/venv/lib/python3.13/site-packages (from pandas>=1.2->bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (2.8.2)
+Requirement already satisfied: six>=1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from python-dateutil>=2.8.2->pandas>=1.2->bokeh==3.4.1->-r /opt/odoo17/OCA/web/requirements.txt (line 3)) (1.17.0)
+Requirement already satisfied: cycler>=0.10 in /opt/odoo17/venv/lib/python3.13/site-packages (from matplotlib->mpld3==0.5.10->-r /opt/odoo17/OCA/web/requirements.txt (line 4)) (0.12.1)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from matplotlib->mpld3==0.5.10->-r /opt/odoo17/OCA/web/requirements.txt (line 4)) (4.62.1)
+Requirement already satisfied: kiwisolver>=1.3.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from matplotlib->mpld3==0.5.10->-r /opt/odoo17/OCA/web/requirements.txt (line 4)) (1.5.0)
+Requirement already satisfied: pyparsing>=3 in /opt/odoo17/venv/lib/python3.13/site-packages (from matplotlib->mpld3==0.5.10->-r /opt/odoo17/OCA/web/requirements.txt (line 4)) (3.3.2)
+
+[INFO] 2026-03-15 00:07:39 - OCA/queue ya existe, actualizando...
+Requirement already satisfied: requests in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/queue/requirements.txt (line 2)) (2.31.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/queue/requirements.txt (line 2)) (3.4.5)
+Requirement already satisfied: idna<4,>=2.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/queue/requirements.txt (line 2)) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/queue/requirements.txt (line 2)) (2.0.7)
+Requirement already satisfied: certifi>=2017.4.17 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests->-r /opt/odoo17/OCA/queue/requirements.txt (line 2)) (2026.2.25)
+
+[INFO] 2026-03-15 00:07:40 - OCA/partner-contact ya existe, actualizando...
+Requirement already satisfied: email-validator in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/partner-contact/requirements.txt (line 2)) (2.3.0)
+Requirement already satisfied: dnspython>=2.0.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from email-validator->-r /opt/odoo17/OCA/partner-contact/requirements.txt (line 2)) (2.8.0)
+Requirement already satisfied: idna>=2.0.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from email-validator->-r /opt/odoo17/OCA/partner-contact/requirements.txt (line 2)) (3.6)
+
+[INFO] 2026-03-15 00:07:41 - OCA/mis-builder ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/account-financial-reporting ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/account-invoicing ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/account-closing ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/account-analytic ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/account-reconcile ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/credit-control ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/currency ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/intrastat-extrastat ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:41 - OCA/product-attribute ya existe, actualizando...
+Requirement already satisfied: openupgradelib in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/product-attribute/requirements.txt (line 2)) (3.12.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/product-attribute/requirements.txt (line 2)) (5.2.1)
+Requirement already satisfied: cssselect in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/product-attribute/requirements.txt (line 2)) (1.4.0)
+
+[INFO] 2026-03-15 00:07:42 - OCA/purchase-workflow ya existe, actualizando...
+Requirement already satisfied: openupgradelib in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/purchase-workflow/requirements.txt (line 2)) (3.12.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/purchase-workflow/requirements.txt (line 2)) (5.2.1)
+Requirement already satisfied: cssselect in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/purchase-workflow/requirements.txt (line 2)) (1.4.0)
+
+[INFO] 2026-03-15 00:07:43 - OCA/sale-workflow ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:43 - OCA/stock-logistics-workflow ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:43 - OCA/stock-logistics-warehouse ya existe, actualizando...
+Requirement already satisfied: openupgradelib in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/stock-logistics-warehouse/requirements.txt (line 2)) (3.12.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/stock-logistics-warehouse/requirements.txt (line 2)) (5.2.1)
+Requirement already satisfied: cssselect in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/stock-logistics-warehouse/requirements.txt (line 2)) (1.4.0)
+
+[INFO] 2026-03-15 00:07:43 - OCA/hr ya existe, actualizando...
+Requirement already satisfied: python-dateutil in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/hr/requirements.txt (line 2)) (2.8.2)
+Requirement already satisfied: six>=1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from python-dateutil->-r /opt/odoo17/OCA/hr/requirements.txt (line 2)) (1.17.0)
+
+[INFO] 2026-03-15 00:07:44 - OCA/hr-attendance ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:44 - OCA/hr-expense ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:44 - OCA/hr-holidays ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:44 - OCA/project ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:44 - OCA/manufacture ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:44 - OCA/management-system ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:44 - OCA/connector ya existe, actualizando...
+Requirement already satisfied: cachetools in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/connector/requirements.txt (line 2)) (7.0.5)
+
+[INFO] 2026-03-15 00:07:45 - OCA/edi ya existe, actualizando...
+Requirement already satisfied: factur-x in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/edi/requirements.txt (line 2)) (3.16)
+Requirement already satisfied: pypdf in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/edi/requirements.txt (line 3)) (5.4.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from factur-x->-r /opt/odoo17/OCA/edi/requirements.txt (line 2)) (5.2.1)
+
+[INFO] 2026-03-15 00:07:46 - OCA/delivery-carrier ya existe, actualizando...
+Requirement already satisfied: easypost==7.15.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (7.15.0)
+Requirement already satisfied: openupgradelib in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 3)) (3.12.0)
+Requirement already satisfied: roulier in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (1.1.1)
+Requirement already satisfied: unidecode in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 5)) (1.4.0)
+Requirement already satisfied: zeep in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (4.3.1)
+Requirement already satisfied: requests>=2.4.3 in /opt/odoo17/venv/lib/python3.13/site-packages (from easypost==7.15.0->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (2.31.0)
+Requirement already satisfied: typing-extensions in /opt/odoo17/venv/lib/python3.13/site-packages (from easypost==7.15.0->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (4.15.0)
+Requirement already satisfied: lxml in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 3)) (5.2.1)
+Requirement already satisfied: cssselect in /opt/odoo17/venv/lib/python3.13/site-packages (from openupgradelib->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 3)) (1.4.0)
+Requirement already satisfied: Jinja2 in /opt/odoo17/venv/lib/python3.13/site-packages (from roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (3.1.2)
+Requirement already satisfied: cerberus in /opt/odoo17/venv/lib/python3.13/site-packages (from roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (1.3.8)
+Requirement already satisfied: zplgrf in /opt/odoo17/venv/lib/python3.13/site-packages (from roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (1.6.0)
+Requirement already satisfied: pycountry in /opt/odoo17/venv/lib/python3.13/site-packages (from roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (26.2.16)
+Requirement already satisfied: attrs>=17.2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (25.4.0)
+Requirement already satisfied: isodate>=0.5.4 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (0.7.2)
+Requirement already satisfied: platformdirs>=1.4.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (4.9.4)
+Requirement already satisfied: requests-toolbelt>=0.7.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (1.0.0)
+Requirement already satisfied: requests-file>=1.5.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (3.0.1)
+Requirement already satisfied: pytz in /opt/odoo17/venv/lib/python3.13/site-packages (from zeep->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 6)) (2026.1.post1)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests>=2.4.3->easypost==7.15.0->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (3.4.5)
+Requirement already satisfied: idna<4,>=2.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests>=2.4.3->easypost==7.15.0->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests>=2.4.3->easypost==7.15.0->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (2.0.7)
+Requirement already satisfied: certifi>=2017.4.17 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests>=2.4.3->easypost==7.15.0->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 2)) (2026.2.25)
+Requirement already satisfied: MarkupSafe>=2.0 in /opt/odoo17/venv/lib/python3.13/site-packages (from Jinja2->roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (2.1.5)
+Requirement already satisfied: setuptools in /opt/odoo17/venv/lib/python3.13/site-packages (from zplgrf->roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (80.10.2)
+Requirement already satisfied: pillow in /opt/odoo17/venv/lib/python3.13/site-packages (from zplgrf->roulier->-r /opt/odoo17/OCA/delivery-carrier/requirements.txt (line 4)) (11.1.0)
+
+[INFO] 2026-03-15 00:07:47 - OCA/e-commerce ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:47 - OCA/pos ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:47 - OCA/crm ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:47 - OCA/social ya existe, actualizando...
+Requirement already satisfied: requests_toolbelt in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/social/requirements.txt (line 2)) (1.0.0)
+Requirement already satisfied: requests<3.0.0,>=2.0.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests_toolbelt->-r /opt/odoo17/OCA/social/requirements.txt (line 2)) (2.31.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests<3.0.0,>=2.0.1->requests_toolbelt->-r /opt/odoo17/OCA/social/requirements.txt (line 2)) (3.4.5)
+Requirement already satisfied: idna<4,>=2.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests<3.0.0,>=2.0.1->requests_toolbelt->-r /opt/odoo17/OCA/social/requirements.txt (line 2)) (3.6)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests<3.0.0,>=2.0.1->requests_toolbelt->-r /opt/odoo17/OCA/social/requirements.txt (line 2)) (2.0.7)
+Requirement already satisfied: certifi>=2017.4.17 in /opt/odoo17/venv/lib/python3.13/site-packages (from requests<3.0.0,>=2.0.1->requests_toolbelt->-r /opt/odoo17/OCA/social/requirements.txt (line 2)) (2026.2.25)
+
+[INFO] 2026-03-15 00:07:48 - OCA/website ya existe, actualizando...
+
+[INFO] 2026-03-15 00:07:48 - OCA/maintenance ya existe, actualizando...
+Requirement already satisfied: python-dateutil in /opt/odoo17/venv/lib/python3.13/site-packages (from -r /opt/odoo17/OCA/maintenance/requirements.txt (line 2)) (2.8.2)
+Requirement already satisfied: six>=1.5 in /opt/odoo17/venv/lib/python3.13/site-packages (from python-dateutil->-r /opt/odoo17/OCA/maintenance/requirements.txt (line 2)) (1.17.0)
+
+[INFO] 2026-03-15 00:07:49 - OCA/knowledge ya existe, actualizando...
+[OK] 2026-03-15 00:07:49 - Modulos OCA instalados.
+
+[INFO] 2026-03-15 00:07:49 - Construyendo ruta de addons...
+[OK] 2026-03-15 00:07:49 - Ruta de addons configurada.
+
+[INFO] 2026-03-15 00:07:49 - Creando archivo de configuracion de Odoo...
+[OK] 2026-03-15 00:07:49 - Archivo de configuracion creado en /etc/odoo17.conf.
+
+[INFO] 2026-03-15 00:07:49 - Configurando permisos...
+[OK] 2026-03-15 00:07:51 - Permisos configurados.
+
+[INFO] 2026-03-15 00:07:51 - Creando servicio systemd...
+[OK] 2026-03-15 00:07:51 - Servicio systemd creado y habilitado.
+
+[INFO] 2026-03-15 00:07:51 - Instalando y configurando Nginx...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+[OK] 2026-03-15 00:07:53 - Nginx instalado y configurado.
+
+[INFO] 2026-03-15 00:07:53 - Configurando firewall (UFW)...
+[OK] 2026-03-15 00:07:54 - Firewall configurado.
+
+[INFO] 2026-03-15 00:07:54 - Configurando logrotate...
+[OK] 2026-03-15 00:07:54 - Logrotate configurado.
+
+[INFO] 2026-03-15 00:07:54 - Configurando copias de seguridad automaticas...
+[OK] 2026-03-15 00:07:54 - Copias de seguridad automaticas configuradas (diario a las 02:00).
+
+[INFO] 2026-03-15 00:07:54 - Creando scripts auxiliares educativos...
+sed: -e expression #1, char 36: unknown option to `s'
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
