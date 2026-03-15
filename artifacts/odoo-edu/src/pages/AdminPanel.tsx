@@ -215,8 +215,22 @@ export default function AdminPanel() {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (auth.token) headers["Authorization"] = `Bearer ${auth.token}`;
     const res = await fetch(`${API_BASE}${path}`, { ...options, headers: { ...headers, ...options?.headers } });
+    if (res.status === 401 && path !== "/auth/login") {
+      localStorage.removeItem("odoo-edu-auth");
+      setAuth({ authenticated: false, role: "superadmin", username: "" });
+      setLoginError("Sesión expirada. Inicia sesión de nuevo.");
+    }
     return res;
   }, [auth.token]);
+
+  useEffect(() => {
+    if (auth.authenticated && auth.token) {
+      apiFetch("/auth/me").then(r => {
+        if (!r.ok) return;
+        return r.json();
+      }).catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     if (auth.authenticated && auth.token) {
