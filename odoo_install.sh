@@ -1634,6 +1634,9 @@ else
 fi
 
 chown -R "$ODOO_USER":"$ODOO_USER" "$ADMIN_DIR"
+chmod 755 "$ODOO_HOME"
+chmod 755 "$ADMIN_DIR"
+chmod -R 755 "$ADMIN_DIR/public"
 
 cat > "$ADMIN_CONFIG" << ADMINEOF
 {
