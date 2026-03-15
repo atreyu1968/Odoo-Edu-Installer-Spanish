@@ -1,0 +1,15 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# journalctl -u odoo17 --since "30 minutes ago" --no-pager | tail -50
+-- No entries --
+root@odooedu:~/Odoo-Edu-Installer-Spanish# cat /etc/odoo17.conf | grep log
+ls -la /var/log/odoo*
+addons_path = /opt/odoo17/odoo17-server/addons,/opt/odoo17/odoo17-server/odoo/addons,/opt/odoo17/custom/addons,/opt/odoo17/OCA/account-analytic/,/opt/odoo17/OCA/account-closing/,/opt/odoo17/OCA/account-financial-reporting/,/opt/odoo17/OCA/account-financial-tools/,/opt/odoo17/OCA/account-invoicing/,/opt/odoo17/OCA/account-payment/,/opt/odoo17/OCA/account-reconcile/,/opt/odoo17/OCA/bank-payment/,/opt/odoo17/OCA/brand/,/opt/odoo17/OCA/community-data-files/,/opt/odoo17/OCA/connector/,/opt/odoo17/OCA/credit-control/,/opt/odoo17/OCA/crm/,/opt/odoo17/OCA/currency/,/opt/odoo17/OCA/delivery-carrier/,/opt/odoo17/OCA/e-commerce/,/opt/odoo17/OCA/edi/,/opt/odoo17/OCA/hr-attendance/,/opt/odoo17/OCA/hr-expense/,/opt/odoo17/OCA/hr-holidays/,/opt/odoo17/OCA/hr/,/opt/odoo17/OCA/intrastat-extrastat/,/opt/odoo17/OCA/knowledge/,/opt/odoo17/OCA/l10n-spain/,/opt/odoo17/OCA/maintenance/,/opt/odoo17/OCA/management-system/,/opt/odoo17/OCA/manufacture/,/opt/odoo17/OCA/mis-builder/,/opt/odoo17/OCA/multi-company/,/opt/odoo17/OCA/partner-contact/,/opt/odoo17/OCA/pos/,/opt/odoo17/OCA/product-attribute/,/opt/odoo17/OCA/project/,/opt/odoo17/OCA/purchase-workflow/,/opt/odoo17/OCA/queue/,/opt/odoo17/OCA/reporting-engine/,/opt/odoo17/OCA/sale-workflow/,/opt/odoo17/OCA/server-brand/,/opt/odoo17/OCA/server-tools/,/opt/odoo17/OCA/social/,/opt/odoo17/OCA/stock-logistics-warehouse/,/opt/odoo17/OCA/stock-logistics-workflow/,/opt/odoo17/OCA/web/,/opt/odoo17/OCA/website/
+logfile = /var/log/odoo17/odoo-server.log
+log_level = info
+log_handler = :INFO
+logrotate = True
+syslog = False
+total 43696
+drwxr-xr-x  2 odoo17 odoo17     4096 Mar 14 20:36 .
+drwxr-xr-x 11 root   syslog     4096 Mar 14 20:26 ..
+-rw-r--r--  1 odoo17 odoo17 44732024 Mar 15 00:58 odoo-server.log
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
