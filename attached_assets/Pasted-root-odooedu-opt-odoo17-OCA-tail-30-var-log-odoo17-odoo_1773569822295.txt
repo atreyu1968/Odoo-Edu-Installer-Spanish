@@ -1,0 +1,32 @@
+root@odooedu:/opt/odoo17/OCA# tail -30 /var/log/odoo17/odoo-server.log
+             WHERE name='base'
+        
+ERROR: relation "ir_module_module" does not exist
+LINE 3:             FROM ir_module_module
+                         ^
+ 
+2026-03-15 10:15:57,566 121129 WARNING empresa_01 odoo.addons.base.models.ir_cron: Tried to poll an undefined table on database empresa_01. 
+2026-03-15 10:15:57,569 121129 INFO ? odoo.sql_db: ConnectionPool(used=1/count=1/max=64): Closed 1 connections to 'user=odoo17 password=xxx dbname=empresa_01 host=localhost port=5432 application_name=odoo-121129 sslmode=prefer' 
+2026-03-15 10:16:21,664 121131 ERROR empresa_02 odoo.sql_db: bad query: 
+            SELECT latest_version
+            FROM ir_module_module
+             WHERE name='base'
+        
+ERROR: relation "ir_module_module" does not exist
+LINE 3:             FROM ir_module_module
+                         ^
+ 
+2026-03-15 10:16:21,664 121131 WARNING empresa_02 odoo.addons.base.models.ir_cron: Tried to poll an undefined table on database empresa_02. 
+2026-03-15 10:16:21,665 121131 INFO ? odoo.sql_db: ConnectionPool(used=1/count=1/max=64): Closed 1 connections to 'user=odoo17 password=xxx dbname=empresa_02 host=localhost port=5432 application_name=odoo-121131 sslmode=prefer' 
+2026-03-15 10:16:21,695 121131 ERROR empresa_01 odoo.sql_db: bad query: 
+            SELECT latest_version
+            FROM ir_module_module
+             WHERE name='base'
+        
+ERROR: relation "ir_module_module" does not exist
+LINE 3:             FROM ir_module_module
+                         ^
+ 
+2026-03-15 10:16:21,695 121131 WARNING empresa_01 odoo.addons.base.models.ir_cron: Tried to poll an undefined table on database empresa_01. 
+2026-03-15 10:16:21,696 121131 INFO ? odoo.sql_db: ConnectionPool(used=1/count=1/max=64): Closed 1 connections to 'user=odoo17 password=xxx dbname=empresa_01 host=localhost port=5432 application_name=odoo-121131 sslmode=prefer' 
+root@odooedu:/opt/odoo17/OCA# 
