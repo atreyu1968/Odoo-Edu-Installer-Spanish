@@ -62,6 +62,37 @@ router.post("/auth/login", (req: Request, res: Response) => {
   res.status(401).json({ error: "Credenciales inválidas" });
 });
 
+router.post("/auth/student-lookup", (req: Request, res: Response) => {
+  const { username } = req.body;
+
+  if (!username) {
+    res.status(400).json({ error: "Usuario requerido" });
+    return;
+  }
+
+  const config = readConfig();
+  const login = username.trim().toLowerCase();
+
+  for (const grupo of config.grupos) {
+    const prefix = grupo.passwordPrefix.toLowerCase();
+    if (login.startsWith(prefix)) {
+      const numPart = login.slice(prefix.length);
+      const num = parseInt(numPart, 10);
+      if (!isNaN(num) && num >= 1 && num <= grupo.numAlumnos) {
+        const dbName = `${grupo.dbPrefix}_${String(num).padStart(2, "0")}`;
+        res.json({
+          database: dbName,
+          grupo: grupo.nombre,
+          odooUrl: "/web",
+        });
+        return;
+      }
+    }
+  }
+
+  res.status(404).json({ error: "Usuario no encontrado. Verifica tu nombre de usuario." });
+});
+
 router.post("/auth/logout", (req: Request, res: Response) => {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (token) {

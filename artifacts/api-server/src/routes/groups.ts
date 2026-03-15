@@ -43,7 +43,56 @@ async function dbExists(safeName: string): Promise<boolean> {
   }
 }
 
-async function createStudentDatabase(dbName: string, _adminPassword?: string): Promise<void> {
+async function createOdooUser(
+  dbName: string,
+  login: string,
+  password: string,
+  name: string,
+  isAdmin = false
+): Promise<void> {
+  const config = readConfig();
+  const pythonBin = `${config.odoo.home}/venv/bin/python3`;
+  const odooServer = `${config.odoo.home}/odoo17-server`;
+  const confPath = config.odoo.confPath;
+
+  const pyScript = `
+import sys, os
+sys.path.insert(0, ${JSON.stringify(odooServer)})
+import odoo
+odoo.tools.config.parse_config(['-c', ${JSON.stringify(confPath)}, '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+registry = Registry(${JSON.stringify(dbName)})
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env['res.users'].search([('login', '=', ${JSON.stringify(login)})]):
+        vals = {
+            'login': ${JSON.stringify(login)},
+            'name': ${JSON.stringify(name)},
+            'password': ${JSON.stringify(password)},
+            'company_id': 1,
+            'company_ids': [(6, 0, [1])],
+        }
+        if ${isAdmin ? "True" : "False"}:
+            admin_group = env.ref('base.group_system', raise_if_not_found=False)
+            if admin_group:
+                vals['groups_id'] = [(4, admin_group.id)]
+        env['res.users'].with_context(no_reset_password=True).create(vals)
+    cr.commit()
+`.trim();
+
+  await execAsync(
+    `${pythonBin} -c ${JSON.stringify(pyScript)} 2>&1`,
+    { timeout: 120000 }
+  );
+}
+
+async function createStudentDatabase(
+  dbName: string,
+  studentLogin?: string,
+  studentPassword?: string,
+  studentName?: string,
+): Promise<void> {
   if (!isValidDbName(dbName)) throw new Error(`Nombre de base de datos invalido: ${dbName}`);
   const config = readConfig();
   const pythonBin = `${config.odoo.home}/venv/bin/python3`;
@@ -76,6 +125,15 @@ async function createStudentDatabase(dbName: string, _adminPassword?: string): P
     `${pythonBin} ${odooBin} -c ${confPath} -d ${safeName} --init ${modules} --stop-after-init --without-demo=all --http-port=0 --no-http 2>&1`,
     { timeout: 900000 }
   );
+
+  if (studentLogin && studentPassword) {
+    await createOdooUser(
+      safeName,
+      studentLogin,
+      studentPassword,
+      studentName || studentLogin,
+    );
+  }
 }
 
 async function dropDatabase(dbName: string): Promise<void> {
@@ -187,12 +245,34 @@ router.post("/groups/:nombre/create-databases", requireSuperadmin as any, async 
   const results: { db: string; status: string; error?: string }[] = [];
 
   for (let i = 1; i <= grupo.numAlumnos; i++) {
-    const dbName = `${grupo.dbPrefix}_${String(i).padStart(2, "0")}`;
+    const num = String(i).padStart(2, "0");
+    const dbName = `${grupo.dbPrefix}_${num}`;
+    const studentLogin = `${grupo.passwordPrefix}${num}`;
+    const studentName = `${grupo.nombre} - Alumno ${num}`;
     try {
-      await createStudentDatabase(dbName, config.odoo.adminPassword);
+      await createStudentDatabase(dbName, studentLogin, studentLogin, studentName);
       results.push({ db: dbName, status: "created" });
     } catch (e: any) {
       results.push({ db: dbName, status: "error", error: e.message });
+    }
+  }
+
+  if (grupo.profesorUsuario) {
+    for (let i = 1; i <= grupo.numAlumnos; i++) {
+      const num = String(i).padStart(2, "0");
+      const dbName = `${grupo.dbPrefix}_${num}`;
+      try {
+        if (await dbExists(sanitizeDbName(dbName))) {
+          await createOdooUser(
+            sanitizeDbName(dbName),
+            grupo.profesorUsuario,
+            grupo.profesorPassword,
+            grupo.profesorNombre,
+            true,
+          );
+        }
+      } catch {
+      }
     }
   }
 
@@ -212,10 +292,13 @@ router.post("/groups/:nombre/reset-databases", requireSuperadmin as any, async (
   const results: { db: string; status: string; error?: string }[] = [];
 
   for (let i = 1; i <= grupo.numAlumnos; i++) {
-    const dbName = `${grupo.dbPrefix}_${String(i).padStart(2, "0")}`;
+    const num = String(i).padStart(2, "0");
+    const dbName = `${grupo.dbPrefix}_${num}`;
+    const studentLogin = `${grupo.passwordPrefix}${num}`;
+    const studentName = `${grupo.nombre} - Alumno ${num}`;
     try {
       await dropDatabase(dbName);
-      await createStudentDatabase(dbName, config.odoo.adminPassword);
+      await createStudentDatabase(dbName, studentLogin, studentLogin, studentName);
       results.push({ db: dbName, status: "reset" });
     } catch (e: any) {
       results.push({ db: dbName, status: "error", error: e.message });

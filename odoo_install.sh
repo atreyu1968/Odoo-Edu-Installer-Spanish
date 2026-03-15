@@ -1080,12 +1080,37 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
                 " 2>/dev/null
             fi
 
-            # Crear usuario alumno
-            sudo -u postgres psql -d "$DB_NAME" -c "
-                INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-                SELECT '$USER_LOGIN', '$USER_PWD', '$GRUPO_NOMBRE - Alumno $i', 1, true, 'email'
-                WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$USER_LOGIN');
-            " 2>/dev/null
+            # Crear usuario alumno via ORM (hashea la contrasena correctamente)
+            ODOO_CREATE_DB="$DB_NAME" \
+            ODOO_CREATE_LOGIN="$USER_LOGIN" \
+            ODOO_CREATE_NAME="$GRUPO_NOMBRE - Alumno $i" \
+            ODOO_CREATE_PWD="$USER_PWD" \
+            ODOO_CREATE_ADMIN="0" \
+            sudo -E -u "$ODOO_USER" "$VENV_DIR/bin/python" - "$ODOO_HOME/$ODOO_USER-server" "$ODOO_CONF" <<'PYORM'
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import odoo
+odoo.tools.config.parse_config(['-c', sys.argv[2], '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+db = os.environ['ODOO_CREATE_DB']
+login = os.environ['ODOO_CREATE_LOGIN']
+name = os.environ['ODOO_CREATE_NAME']
+pwd = os.environ['ODOO_CREATE_PWD']
+is_admin = os.environ.get('ODOO_CREATE_ADMIN', '0') == '1'
+registry = Registry(db)
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env['res.users'].search([('login', '=', login)]):
+        vals = {'login': login, 'name': name, 'password': pwd,
+                'company_id': 1, 'company_ids': [(6, 0, [1])]}
+        if is_admin:
+            grp = env.ref('base.group_system', raise_if_not_found=False)
+            if grp:
+                vals['groups_id'] = [(4, grp.id)]
+        env['res.users'].with_context(no_reset_password=True).create(vals)
+    cr.commit()
+PYORM
 
             GRUPO_DB_NAMES+=("$DB_NAME")
             echo "$GRUPO_NOMBRE,$PROF_USER,$USER_LOGIN,$DB_NAME,$USER_LOGIN,$USER_PWD,http://${SERVER_IP}/web?db=$DB_NAME" >> "$CREDENTIALS_FILE"
@@ -1099,19 +1124,36 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
     echo ""
     echo "  Creando profesor '$PROF_NOMBRE' en las BDs de '$GRUPO_NOMBRE'..."
     for DB_NAME in "${GRUPO_DB_NAMES[@]}"; do
-        sudo -u postgres psql -d "$DB_NAME" -c "
-            INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-            SELECT '$PROF_USER', '$PROF_PWD', '$PROF_NOMBRE', 1, true, 'email'
-            WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$PROF_USER');
-        " 2>/dev/null
-
-        sudo -u postgres psql -d "$DB_NAME" -c "
-            UPDATE res_users SET groups_id = (
-                SELECT array_agg(id) FROM res_groups WHERE category_id IN (
-                    SELECT id FROM ir_module_category WHERE name IN ('Administration', 'Technical')
-                )
-            ) WHERE login='$PROF_USER';
-        " 2>/dev/null || true
+        ODOO_CREATE_DB="$DB_NAME" \
+        ODOO_CREATE_LOGIN="$PROF_USER" \
+        ODOO_CREATE_NAME="$PROF_NOMBRE" \
+        ODOO_CREATE_PWD="$PROF_PWD" \
+        ODOO_CREATE_ADMIN="1" \
+        sudo -E -u "$ODOO_USER" "$VENV_DIR/bin/python" - "$ODOO_HOME/$ODOO_USER-server" "$ODOO_CONF" <<'PYORM'
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import odoo
+odoo.tools.config.parse_config(['-c', sys.argv[2], '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+db = os.environ['ODOO_CREATE_DB']
+login = os.environ['ODOO_CREATE_LOGIN']
+name = os.environ['ODOO_CREATE_NAME']
+pwd = os.environ['ODOO_CREATE_PWD']
+is_admin = os.environ.get('ODOO_CREATE_ADMIN', '0') == '1'
+registry = Registry(db)
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env['res.users'].search([('login', '=', login)]):
+        vals = {'login': login, 'name': name, 'password': pwd,
+                'company_id': 1, 'company_ids': [(6, 0, [1])]}
+        if is_admin:
+            grp = env.ref('base.group_system', raise_if_not_found=False)
+            if grp:
+                vals['groups_id'] = [(4, grp.id)]
+        env['res.users'].with_context(no_reset_password=True).create(vals)
+    cr.commit()
+PYORM
     done
     echo "  Profesor '$PROF_NOMBRE' creado en ${#GRUPO_DB_NAMES[@]} bases de datos."
 done
@@ -1269,6 +1311,97 @@ if [[ -n "$BRAND_FAVICON_URL" ]]; then
     fi
 fi
 
+# Recrear usuario del alumno via ORM
+# Extraer el numero del nombre de la BD (empresa_01 -> 01, empresa05 -> 05)
+DB_NUM=$(echo "$DB_NAME" | grep -oP '\d+$')
+if [[ -n "$DB_NUM" ]]; then
+    ADMIN_CFG="ADMIN_CONFIG_PLACEHOLDER"
+    if [[ -f "$ADMIN_CFG" ]] && command -v node &>/dev/null; then
+        STUDENT_INFO=$(ADMIN_CFG="$ADMIN_CFG" DB_NAME_ARG="$DB_NAME" DB_NUM_ARG="$DB_NUM" node -e '
+const c=JSON.parse(require("fs").readFileSync(process.env.ADMIN_CFG||"","utf8"));
+const dbName=process.env.DB_NAME_ARG, dbNum=process.env.DB_NUM_ARG;
+for(const g of c.grupos||[]){
+  const p1=g.dbPrefix+"_"+String(parseInt(dbNum)).padStart(2,"0");
+  const p2=g.dbPrefix+dbNum;
+  if(p1===dbName||p2===dbName){
+    const login=g.passwordPrefix+String(parseInt(dbNum)).padStart(2,"0");
+    console.log([login, g.nombre+" - Alumno "+dbNum, g.profesorUsuario||"", g.profesorPassword||"", g.profesorNombre||""].join("|"));
+    break;
+  }
+}
+' 2>/dev/null)
+        if [[ -n "$STUDENT_INFO" ]]; then
+            IFS='|' read -r S_LOGIN S_NAME S_PROF_USER S_PROF_PWD S_PROF_NAME <<< "$STUDENT_INFO"
+            echo "Recreando usuario $S_LOGIN..."
+            ODOO_CREATE_DB="$DB_NAME" \
+            ODOO_CREATE_LOGIN="$S_LOGIN" \
+            ODOO_CREATE_NAME="$S_NAME" \
+            ODOO_CREATE_PWD="$S_LOGIN" \
+            ODOO_CREATE_ADMIN="0" \
+            sudo -E -u "$ODOO_USER" "$VENV_DIR/bin/python" - "$ODOO_HOME/$ODOO_USER-server" "$ODOO_CONF" <<'PYORM'
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import odoo
+odoo.tools.config.parse_config(['-c', sys.argv[2], '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+db = os.environ['ODOO_CREATE_DB']
+login = os.environ['ODOO_CREATE_LOGIN']
+name = os.environ['ODOO_CREATE_NAME']
+pwd = os.environ['ODOO_CREATE_PWD']
+is_admin = os.environ.get('ODOO_CREATE_ADMIN', '0') == '1'
+registry = Registry(db)
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env['res.users'].search([('login', '=', login)]):
+        vals = {'login': login, 'name': name, 'password': pwd,
+                'company_id': 1, 'company_ids': [(6, 0, [1])]}
+        if is_admin:
+            grp = env.ref('base.group_system', raise_if_not_found=False)
+            if grp:
+                vals['groups_id'] = [(4, grp.id)]
+        env['res.users'].with_context(no_reset_password=True).create(vals)
+    cr.commit()
+PYORM
+            if [[ -n "$S_PROF_USER" ]]; then
+                echo "Recreando profesor $S_PROF_USER..."
+                ODOO_CREATE_DB="$DB_NAME" \
+                ODOO_CREATE_LOGIN="$S_PROF_USER" \
+                ODOO_CREATE_NAME="$S_PROF_NAME" \
+                ODOO_CREATE_PWD="$S_PROF_PWD" \
+                ODOO_CREATE_ADMIN="1" \
+                sudo -E -u "$ODOO_USER" "$VENV_DIR/bin/python" - "$ODOO_HOME/$ODOO_USER-server" "$ODOO_CONF" <<'PYORM'
+import sys, os
+sys.path.insert(0, sys.argv[1])
+import odoo
+odoo.tools.config.parse_config(['-c', sys.argv[2], '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+db = os.environ['ODOO_CREATE_DB']
+login = os.environ['ODOO_CREATE_LOGIN']
+name = os.environ['ODOO_CREATE_NAME']
+pwd = os.environ['ODOO_CREATE_PWD']
+is_admin = os.environ.get('ODOO_CREATE_ADMIN', '0') == '1'
+registry = Registry(db)
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env['res.users'].search([('login', '=', login)]):
+        vals = {'login': login, 'name': name, 'password': pwd,
+                'company_id': 1, 'company_ids': [(6, 0, [1])]}
+        if is_admin:
+            grp = env.ref('base.group_system', raise_if_not_found=False)
+            if grp:
+                vals['groups_id'] = [(4, grp.id)]
+        env['res.users'].with_context(no_reset_password=True).create(vals)
+    cr.commit()
+PYORM
+            fi
+        fi
+    else
+        echo "AVISO: No se pudo recrear el usuario (admin-config.json no encontrado o node no disponible)"
+    fi
+fi
+
 echo ""
 echo "============================================================"
 echo " Base de datos $DB_NAME reseteada correctamente"
@@ -1290,6 +1423,7 @@ sed -i "s|BRAND_PRIMARY_COLOR_PLACEHOLDER|$BRAND_PRIMARY_COLOR|g" /usr/local/bin
 sed -i "s|BRAND_SECONDARY_COLOR_PLACEHOLDER|$BRAND_SECONDARY_COLOR|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|BRAND_LOGO_URL_PLACEHOLDER|$BRAND_LOGO_URL|g" /usr/local/bin/odoo_reset_alumno.sh
 sed -i "s|BRAND_FAVICON_URL_PLACEHOLDER|$BRAND_FAVICON_URL|g" /usr/local/bin/odoo_reset_alumno.sh
+sed -i "s|ADMIN_CONFIG_PLACEHOLDER|$ODOO_HOME/admin-config.json|g" /usr/local/bin/odoo_reset_alumno.sh
 chmod +x /usr/local/bin/odoo_reset_alumno.sh
 
 # --- Script: Backup manual ---
@@ -1583,6 +1717,36 @@ if [[ "$EDU_MODE" == true ]]; then
 
     systemctl stop ${ODOO_USER}.service 2>/dev/null || true
 
+    # Funcion para crear usuarios via ORM de Odoo (hashea la contrasena correctamente)
+    create_odoo_user() {
+        local db="$1" login="$2" pwd="$3" uname="$4" is_admin="${5:-false}"
+        sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" -c "
+import sys
+sys.path.insert(0, '$ODOO_HOME_EXT')
+import odoo
+odoo.tools.config.parse_config(['-c', '$ODOO_CONF', '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+registry = Registry('$db')
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env['res.users'].search([('login', '=', '$login')]):
+        vals = {
+            'login': '$login',
+            'name': '$uname',
+            'password': '$pwd',
+            'company_id': 1,
+            'company_ids': [(6, 0, [1])],
+        }
+        if $is_admin:
+            admin_group = env.ref('base.group_system', raise_if_not_found=False)
+            if admin_group:
+                vals['groups_id'] = [(4, admin_group.id)]
+        env['res.users'].with_context(no_reset_password=True).create(vals)
+    cr.commit()
+" 2>/dev/null
+    }
+
     IFS=';' read -ra GRUPOS_AUTO <<< "$EDU_GRUPOS"
     for GRUPO_DEF in "${GRUPOS_AUTO[@]}"; do
         IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX PROF_NOMBRE PROF_USER PROF_PWD <<< "$GRUPO_DEF"
@@ -1610,18 +1774,14 @@ if [[ "$EDU_MODE" == true ]]; then
             if [[ $? -eq 0 ]]; then
                 EMPRESA_NOMBRE_AUTO="$GRUPO_NOMBRE - Alumno ${i}"
                 USER_LOGIN_AUTO="${GRUPO_PWD_PREFIX}${i}"
-                USER_PWD_AUTO="${GRUPO_PWD_PREFIX}${i}"
 
                 sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
                     UPDATE res_company SET name='$EMPRESA_NOMBRE_AUTO' WHERE id=1;
                     UPDATE res_partner SET name='$EMPRESA_NOMBRE_AUTO' WHERE id=1;
                 " 2>/dev/null
 
-                sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
-                    INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-                    SELECT '$USER_LOGIN_AUTO', '$USER_PWD_AUTO', '$EMPRESA_NOMBRE_AUTO', 1, true, 'email'
-                    WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$USER_LOGIN_AUTO');
-                " 2>/dev/null
+                log_info "  Creando usuario $USER_LOGIN_AUTO..."
+                create_odoo_user "$DB_NAME_AUTO" "$USER_LOGIN_AUTO" "$USER_LOGIN_AUTO" "$EMPRESA_NOMBRE_AUTO" "False"
 
                 log_success "  $DB_NAME_AUTO creada correctamente."
             else
@@ -1633,12 +1793,7 @@ if [[ "$EDU_MODE" == true ]]; then
         for i in $(seq -w 1 "$GRUPO_NUM"); do
             DB_NAME_AUTO="${GRUPO_DB_PREFIX}${i}"
             sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_AUTO'" | grep -q 1 || continue
-
-            sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
-                INSERT INTO res_users (login, password, name, company_id, active, notification_type)
-                SELECT '$PROF_USER', '$PROF_PWD', '$PROF_NOMBRE', 1, true, 'email'
-                WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$PROF_USER');
-            " 2>/dev/null || true
+            create_odoo_user "$DB_NAME_AUTO" "$PROF_USER" "$PROF_PWD" "$PROF_NOMBRE" "True"
         done
         log_success "Profesor '$PROF_NOMBRE' creado en las BDs del grupo."
     done

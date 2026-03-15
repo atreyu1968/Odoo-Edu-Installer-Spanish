@@ -27,9 +27,9 @@ React + Vite landing page in Spanish for the Odoo Edu Installer project. Showcas
 
 - **URL**: `/` (root)
 - **Framework**: React + Vite + Tailwind CSS + Framer Motion
-- **Key files**: `src/pages/Landing.tsx`, `src/pages/AdminPanel.tsx`, `src/components/CodeBlock.tsx`
+- **Key files**: `src/pages/Landing.tsx`, `src/pages/AdminPanel.tsx`, `src/components/StudentLogin.tsx`, `src/components/CodeBlock.tsx`
 - **Routes**:
-  - `/` — Landing page with GitHub install instructions
+  - `/` — Landing page with GitHub install instructions and student login
   - `/admin` — Post-install admin panel with login (superadmin or professor)
 - **Vite proxy**: `/api` → `http://localhost:8080` (API server)
 - **GitHub repo**: https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish
@@ -44,6 +44,7 @@ Role-based post-installation admin panel for managing the Odoo educational envir
   - `POST /api/auth/login` — Login (returns token)
   - `POST /api/auth/logout` — Logout
   - `GET /api/auth/me` — Session info
+  - `POST /api/auth/student-lookup` — Student login: maps username to database for redirect
   - `GET /api/groups` — List groups (filtered by role)
   - `PUT /api/groups/bulk` — Save all groups at once
   - `POST /api/groups` — Create single group
@@ -75,6 +76,8 @@ Express 5 API with real endpoints for admin panel operations.
   - 40+ OCA module repositories
   - PostgreSQL, Nginx, systemd, UFW, logrotate
   - Compatible with Ubuntu 22.04/24.04 LTS and 25.04 (Python 3.13 support)
+  - User creation via Odoo ORM (not raw SQL) — ensures partner_id, password hashing
+  - Module list: base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board
 
 ### Server Deployment Architecture
 After installation, the server serves:

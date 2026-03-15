@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { CodeBlock } from "@/components/CodeBlock";
 import { SectionHeading } from "@/components/SectionHeading";
+import StudentLogin from "@/components/StudentLogin";
 
 export default function Landing() {
   return (
@@ -53,47 +54,57 @@ export default function Landing() {
           <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 via-slate-50/80 to-slate-50" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto"
-          >
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center lg:text-left"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                Versión 17.0 Community Edition
               </span>
-              Versión 17.0 Community Edition
-            </span>
-            <h1 className="text-5xl md:text-7xl font-display font-extrabold text-slate-900 tracking-tight leading-tight mb-8">
-              La plataforma ERP para <br className="hidden md:block" />
-              <span className="text-gradient">centros de formación</span>
-            </h1>
-            <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Instalación desatendida profesional con localización española, soporte multiempresa aislado para alumnos, panel de administración web, rebranding y la suite completa de módulos OCA.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a 
-                href="#instructions"
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group"
-              >
-                <Terminal className="w-5 h-5 group-hover:animate-bounce" />
-                Instrucciones de Instalación
-              </a>
-              <a 
-                href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-slate-700 border border-slate-200 font-semibold text-lg shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <Database className="w-5 h-5 text-slate-400" />
-                Ver en GitHub
-              </a>
-            </div>
-          </motion.div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold text-slate-900 tracking-tight leading-tight mb-8">
+                La plataforma ERP para{" "}
+                <span className="text-gradient">centros de formación</span>
+              </h1>
+              <p className="text-lg text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Instalación desatendida profesional con localización española, soporte multiempresa aislado para alumnos, panel de administración web, rebranding y la suite completa de módulos OCA.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <a 
+                  href="#instructions"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-semibold text-lg shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group"
+                >
+                  <Terminal className="w-5 h-5 group-hover:animate-bounce" />
+                  Instrucciones de Instalación
+                </a>
+                <a 
+                  href="https://github.com/atreyu1968/Odoo-Edu-Installer-Spanish"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-slate-700 border border-slate-200 font-semibold text-lg shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <Database className="w-5 h-5 text-slate-400" />
+                  Ver en GitHub
+                </a>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <StudentLogin />
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -300,10 +311,10 @@ export default function Landing() {
               {
                 icon: Globe,
                 route: "/",
-                title: "Página de Inicio",
-                description: "La landing page pública del proyecto. Muestra las características, módulos OCA incluidos e instrucciones de instalación.",
+                title: "Portal de Acceso",
+                description: "Página principal con login para alumnos. El alumno introduce sus credenciales y accede directamente a su empresa en Odoo, sin necesidad de seleccionar base de datos.",
                 color: "blue",
-                badge: "Público"
+                badge: "Alumnos"
               },
               {
                 icon: Settings,
@@ -317,9 +328,9 @@ export default function Landing() {
                 icon: BookOpen,
                 route: "/web",
                 title: "Odoo ERP",
-                description: "Acceso al ERP Odoo 17 para alumnos y profesores. Cada alumno entra con sus credenciales a su propia base de datos.",
+                description: "El ERP Odoo 17. Los alumnos acceden desde la página principal (/) y son redirigidos aquí automáticamente ya autenticados en su empresa.",
                 color: "emerald",
-                badge: "Alumnos / Profesores"
+                badge: "Acceso automático"
               },
               {
                 icon: LayoutDashboard,
