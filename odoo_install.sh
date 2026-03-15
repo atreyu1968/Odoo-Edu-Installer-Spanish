@@ -1042,10 +1042,11 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
         sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
             -c "$ODOO_CONF" \
             -d "$DB_NAME" \
-            -i base,l10n_es,contacts,sale_management,purchase,stock,account,point_of_sale,hr,project,crm,mrp \
+            -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board \
             --load-language=es_ES \
             --without-demo=False \
-            --stop-after-init 2>/dev/null
+            --stop-after-init \
+            --http-port=0 --no-http 2>/dev/null
 
         if [[ $? -eq 0 ]]; then
             # Aplicar branding a la empresa
@@ -1217,10 +1218,11 @@ echo "Recreando base de datos con datos de demostracion..."
 sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
     -c "$ODOO_CONF" \
     -d "$DB_NAME" \
-    -i base,l10n_es,contacts,sale_management,purchase,stock,account,point_of_sale,hr,project,crm,mrp \
+    -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board \
     --load-language=es_ES \
     --without-demo=False \
-    --stop-after-init 2>/dev/null
+    --stop-after-init \
+    --http-port=0 --no-http 2>/dev/null
 
 # Aplicar branding
 BRAND_SQL="UPDATE res_company SET name='$DB_NAME'"
@@ -1569,6 +1571,80 @@ else
     log_error "Odoo no se inicio correctamente. Revisa los logs:"
     log_error "  journalctl -u ${ODOO_USER}.service -n 50"
     log_error "  cat /var/log/$ODOO_USER/odoo-server.log"
+fi
+
+#===============================================================================
+# 19b. CREACION AUTOMATICA DE BASES DE DATOS DE ALUMNOS
+#===============================================================================
+
+if [[ "$EDU_MODE" == true ]]; then
+    log_info "Creando bases de datos de alumnos (instalacion desatendida)..."
+    log_info "Esto puede tardar varios minutos dependiendo del numero de alumnos."
+
+    systemctl stop ${ODOO_USER}.service 2>/dev/null || true
+
+    IFS=';' read -ra GRUPOS_AUTO <<< "$EDU_GRUPOS"
+    for GRUPO_DEF in "${GRUPOS_AUTO[@]}"; do
+        IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX PROF_NOMBRE PROF_USER PROF_PWD <<< "$GRUPO_DEF"
+
+        log_info "Grupo '$GRUPO_NOMBRE': creando $GRUPO_NUM bases de datos..."
+
+        for i in $(seq -w 1 "$GRUPO_NUM"); do
+            DB_NAME_AUTO="${GRUPO_DB_PREFIX}${i}"
+
+            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_AUTO'" | grep -q 1 && {
+                log_info "  $DB_NAME_AUTO ya existe, saltando."
+                continue
+            }
+
+            log_info "  Creando $DB_NAME_AUTO..."
+            sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_HOME_EXT/odoo-bin" \
+                -c "$ODOO_CONF" \
+                -d "$DB_NAME_AUTO" \
+                -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board \
+                --load-language=es_ES \
+                --without-demo=False \
+                --stop-after-init \
+                --http-port=0 --no-http 2>/dev/null
+
+            if [[ $? -eq 0 ]]; then
+                EMPRESA_NOMBRE_AUTO="$GRUPO_NOMBRE - Alumno ${i}"
+                USER_LOGIN_AUTO="${GRUPO_PWD_PREFIX}${i}"
+                USER_PWD_AUTO="${GRUPO_PWD_PREFIX}${i}"
+
+                sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
+                    UPDATE res_company SET name='$EMPRESA_NOMBRE_AUTO' WHERE id=1;
+                    UPDATE res_partner SET name='$EMPRESA_NOMBRE_AUTO' WHERE id=1;
+                " 2>/dev/null
+
+                sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
+                    INSERT INTO res_users (login, password, name, company_id, active, notification_type)
+                    SELECT '$USER_LOGIN_AUTO', '$USER_PWD_AUTO', '$EMPRESA_NOMBRE_AUTO', 1, true, 'email'
+                    WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$USER_LOGIN_AUTO');
+                " 2>/dev/null
+
+                log_success "  $DB_NAME_AUTO creada correctamente."
+            else
+                log_error "  Error creando $DB_NAME_AUTO."
+            fi
+        done
+
+        log_info "Creando profesor '$PROF_NOMBRE' en las BDs del grupo '$GRUPO_NOMBRE'..."
+        for i in $(seq -w 1 "$GRUPO_NUM"); do
+            DB_NAME_AUTO="${GRUPO_DB_PREFIX}${i}"
+            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_AUTO'" | grep -q 1 || continue
+
+            sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
+                INSERT INTO res_users (login, password, name, company_id, active, notification_type)
+                SELECT '$PROF_USER', '$PROF_PWD', '$PROF_NOMBRE', 1, true, 'email'
+                WHERE NOT EXISTS (SELECT 1 FROM res_users WHERE login='$PROF_USER');
+            " 2>/dev/null || true
+        done
+        log_success "Profesor '$PROF_NOMBRE' creado en las BDs del grupo."
+    done
+
+    systemctl start ${ODOO_USER}.service 2>/dev/null || true
+    log_success "Bases de datos de alumnos creadas automaticamente."
 fi
 
 #===============================================================================
