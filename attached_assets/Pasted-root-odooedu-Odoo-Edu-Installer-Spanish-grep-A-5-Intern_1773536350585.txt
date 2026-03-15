@@ -1,0 +1,42 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# grep -A 5 "Internal Server Error\|Traceback\|Exception" /var/log/odoo17/odoo-server.log | tail -40
+--
+2026-03-15 00:58:58,530 117928 ERROR ? odoo.service.server: Worker (117928) Exception occurred, exiting... 
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1150, in run
+    self.start()
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+--
+2026-03-15 00:58:58,531 117927 ERROR ? odoo.service.server: Worker (117927) Exception occurred, exiting... 
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1150, in run
+    self.start()
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+--
+2026-03-15 00:58:58,939 117933 ERROR ? odoo.service.server: Worker (117933) Exception occurred, exiting... 
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1150, in run
+    self.start()
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+--
+2026-03-15 00:58:58,941 117935 ERROR ? odoo.service.server: Worker (117935) Exception occurred, exiting... 
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1150, in run
+    self.start()
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+--
+2026-03-15 00:58:59,391 117943 ERROR ? odoo.service.server: Worker (117943) Exception occurred, exiting... 
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1150, in run
+    self.start()
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
