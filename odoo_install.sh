@@ -480,17 +480,12 @@ clone_oca_repo() {
     local target_dir="$OCA_DIR/$repo_name"
 
     if [[ ! -d "$target_dir" ]]; then
-        log_info "Clonando OCA/$repo_name..."
+        log_info "Clonando OCA/$repo_name (rama $ODOO_VERSION)..."
         git clone --depth 1 --branch "$ODOO_VERSION" \
             "https://github.com/OCA/${repo_name}.git" \
             "$target_dir" 2>/dev/null || {
-            log_warn "No se pudo clonar OCA/$repo_name (rama $ODOO_VERSION). Probando rama principal..."
-            git clone --depth 1 \
-                "https://github.com/OCA/${repo_name}.git" \
-                "$target_dir" 2>/dev/null || {
-                log_error "Fallo la clonacion de OCA/$repo_name. Continuando..."
-                return 1
-            }
+            log_warn "No se pudo clonar OCA/$repo_name (rama $ODOO_VERSION no disponible). Omitiendo."
+            return 1
         }
     else
         log_info "OCA/$repo_name ya existe, actualizando..."
