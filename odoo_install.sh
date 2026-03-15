@@ -1676,6 +1676,8 @@ cat > "$ADMIN_CONFIG" << ADMINEOF
     "adminPassword": "$ADMIN_PASSWORD",
     "dbUser": "$DB_USER",
     "dbPassword": "$DB_PASSWORD",
+    "dbHost": "${DB_HOST:-localhost}",
+    "dbPort": ${DB_PORT:-5432},
     "home": "$ODOO_HOME",
     "confPath": "$ODOO_CONF"
   }

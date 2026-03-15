@@ -7,13 +7,23 @@ import { requireAuth, requireSuperadmin, type AuthRequest } from "../lib/auth-mi
 const execAsync = promisify(exec);
 const router: IRouter = Router();
 
-async function odooCommand(cmd: string): Promise<string> {
-  try {
-    const { stdout, stderr } = await execAsync(cmd, { timeout: 30000 });
-    return stdout.trim();
-  } catch (e: any) {
-    throw new Error(e.stderr || e.message);
-  }
+function getPgEnv(): Record<string, string> {
+  const config = readConfig();
+  return {
+    ...process.env as Record<string, string>,
+    PGUSER: config.odoo.dbUser || "odoo17",
+    PGPASSWORD: config.odoo.dbPassword || "",
+    PGHOST: config.odoo.dbHost || "localhost",
+    PGPORT: String(config.odoo.dbPort || 5432),
+  };
+}
+
+async function pgExec(sql: string, timeout = 30000): Promise<string> {
+  const { stdout } = await execAsync(
+    `psql -d postgres -t -A -c ${JSON.stringify(sql)}`,
+    { timeout, env: getPgEnv() }
+  );
+  return stdout.trim();
 }
 
 function sanitizeDbName(name: string): string {
@@ -26,11 +36,8 @@ function isValidDbName(name: string): boolean {
 
 async function dbExists(safeName: string): Promise<boolean> {
   try {
-    const { stdout } = await execAsync(
-      `psql -U odoo17 -d postgres -t -A -c "SELECT 1 FROM pg_database WHERE datname='${safeName}'" 2>/dev/null`,
-      { timeout: 10000 }
-    );
-    return stdout.trim() === "1";
+    const result = await pgExec(`SELECT 1 FROM pg_database WHERE datname='${safeName}'`);
+    return result === "1";
   } catch {
     return false;
   }
@@ -58,15 +65,13 @@ async function dropDatabase(dbName: string): Promise<void> {
   if (!isValidDbName(dbName)) throw new Error(`Nombre de base de datos invalido: ${dbName}`);
   const safeName = sanitizeDbName(dbName);
   if (!(await dbExists(safeName))) return;
-  await execAsync(
-    `psql -U odoo17 -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${safeName}' AND pid <> pg_backend_pid();" -c "DROP DATABASE \\"${safeName}\\";" 2>&1`,
-    { timeout: 30000 }
-  );
+  await pgExec(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${safeName}' AND pid <> pg_backend_pid()`);
+  await pgExec(`DROP DATABASE "${safeName}"`);
 }
 
 async function listDatabases(): Promise<string[]> {
-  const result = await odooCommand(
-    `psql -U odoo17 -d postgres -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres','template0','template1')" 2>&1`
+  const result = await pgExec(
+    `SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres','template0','template1')`
   );
   return result.split("\n").filter(Boolean);
 }

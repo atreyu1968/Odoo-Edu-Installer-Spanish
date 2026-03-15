@@ -54,6 +54,8 @@ export interface AdminConfig {
     adminPassword: string;
     dbUser: string;
     dbPassword: string;
+    dbHost: string;
+    dbPort: number;
     home: string;
     confPath: string;
   };
@@ -104,6 +106,8 @@ const DEFAULT_CONFIG: AdminConfig = {
     adminPassword: "",
     dbUser: "odoo17",
     dbPassword: "",
+    dbHost: "localhost",
+    dbPort: 5432,
     home: "/opt/odoo17",
     confPath: "/etc/odoo17.conf",
   },
