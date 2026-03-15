@@ -18,7 +18,11 @@
 #   sudo bash odoo_install.sh
 #
 # Despues de instalar:
-#   sudo bash odoo_crear_alumnos.sh 30        # Crear 30 alumnos
+#   1. Acceder al panel de administracion: http://servidor/admin
+#   2. Crear grupos de alumnos y asignar profesores desde el panel
+#   3. Crear las bases de datos de los alumnos desde el panel
+#
+# Scripts auxiliares:
 #   sudo bash odoo_reset_alumno.sh alumno05   # Resetear BD del alumno 05
 #   sudo bash odoo_backup.sh                  # Backup de todas las BD
 #
@@ -947,7 +951,12 @@ log_success "Copias de seguridad automaticas configuradas (diario a las 02:00)."
 
 log_info "Creando scripts auxiliares educativos..."
 
-# --- Script: Crear alumnos masivamente ---
+# --- Script: Resetear BD de un alumno (se mantiene como utilidad de emergencia) ---
+# NOTA: La creacion de alumnos se gestiona desde el panel de administracion (/admin)
+#       El script odoo_crear_alumnos.sh ya no se genera; todo se hace desde el panel web.
+
+SKIP_CREAR_ALUMNOS=1
+if [[ -z "$SKIP_CREAR_ALUMNOS" ]]; then
 cat > /usr/local/bin/odoo_crear_alumnos.sh << 'ALUMNOS_SCRIPT'
 #!/bin/bash
 ################################################################################
@@ -1200,6 +1209,7 @@ sed -i "s|BRAND_SECONDARY_COLOR_PLACEHOLDER|$BRAND_SECONDARY_COLOR|g" /usr/local
 sed -i "s|BRAND_LOGO_URL_PLACEHOLDER|$BRAND_LOGO_URL|g" /usr/local/bin/odoo_crear_alumnos.sh
 sed -i "s|BRAND_FAVICON_URL_PLACEHOLDER|$BRAND_FAVICON_URL|g" /usr/local/bin/odoo_crear_alumnos.sh
 chmod +x /usr/local/bin/odoo_crear_alumnos.sh
+fi
 
 # --- Script: Resetear BD de un alumno ---
 cat > /usr/local/bin/odoo_reset_alumno.sh << 'RESET_SCRIPT'
@@ -1724,99 +1734,11 @@ else
 fi
 
 #===============================================================================
-# 19b. CREACION AUTOMATICA DE BASES DE DATOS DE ALUMNOS
+# 19b. NOTA: Las bases de datos de alumnos se crean desde el panel de administracion
+#      El profesor gestiona la creacion de empresas desde http://servidor/admin
 #===============================================================================
-
-if [[ "$EDU_MODE" == true ]]; then
-    log_info "Creando bases de datos de alumnos (instalacion desatendida)..."
-    log_info "Esto puede tardar varios minutos dependiendo del numero de alumnos."
-
-    systemctl stop ${ODOO_USER}.service 2>/dev/null || true
-
-    # Funcion para crear usuarios via ORM de Odoo (hashea la contrasena correctamente)
-    create_odoo_user() {
-        local db="$1" login="$2" pwd="$3" uname="$4" is_admin="${5:-false}"
-        sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" -c "
-import sys
-sys.path.insert(0, '$ODOO_HOME_EXT')
-import odoo
-odoo.tools.config.parse_config(['-c', '$ODOO_CONF', '--no-http', '--http-port=0'])
-from odoo.modules.registry import Registry
-from odoo import api, SUPERUSER_ID
-registry = Registry('$db')
-with registry.cursor() as cr:
-    env = api.Environment(cr, SUPERUSER_ID, {})
-    if not env['res.users'].search([('login', '=', '$login')]):
-        vals = {
-            'login': '$login',
-            'name': '$uname',
-            'password': '$pwd',
-            'company_id': 1,
-            'company_ids': [(6, 0, [1])],
-        }
-        if $is_admin:
-            admin_group = env.ref('base.group_system', raise_if_not_found=False)
-            if admin_group:
-                vals['groups_id'] = [(4, admin_group.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
-    cr.commit()
-" 2>/dev/null
-    }
-
-    IFS=';' read -ra GRUPOS_AUTO <<< "$EDU_GRUPOS"
-    for GRUPO_DEF in "${GRUPOS_AUTO[@]}"; do
-        IFS='|' read -r GRUPO_NOMBRE GRUPO_NUM GRUPO_DB_PREFIX GRUPO_PWD_PREFIX PROF_NOMBRE PROF_USER PROF_PWD <<< "$GRUPO_DEF"
-
-        log_info "Grupo '$GRUPO_NOMBRE': creando $GRUPO_NUM bases de datos..."
-
-        for i in $(seq -w 1 "$GRUPO_NUM"); do
-            DB_NAME_AUTO="${GRUPO_DB_PREFIX}${i}"
-
-            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_AUTO'" | grep -q 1 && {
-                log_info "  $DB_NAME_AUTO ya existe, saltando."
-                continue
-            }
-
-            log_info "  Creando $DB_NAME_AUTO..."
-            sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_HOME_EXT/odoo-bin" \
-                -c "$ODOO_CONF" \
-                -d "$DB_NAME_AUTO" \
-                -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,hr_holidays,hr_expense,hr_recruitment,hr_attendance,hr_timesheet,project,calendar,board,crm,mrp,point_of_sale,website,website_sale,website_blog,website_event,website_slides,event,survey,note,mass_mailing,im_livechat,fleet,maintenance,lunch,membership \
-                --load-language=es_ES \
-                --without-demo=False \
-                --stop-after-init \
-                --http-port=0 --no-http 2>/dev/null
-
-            if [[ $? -eq 0 ]]; then
-                EMPRESA_NOMBRE_AUTO="$GRUPO_NOMBRE - Alumno ${i}"
-                USER_LOGIN_AUTO="${GRUPO_PWD_PREFIX}${i}"
-
-                sudo -u postgres psql -d "$DB_NAME_AUTO" -c "
-                    UPDATE res_company SET name='$EMPRESA_NOMBRE_AUTO' WHERE id=1;
-                    UPDATE res_partner SET name='$EMPRESA_NOMBRE_AUTO' WHERE id=1;
-                " 2>/dev/null
-
-                log_info "  Creando usuario $USER_LOGIN_AUTO..."
-                create_odoo_user "$DB_NAME_AUTO" "$USER_LOGIN_AUTO" "$USER_LOGIN_AUTO" "$EMPRESA_NOMBRE_AUTO" "False"
-
-                log_success "  $DB_NAME_AUTO creada correctamente."
-            else
-                log_error "  Error creando $DB_NAME_AUTO."
-            fi
-        done
-
-        log_info "Creando profesor '$PROF_NOMBRE' en las BDs del grupo '$GRUPO_NOMBRE'..."
-        for i in $(seq -w 1 "$GRUPO_NUM"); do
-            DB_NAME_AUTO="${GRUPO_DB_PREFIX}${i}"
-            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_AUTO'" | grep -q 1 || continue
-            create_odoo_user "$DB_NAME_AUTO" "$PROF_USER" "$PROF_PWD" "$PROF_NOMBRE" "True"
-        done
-        log_success "Profesor '$PROF_NOMBRE' creado en las BDs del grupo."
-    done
-
-    systemctl start ${ODOO_USER}.service 2>/dev/null || true
-    log_success "Bases de datos de alumnos creadas automaticamente."
-fi
+log_info "Las bases de datos de alumnos se crearan desde el panel de administracion (/admin)."
+log_info "El profesor puede crear y gestionar las empresas de sus alumnos desde alli."
 
 #===============================================================================
 # 20. PANEL DE ADMINISTRACION WEB
@@ -2015,8 +1937,11 @@ echo "    systemctl restart $ODOO_USER"
 echo "    systemctl status $ODOO_USER"
 echo "    journalctl -u $ODOO_USER -f"
 echo ""
-echo "  SCRIPTS EDUCATIVOS:"
-echo "    Crear alumnos:       sudo odoo_crear_alumnos.sh [N]"
+echo "  GESTION DE ALUMNOS:"
+echo "    Panel admin:         http://${SERVER_IP}/admin"
+echo "    (Crear grupos, alumnos y bases de datos desde el panel web)"
+echo ""
+echo "  SCRIPTS AUXILIARES:"
 echo "    Resetear alumno:     sudo odoo_reset_alumno.sh alumnoXX"
 echo "    Backup manual:       sudo odoo_backup.sh"
 echo "    Restaurar backup:    sudo odoo_restaurar_alumno.sh <archivo>"
@@ -2111,8 +2036,10 @@ Addons personalizados:     $CUSTOM_ADDONS_DIR
 Backups:                   $EDU_BACKUP_DIR
 Logs:                      /var/log/$ODOO_USER/odoo-server.log
 
-Scripts educativos:
-  /usr/local/bin/odoo_crear_alumnos.sh
+Gestion de alumnos:
+  Panel de administracion: http://${SERVER_IP}/admin
+
+Scripts auxiliares:
   /usr/local/bin/odoo_reset_alumno.sh
   /usr/local/bin/odoo_backup.sh
   /usr/local/bin/odoo_restaurar_alumno.sh
