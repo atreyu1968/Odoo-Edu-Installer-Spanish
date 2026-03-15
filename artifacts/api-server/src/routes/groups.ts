@@ -32,7 +32,7 @@ async function createStudentDatabase(dbName: string, _adminPassword?: string): P
   const confPath = config.odoo.confPath;
 
   await execAsync(
-    `sudo -u ${config.odoo.dbUser || "odoo17"} ${pythonBin} ${odooBin} -c ${confPath} -d ${sanitizeDbName(dbName)} --init base --stop-after-init --without-demo=all 2>&1`,
+    `${pythonBin} ${odooBin} -c ${confPath} -d ${sanitizeDbName(dbName)} --init base --stop-after-init --without-demo=all 2>&1`,
     { timeout: 120000 }
   );
 }
@@ -45,7 +45,10 @@ async function dropDatabase(dbName: string): Promise<void> {
     { timeout: 10000 }
   );
   if (stdout.trim() === "1") {
-    await execAsync(`dropdb -U odoo17 "${safeName}" 2>&1`, { timeout: 30000 });
+    await execAsync(
+      `psql -U odoo17 -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${safeName}' AND pid <> pg_backend_pid()" 2>/dev/null; dropdb -U odoo17 "${safeName}" 2>&1`,
+      { timeout: 30000 }
+    );
   }
 }
 
