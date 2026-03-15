@@ -485,12 +485,12 @@ clone_oca_repo() {
 
     if [[ ! -d "$target_dir" ]]; then
         log_info "Clonando OCA/$repo_name (rama $ODOO_VERSION)..."
-        git clone --depth 1 --branch "$ODOO_VERSION" \
+        if ! git clone --depth 1 --branch "$ODOO_VERSION" \
             "https://github.com/OCA/${repo_name}.git" \
-            "$target_dir" 2>/dev/null || {
+            "$target_dir" 2>/dev/null; then
             log_warn "No se pudo clonar OCA/$repo_name (rama $ODOO_VERSION no disponible). Omitiendo."
-            return 1
-        }
+            return 0
+        fi
     else
         log_info "OCA/$repo_name ya existe, actualizando..."
         cd "$target_dir" && git pull 2>/dev/null || true
