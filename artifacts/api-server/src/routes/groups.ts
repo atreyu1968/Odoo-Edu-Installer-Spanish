@@ -24,18 +24,17 @@ function isValidDbName(name: string): boolean {
   return /^[a-zA-Z0-9_]+$/.test(name) && name.length > 0 && name.length <= 63;
 }
 
-async function createStudentDatabase(dbName: string): Promise<void> {
+async function createStudentDatabase(dbName: string, _adminPassword?: string): Promise<void> {
   if (!isValidDbName(dbName)) throw new Error(`Nombre de base de datos invalido: ${dbName}`);
   const config = readConfig();
   const pythonBin = `${config.odoo.home}/venv/bin/python3`;
   const odooBin = `${config.odoo.home}/odoo17-server/odoo-bin`;
   const confPath = config.odoo.confPath;
 
-  const { stdout, stderr } = await execAsync(
-    `${pythonBin} ${odooBin} -c ${confPath} -d ${sanitizeDbName(dbName)} --init base --stop-after-init --without-demo=all 2>&1`,
-    { timeout: 120000, uid: undefined }
+  await execAsync(
+    `sudo -u ${config.odoo.dbUser || "odoo17"} ${pythonBin} ${odooBin} -c ${confPath} -d ${sanitizeDbName(dbName)} --init base --stop-after-init --without-demo=all 2>&1`,
+    { timeout: 120000 }
   );
-  return;
 }
 
 async function dropDatabase(dbName: string): Promise<void> {

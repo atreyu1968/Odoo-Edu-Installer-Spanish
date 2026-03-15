@@ -209,6 +209,7 @@ export default function AdminPanel() {
   const [branding, setBranding] = useState<BrandingConfig>(defaultBranding);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [dbAction, setDbAction] = useState<Record<string, "creating" | "resetting" | "done" | "error" | null>>({});
 
   const apiFetch = useCallback(async (path: string, options?: RequestInit) => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -392,6 +393,55 @@ export default function AdminPanel() {
       return updated;
     });
   }, []);
+
+  const downloadCsv = useCallback((grupo: GrupoAlumnos) => {
+    const rows = [["Usuario", "Contraseña", "Base de datos", "Grupo", "Profesor"]];
+    for (let i = 1; i <= grupo.numAlumnos; i++) {
+      const num = String(i).padStart(2, "0");
+      rows.push([
+        `${grupo.passwordPrefix}${num}`,
+        `${grupo.passwordPrefix}${num}`,
+        `${grupo.dbPrefix}_${num}`,
+        grupo.nombre,
+        grupo.profesor.nombre,
+      ]);
+    }
+    rows.push([grupo.profesor.usuario, grupo.profesor.password, "", grupo.nombre, "(Profesor)"]);
+    const csv = rows.map(r => r.join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `credenciales_${grupo.nombre.replace(/\s+/g, "_")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleCreateDatabases = useCallback(async (grupo: GrupoAlumnos) => {
+    setDbAction(prev => ({ ...prev, [grupo.nombre]: "creating" }));
+    try {
+      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/create-databases`, { method: "POST" });
+      if (!res.ok) throw new Error("Error al crear bases de datos");
+      setDbAction(prev => ({ ...prev, [grupo.nombre]: "done" }));
+      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
+    } catch {
+      setDbAction(prev => ({ ...prev, [grupo.nombre]: "error" }));
+      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
+    }
+  }, [apiFetch]);
+
+  const handleResetDatabases = useCallback(async (grupo: GrupoAlumnos) => {
+    setDbAction(prev => ({ ...prev, [grupo.nombre]: "resetting" }));
+    try {
+      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/reset-databases`, { method: "POST" });
+      if (!res.ok) throw new Error("Error al resetear bases de datos");
+      setDbAction(prev => ({ ...prev, [grupo.nombre]: "done" }));
+      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
+    } catch {
+      setDbAction(prev => ({ ...prev, [grupo.nombre]: "error" }));
+      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
+    }
+  }, [apiFetch]);
 
   if (!auth.authenticated) {
     return (
@@ -698,17 +748,28 @@ export default function AdminPanel() {
 
                     {/* Actions */}
                     <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3 flex-wrap">
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                      <button
+                        onClick={() => downloadCsv(grupo)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
+                      >
                         <Download className="w-4 h-4" />
                         Descargar CSV credenciales
                       </button>
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
-                        <Database className="w-4 h-4" />
-                        Crear bases de datos
+                      <button
+                        onClick={() => handleCreateDatabases(grupo)}
+                        disabled={dbAction[grupo.nombre] === "creating" || dbAction[grupo.nombre] === "resetting"}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      >
+                        {dbAction[grupo.nombre] === "creating" ? <RefreshCw className="w-4 h-4 animate-spin" /> : dbAction[grupo.nombre] === "done" ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Database className="w-4 h-4" />}
+                        {dbAction[grupo.nombre] === "creating" ? "Creando..." : dbAction[grupo.nombre] === "done" ? "Completado" : dbAction[grupo.nombre] === "error" ? "Error" : "Crear bases de datos"}
                       </button>
-                      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-50 transition-colors">
-                        <RotateCcw className="w-4 h-4" />
-                        Resetear todas las BDs
+                      <button
+                        onClick={() => handleResetDatabases(grupo)}
+                        disabled={dbAction[grupo.nombre] === "creating" || dbAction[grupo.nombre] === "resetting"}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-50 transition-colors disabled:opacity-50"
+                      >
+                        {dbAction[grupo.nombre] === "resetting" ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                        {dbAction[grupo.nombre] === "resetting" ? "Reseteando..." : "Resetear todas las BDs"}
                       </button>
                     </div>
                   </div>
