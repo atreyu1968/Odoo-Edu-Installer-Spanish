@@ -1,0 +1,32 @@
+303root@odooedu:~/Odoo-Edu-Installer-Spanish# tail -30 /var/log/odoo17/odoo-server.log
+  File "/opt/odoo17/odoo17-server/odoo/modules/module.py", line 349, in load_manifest
+    manifest['version'] = adapt_version(manifest['version'])
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/odoo17/odoo17-server/odoo/modules/module.py", line 456, in adapt_version
+    raise ValueError(f"Invalid version {base_version!r}. Modules should have a version in format `x.y`, `x.y.z`,"
+                     f" `{serie}.x.y` or `{serie}.x.y.z`.")
+ValueError: Invalid version '18.0.1.0.1'. Modules should have a version in format `x.y`, `x.y.z`, `17.0.x.y` or `17.0.x.y.z`.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17-server/odoo/http.py", line 2406, in __call__
+    if self.get_static_file(httprequest.path):
+       ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/opt/odoo17/odoo17-server/odoo/http.py", line 2306, in get_static_file
+    if (module not in self.statics or static != 'static' or not resource):
+                      ^^^^^^^^^^^^
+  File "/opt/odoo17/odoo17-server/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17-server/odoo/http.py", line 2276, in statics
+    manifest = get_manifest(module)
+  File "/opt/odoo17/odoo17-server/odoo/modules/module.py", line 369, in get_manifest
+    return copy.deepcopy(_get_manifest_cached(module, mod_path))
+                         ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/opt/odoo17/odoo17-server/odoo/modules/module.py", line 373, in _get_manifest_cached
+    return load_manifest(module, mod_path)
+  File "/opt/odoo17/odoo17-server/odoo/modules/module.py", line 352, in load_manifest
+    raise ValueError(f"Module {module}: invalid manifest") from e
+ValueError: Module stock_fleet_delivery_driver: invalid manifest
+2026-03-15 01:03:30,465 120926 INFO ? werkzeug: 192.168.1.46 - - [15/Mar/2026 01:03:30] "GET /web/database/manager HTTP/1.0" 500 - 1 0.002 0.552
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
