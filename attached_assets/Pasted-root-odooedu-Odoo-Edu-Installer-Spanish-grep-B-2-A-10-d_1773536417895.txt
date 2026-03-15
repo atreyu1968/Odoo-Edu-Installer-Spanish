@@ -1,0 +1,50 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# grep -B 2 -A 10 "dbcursor = dbconn.cursor" /var/log/odoo17/odoo-server.log | tail -30
+  File "/opt/odoo17/odoo17-server/odoo/tools/func.py", line 87, in locked
+    return func(inst, *args, **kwargs)
+--
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+                    ~~~~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/sql_db.py", line 773, in cursor
+    return Cursor(self.__pool, self.__dbname, self.__dsn)
+  File "/opt/odoo17/odoo17-server/odoo/sql_db.py", line 267, in __init__
+    self._cnx = pool.borrow(dsn)
+                ~~~~~~~~~~~^^^^^
+  File "/opt/odoo17/venv/lib/python3.13/site-packages/decorator.py", line 232, in fun
+    return caller(func, *(extras + args), **kw)
+  File "/opt/odoo17/odoo17-server/odoo/tools/func.py", line 87, in locked
+    return func(inst, *args, **kwargs)
+--
+    ~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/service/server.py", line 1296, in start
+    self.dbcursor = dbconn.cursor()
+                    ~~~~~~~~~~~~~^^
+  File "/opt/odoo17/odoo17-server/odoo/sql_db.py", line 773, in cursor
+    return Cursor(self.__pool, self.__dbname, self.__dsn)
+  File "/opt/odoo17/odoo17-server/odoo/sql_db.py", line 267, in __init__
+    self._cnx = pool.borrow(dsn)
+                ~~~~~~~~~~~^^^^^
+  File "/opt/odoo17/venv/lib/python3.13/site-packages/decorator.py", line 232, in fun
+    return caller(func, *(extras + args), **kw)
+  File "/opt/odoo17/odoo17-server/odoo/tools/func.py", line 87, in locked
+    return func(inst, *args, **kwargs)
+root@odooedu:~/Odoo-Edu-Installer-Spanish# grep -E "^workers|^max_cron|^db_maxconn|^limit_memory" /etc/odoo17.conf
+sudo -u odoo17 psql -d postgres -c "SELECT count(*) FROM pg_stat_activity WHERE usename='odoo17';"
+sudo -u odoo17 psql -d postgres -c "SHOW max_connections;"
+workers = 6
+max_cron_threads = 2
+limit_memory_hard = 2684354560
+limit_memory_soft = 2147483648
+db_maxconn = 64
+ count 
+-------
+     1
+(1 row)
+
+ max_connections 
+-----------------
+ 100
+(1 row)
+
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
