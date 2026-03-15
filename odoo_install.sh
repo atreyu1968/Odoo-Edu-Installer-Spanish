@@ -1042,7 +1042,7 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
         sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
             -c "$ODOO_CONF" \
             -d "$DB_NAME" \
-            -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board \
+            -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,hr_holidays,hr_expense,hr_recruitment,hr_attendance,hr_timesheet,project,calendar,board,crm,mrp,point_of_sale,website,website_sale,website_blog,website_event,website_slides,event,survey,note,mass_mailing,im_livechat,fleet,maintenance,lunch,membership \
             --load-language=es_ES \
             --without-demo=False \
             --stop-after-init \
@@ -1268,7 +1268,7 @@ echo "Recreando base de datos con datos de demostracion..."
 sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
     -c "$ODOO_CONF" \
     -d "$DB_NAME" \
-    -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board \
+    -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,hr_holidays,hr_expense,hr_recruitment,hr_attendance,hr_timesheet,project,calendar,board,crm,mrp,point_of_sale,website,website_sale,website_blog,website_event,website_slides,event,survey,note,mass_mailing,im_livechat,fleet,maintenance,lunch,membership \
     --load-language=es_ES \
     --without-demo=False \
     --stop-after-init \
@@ -1781,7 +1781,7 @@ with registry.cursor() as cr:
             sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_HOME_EXT/odoo-bin" \
                 -c "$ODOO_CONF" \
                 -d "$DB_NAME_AUTO" \
-                -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board \
+                -i base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,hr_holidays,hr_expense,hr_recruitment,hr_attendance,hr_timesheet,project,calendar,board,crm,mrp,point_of_sale,website,website_sale,website_blog,website_event,website_slides,event,survey,note,mass_mailing,im_livechat,fleet,maintenance,lunch,membership \
                 --load-language=es_ES \
                 --without-demo=False \
                 --stop-after-init \

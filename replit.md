@@ -77,7 +77,8 @@ Express 5 API with real endpoints for admin panel operations.
   - PostgreSQL, Nginx, systemd, UFW, logrotate
   - Compatible with Ubuntu 22.04/24.04 LTS and 25.04 (Python 3.13 support)
   - User creation via Odoo ORM (not raw SQL) — ensures partner_id, password hashing
-  - Module list: base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,project,calendar,board
+  - Module list (36 modules): base,base_setup,mail,contacts,account,account_payment,l10n_es,sale_management,purchase,stock,hr,hr_holidays,hr_expense,hr_recruitment,hr_attendance,hr_timesheet,project,calendar,board,crm,mrp,point_of_sale,website,website_sale,website_blog,website_event,website_slides,event,survey,note,mass_mailing,im_livechat,fleet,maintenance,lunch,membership
+  - After DB creation, hides uninstallable Enterprise modules from Apps menu
 
 ### Server Deployment Architecture
 After installation, the server serves:

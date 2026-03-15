@@ -116,14 +116,36 @@ async function createStudentDatabase(
     "purchase",
     "stock",
     "hr",
+    "hr_holidays",
+    "hr_expense",
+    "hr_recruitment",
+    "hr_attendance",
+    "hr_timesheet",
     "project",
     "calendar",
     "board",
+    "crm",
+    "mrp",
+    "point_of_sale",
+    "website",
+    "website_sale",
+    "website_blog",
+    "website_event",
+    "website_slides",
+    "event",
+    "survey",
+    "note",
+    "mass_mailing",
+    "im_livechat",
+    "fleet",
+    "maintenance",
+    "lunch",
+    "membership",
     "web",
   ].join(",");
   await execAsync(
     `${pythonBin} ${odooBin} -c ${confPath} -d ${safeName} --init ${modules} --stop-after-init --without-demo=all --http-port=0 --no-http 2>&1`,
-    { timeout: 900000 }
+    { timeout: 1800000 }
   );
 
   await pgExec(`
