@@ -1,0 +1,28 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# systemctl status odoo17
+* odoo17.service - Odoo 17.0 - Servidor ERP Educativo
+     Loaded: loaded (/etc/systemd/system/odoo17.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-03-14 23:30:23 UTC; 1h 16min ago
+ Invocation: e7e0ca713dfe43ee94d556d099d11b8c
+       Docs: https://www.odoo.com/documentation/17.0
+   Main PID: 27687 (python)
+      Tasks: 16 (limit: 18751)
+     Memory: 441.8M (peak: 482.3M)
+        CPU: 2h 14min 54.913s
+     CGroup: /system.slice/odoo17.service
+             |- 27687 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27784 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27785 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27786 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27789 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27791 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27793 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+             |- 27794 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin gevent -c /etc/odoo17.conf
+             |-106553 "[python]"
+             `-106556 /opt/odoo17/venv/bin/python /opt/odoo17/odoo17-server/odoo-bin -c /etc/odoo17.conf
+
+Mar 14 23:30:23 odooedu systemd[1]: Started odoo17.service - Odoo 17.0 - Servidor ERP Educativo.
+Mar 14 23:30:24 odooedu odoo17[27687]: /opt/odoo17/odoo17-server/odoo/netsvc.py:17: UserWarning: pkg_resources is deprecated as an API. See https://setupto>
+Mar 14 23:30:24 odooedu odoo17[27687]:   from pkg_resources import PkgResourcesDeprecationWarning
+Mar 14 23:30:27 odooedu odoo17[27794]: /opt/odoo17/odoo17-server/odoo/netsvc.py:17: UserWarning: pkg_resources is deprecated as an API. See https://setupto>
+Mar 14 23:30:27 odooedu odoo17[27794]:   from pkg_resources import PkgResourcesDeprecationWarning
+lines 1-26/26 (END)
