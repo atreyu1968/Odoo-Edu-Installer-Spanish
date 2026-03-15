@@ -1,0 +1,43 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# chmod 755 /opt/odoo17
+chmod 755 /opt/odoo17/admin-panel
+chmod -R 755 /opt/odoo17/admin-panel/public
+nginx -t && systemctl reload nginx
+curl -s -o /dev/null -w "%{http_code}" http://localhost/
+curl -s -o /dev/null -w "%{http_code}" http://localhost/admin
+curl -s -o /dev/null -w "%{http_code}" http://localhost/api/health
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+200200404root@odooedu:~/Odoo-Edu-Installer-curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/api/healthpi/health
+curl -s http://localhost:3001/api/health
+journalctl -u odoo-edu-admin --no-pager -n 20
+404<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/health</pre>
+</body>
+</html>
+Mar 15 00:16:55 odooedu systemd[1]: odoo-edu-admin.service: Failed with result 'exit-code'.
+Mar 15 00:17:00 odooedu systemd[1]: odoo-edu-admin.service: Scheduled restart job, restart counter is at 45.
+Mar 15 00:17:00 odooedu systemd[1]: Started odoo-edu-admin.service - OdooEdu Admin Panel API.
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]: node:internal/modules/cjs/loader:1228
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:   throw err;
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:   ^
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]: Error: Cannot find module '/opt/odoo17/admin-panel/api/dist/index.cjs'
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:     at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:     at Module._load (node:internal/modules/cjs/loader:1051:27)
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:173:12)
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:     at node:internal/main/run_main_module:28:49 {
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:   code: 'MODULE_NOT_FOUND',
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]:   requireStack: []
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]: }
+Mar 15 00:17:01 odooedu odoo-edu-admin[78157]: Node.js v20.18.1
+Mar 15 00:17:01 odooedu systemd[1]: odoo-edu-admin.service: Main process exited, code=exited, status=1/FAILURE
+Mar 15 00:17:01 odooedu systemd[1]: odoo-edu-admin.service: Failed with result 'exit-code'.
+Mar 15 00:17:01 odooedu systemd[1]: Stopped odoo-edu-admin.service - OdooEdu Admin Panel API.
+Mar 15 00:17:01 odooedu systemd[1]: Started odoo-edu-admin.service - OdooEdu Admin Panel API.
+Mar 15 00:17:01 odooedu odoo-edu-admin[78178]: Server listening on port 3001
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
