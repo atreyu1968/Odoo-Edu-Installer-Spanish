@@ -1,0 +1,91 @@
+
+[INFO] 2026-03-15 00:12:55 - Instalando el panel de administracion web...
+[AVISO] 2026-03-15 00:12:55 - No se encontro el codigo fuente del panel. Omitiendo.
+Created symlink '/etc/systemd/system/multi-user.target.wants/odoo-edu-admin.service' -> '/etc/systemd/system/odoo-edu-admin.service'.
+[AVISO] 2026-03-15 00:12:58 - El panel de administracion no se inicio. Revisa: journalctl -u odoo-edu-admin
+
+[INFO] 2026-03-15 00:12:58 - Recargando Nginx con la configuracion del panel...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[OK] 2026-03-15 00:12:58 - Nginx recargado correctamente.
+
+==================================================================
+   INSTALACION DE ODOO 17.0 COMPLETADA
+   EDICION EDUCATIVA CON MULTIEMPRESA
+==================================================================
+
+  RUTAS DE ACCESO:
+    Landing page:        http://192.168.1.112/
+    Panel admin:         http://192.168.1.112/admin
+    API del panel:       http://192.168.1.112/api/
+    Odoo ERP:            http://192.168.1.112/web
+
+  CREDENCIALES DE ADMINISTRACION:
+    Contrasena maestra:  4rF13Ja1AcGMyMWc
+    Usuario BD:          odoo17
+    Contrasena BD:       QiMBJWUndCu5B0F0
+
+  ARCHIVOS Y DIRECTORIOS:
+    Configuracion:       /etc/odoo17.conf
+    Directorio Odoo:     /opt/odoo17/odoo17-server
+    Addons OCA:          /opt/odoo17/OCA
+    Addons custom:       /opt/odoo17/custom/addons
+    Logs:                /var/log/odoo17/
+    Backups:             /var/backups/odoo
+
+  COMANDOS DEL SERVICIO:
+    systemctl start odoo17
+    systemctl stop odoo17
+    systemctl restart odoo17
+    systemctl status odoo17
+    journalctl -u odoo17 -f
+
+  SCRIPTS EDUCATIVOS:
+    Crear alumnos:       sudo odoo_crear_alumnos.sh [N]
+    Resetear alumno:     sudo odoo_reset_alumno.sh alumnoXX
+    Backup manual:       sudo odoo_backup.sh
+    Restaurar backup:    sudo odoo_restaurar_alumno.sh <archivo>
+
+  MODULOS OCA INSTALADOS:
+    - l10n-spain (Localizacion contable espanola)
+    - multi-company (Multiempresa)
+    - brand / server-brand (Rebranding / Marca blanca)
+    - account-financial-tools, account-financial-reporting
+    - account-payment, account-invoicing, account-closing
+    - account-analytic, account-reconcile
+    - bank-payment, credit-control, currency
+    - reporting-engine, mis-builder
+    - community-data-files, server-tools
+    - web, queue, partner-contact
+    - intrastat-extrastat, product-attribute
+    - purchase-workflow, sale-workflow
+    - stock-logistics-workflow, stock-logistics-warehouse
+    - hr, hr-attendance, hr-expense, hr-holidays
+    - project, manufacture, management-system
+    - connector, edi, delivery-carrier
+    - e-commerce, pos, crm, social
+    - website, maintenance, knowledge
+
+  PASOS SIGUIENTES:
+
+    1. ACCEDE AL PANEL DE ADMINISTRACION:
+       URL: http://192.168.1.112/admin
+       Usuario: superadmin
+       Contrasena: SuperAdmin2024!
+
+    2. Desde el panel puedes:
+       - Crear grupos de alumnos y asignar profesores
+       - Configurar el branding (logo, colores, datos)
+       - Gestionar actualizaciones de Odoo y modulos OCA
+       - Resetear bases de datos de alumnos
+
+    3. Cada profesor accede con sus credenciales
+       y solo ve las BDs de su grupo asignado.
+
+    4. Cada alumno accede con su usuario/contrasena
+       a su base de datos individual.
+
+==================================================================
+[OK] 2026-03-15 00:12:58 - Credenciales guardadas en: /opt/odoo17/credenciales_odoo.txt
+[OK] 2026-03-15 00:12:58 - Instalacion completada exitosamente!
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 

@@ -27,6 +27,8 @@
 
 set -euo pipefail
 
+REPO_DIR=$(cd "$(dirname "$0")" && pwd)
+
 #===============================================================================
 # CONFIGURACION — Ajusta estos valores segun tus necesidades
 #===============================================================================
@@ -1589,8 +1591,6 @@ if ! command -v node &>/dev/null || [[ $(node -v 2>/dev/null | sed 's/v//' | cut
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
     apt-get install -y -qq nodejs
 fi
-
-REPO_DIR=$(cd "$(dirname "$0")" && pwd)
 
 rm -rf "$ADMIN_DIR"
 mkdir -p "$ADMIN_DIR/public" "$ADMIN_DIR/api/dist"
