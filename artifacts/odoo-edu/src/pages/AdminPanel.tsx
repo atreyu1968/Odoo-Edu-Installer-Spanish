@@ -417,29 +417,55 @@ export default function AdminPanel() {
     URL.revokeObjectURL(url);
   }, []);
 
+  const [dbError, setDbError] = useState<Record<string, string>>({});
+
   const handleCreateDatabases = useCallback(async (grupo: GrupoAlumnos) => {
     setDbAction(prev => ({ ...prev, [grupo.nombre]: "creating" }));
+    setDbError(prev => ({ ...prev, [grupo.nombre]: "" }));
     try {
-      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/create-databases`, { method: "POST" });
-      if (!res.ok) throw new Error("Error al crear bases de datos");
-      setDbAction(prev => ({ ...prev, [grupo.nombre]: "done" }));
-      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
-    } catch {
+      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/create-databases`, {
+        method: "POST",
+        signal: AbortSignal.timeout(600000),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al crear bases de datos");
+      const errors = (data.results || []).filter((r: any) => r.status === "error");
+      if (errors.length > 0) {
+        setDbError(prev => ({ ...prev, [grupo.nombre]: `${errors.length} BD(s) con error: ${errors[0].error}` }));
+        setDbAction(prev => ({ ...prev, [grupo.nombre]: "error" }));
+      } else {
+        setDbAction(prev => ({ ...prev, [grupo.nombre]: "done" }));
+      }
+      setTimeout(() => { setDbAction(prev => ({ ...prev, [grupo.nombre]: null })); setDbError(prev => ({ ...prev, [grupo.nombre]: "" })); }, 5000);
+    } catch (e: any) {
+      setDbError(prev => ({ ...prev, [grupo.nombre]: e.message || "Error desconocido" }));
       setDbAction(prev => ({ ...prev, [grupo.nombre]: "error" }));
-      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
+      setTimeout(() => { setDbAction(prev => ({ ...prev, [grupo.nombre]: null })); setDbError(prev => ({ ...prev, [grupo.nombre]: "" })); }, 8000);
     }
   }, [apiFetch]);
 
   const handleResetDatabases = useCallback(async (grupo: GrupoAlumnos) => {
     setDbAction(prev => ({ ...prev, [grupo.nombre]: "resetting" }));
+    setDbError(prev => ({ ...prev, [grupo.nombre]: "" }));
     try {
-      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/reset-databases`, { method: "POST" });
-      if (!res.ok) throw new Error("Error al resetear bases de datos");
-      setDbAction(prev => ({ ...prev, [grupo.nombre]: "done" }));
-      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
-    } catch {
+      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/reset-databases`, {
+        method: "POST",
+        signal: AbortSignal.timeout(600000),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al resetear bases de datos");
+      const errors = (data.results || []).filter((r: any) => r.status === "error");
+      if (errors.length > 0) {
+        setDbError(prev => ({ ...prev, [grupo.nombre]: `${errors.length} BD(s) con error: ${errors[0].error}` }));
+        setDbAction(prev => ({ ...prev, [grupo.nombre]: "error" }));
+      } else {
+        setDbAction(prev => ({ ...prev, [grupo.nombre]: "done" }));
+      }
+      setTimeout(() => { setDbAction(prev => ({ ...prev, [grupo.nombre]: null })); setDbError(prev => ({ ...prev, [grupo.nombre]: "" })); }, 5000);
+    } catch (e: any) {
+      setDbError(prev => ({ ...prev, [grupo.nombre]: e.message || "Error desconocido" }));
       setDbAction(prev => ({ ...prev, [grupo.nombre]: "error" }));
-      setTimeout(() => setDbAction(prev => ({ ...prev, [grupo.nombre]: null })), 3000);
+      setTimeout(() => { setDbAction(prev => ({ ...prev, [grupo.nombre]: null })); setDbError(prev => ({ ...prev, [grupo.nombre]: "" })); }, 8000);
     }
   }, [apiFetch]);
 
@@ -772,6 +798,9 @@ export default function AdminPanel() {
                         {dbAction[grupo.nombre] === "resetting" ? "Reseteando..." : "Resetear todas las BDs"}
                       </button>
                     </div>
+                    {dbError[grupo.nombre] && (
+                      <p className="text-xs text-red-500 mt-1">{dbError[grupo.nombre]}</p>
+                    )}
                   </div>
                 );
               })}

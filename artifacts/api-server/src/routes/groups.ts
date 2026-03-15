@@ -30,10 +30,25 @@ async function createStudentDatabase(dbName: string, _adminPassword?: string): P
   const pythonBin = `${config.odoo.home}/venv/bin/python3`;
   const odooBin = `${config.odoo.home}/odoo17-server/odoo-bin`;
   const confPath = config.odoo.confPath;
+  const safeName = sanitizeDbName(dbName);
+
+  const { stdout: exists } = await execAsync(
+    `psql -U odoo17 -t -A -c "SELECT 1 FROM pg_database WHERE datname='${safeName}'" 2>/dev/null`,
+    { timeout: 10000 }
+  ).catch(() => ({ stdout: "" }));
+
+  if (exists.trim() === "1") {
+    return;
+  }
 
   await execAsync(
-    `${pythonBin} ${odooBin} -c ${confPath} -d ${sanitizeDbName(dbName)} --init base --stop-after-init --without-demo=all 2>&1`,
-    { timeout: 120000 }
+    `createdb -U odoo17 -O odoo17 --encoding=UTF8 --template=template0 "${safeName}" 2>&1`,
+    { timeout: 30000 }
+  );
+
+  await execAsync(
+    `${pythonBin} ${odooBin} -c ${confPath} -d ${safeName} --init base --stop-after-init --without-demo=all --http-port=0 --no-http 2>&1`,
+    { timeout: 300000 }
   );
 }
 
