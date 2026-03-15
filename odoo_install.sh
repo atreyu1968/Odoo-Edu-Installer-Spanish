@@ -1119,13 +1119,14 @@ registry = Registry(db)
 with registry.cursor() as cr:
     env = api.Environment(cr, SUPERUSER_ID, {})
     if not env['res.users'].search([('login', '=', login)]):
-        vals = {'login': login, 'name': name, 'password': pwd,
+        vals = {'login': login, 'name': name,
                 'company_id': 1, 'company_ids': [(6, 0, [1])]}
         if is_admin:
             grp = env.ref('base.group_system', raise_if_not_found=False)
             if grp:
                 vals['groups_id'] = [(4, grp.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
+        user = env['res.users'].with_context(no_reset_password=True).create(vals)
+        user.password = pwd
     cr.commit()
 PYORM
 
@@ -1162,13 +1163,14 @@ registry = Registry(db)
 with registry.cursor() as cr:
     env = api.Environment(cr, SUPERUSER_ID, {})
     if not env['res.users'].search([('login', '=', login)]):
-        vals = {'login': login, 'name': name, 'password': pwd,
+        vals = {'login': login, 'name': name,
                 'company_id': 1, 'company_ids': [(6, 0, [1])]}
         if is_admin:
             grp = env.ref('base.group_system', raise_if_not_found=False)
             if grp:
                 vals['groups_id'] = [(4, grp.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
+        user = env['res.users'].with_context(no_reset_password=True).create(vals)
+        user.password = pwd
     cr.commit()
 PYORM
     done
@@ -1380,13 +1382,14 @@ registry = Registry(db)
 with registry.cursor() as cr:
     env = api.Environment(cr, SUPERUSER_ID, {})
     if not env['res.users'].search([('login', '=', login)]):
-        vals = {'login': login, 'name': name, 'password': pwd,
+        vals = {'login': login, 'name': name,
                 'company_id': 1, 'company_ids': [(6, 0, [1])]}
         if is_admin:
             grp = env.ref('base.group_system', raise_if_not_found=False)
             if grp:
                 vals['groups_id'] = [(4, grp.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
+        user = env['res.users'].with_context(no_reset_password=True).create(vals)
+        user.password = pwd
     cr.commit()
 PYORM
             if [[ -n "$S_PROF_USER" ]]; then
@@ -1412,13 +1415,14 @@ registry = Registry(db)
 with registry.cursor() as cr:
     env = api.Environment(cr, SUPERUSER_ID, {})
     if not env['res.users'].search([('login', '=', login)]):
-        vals = {'login': login, 'name': name, 'password': pwd,
+        vals = {'login': login, 'name': name,
                 'company_id': 1, 'company_ids': [(6, 0, [1])]}
         if is_admin:
             grp = env.ref('base.group_system', raise_if_not_found=False)
             if grp:
                 vals['groups_id'] = [(4, grp.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
+        user = env['res.users'].with_context(no_reset_password=True).create(vals)
+        user.password = pwd
     cr.commit()
 PYORM
             fi

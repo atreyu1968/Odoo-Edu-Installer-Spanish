@@ -65,11 +65,11 @@ from odoo import api, SUPERUSER_ID
 registry = Registry(${JSON.stringify(dbName)})
 with registry.cursor() as cr:
     env = api.Environment(cr, SUPERUSER_ID, {})
-    if not env['res.users'].search([('login', '=', ${JSON.stringify(login)})]):
+    existing = env['res.users'].search([('login', '=', ${JSON.stringify(login)})])
+    if not existing:
         vals = {
             'login': ${JSON.stringify(login)},
             'name': ${JSON.stringify(name)},
-            'password': ${JSON.stringify(password)},
             'company_id': 1,
             'company_ids': [(6, 0, [1])],
         }
@@ -77,7 +77,8 @@ with registry.cursor() as cr:
             admin_group = env.ref('base.group_system', raise_if_not_found=False)
             if admin_group:
                 vals['groups_id'] = [(4, admin_group.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
+        user = env['res.users'].with_context(no_reset_password=True).create(vals)
+        user.password = ${JSON.stringify(password)}
     cr.commit()
 `.trim();
 

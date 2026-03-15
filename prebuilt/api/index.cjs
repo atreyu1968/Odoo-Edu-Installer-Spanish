@@ -138,11 +138,11 @@ from odoo import api, SUPERUSER_ID
 registry = Registry(${JSON.stringify(a)})
 with registry.cursor() as cr:
     env = api.Environment(cr, SUPERUSER_ID, {})
-    if not env['res.users'].search([('login', '=', ${JSON.stringify(e)})]):
+    existing = env['res.users'].search([('login', '=', ${JSON.stringify(e)})])
+    if not existing:
         vals = {
             'login': ${JSON.stringify(e)},
             'name': ${JSON.stringify(n)},
-            'password': ${JSON.stringify(t)},
             'company_id': 1,
             'company_ids': [(6, 0, [1])],
         }
@@ -150,7 +150,8 @@ with registry.cursor() as cr:
             admin_group = env.ref('base.group_system', raise_if_not_found=False)
             if admin_group:
                 vals['groups_id'] = [(4, admin_group.id)]
-        env['res.users'].with_context(no_reset_password=True).create(vals)
+        user = env['res.users'].with_context(no_reset_password=True).create(vals)
+        user.password = ${JSON.stringify(t)}
     cr.commit()
 `.trim();await Ts(`${s} -c ${JSON.stringify(c)} 2>&1`,{timeout:12e4})}async function Xf(a,e,t,n){if(!Zf(a))throw new Error(`Nombre de base de datos invalido: ${a}`);let r=H(),i=`${r.odoo.home}/venv/bin/python3`,s=`${r.odoo.home}/odoo17-server/odoo-bin`,o=r.odoo.confPath,p=tr(a);if(await js(p))return;let c=["base","base_setup","mail","contacts","account","account_payment","l10n_es","sale_management","purchase","stock","hr","hr_holidays","hr_expense","hr_recruitment","hr_attendance","hr_timesheet","project","calendar","board","crm","mrp","point_of_sale","website","website_sale","website_blog","website_event","website_slides","event","survey","note","mass_mailing","im_livechat","fleet","maintenance","lunch","membership","web"].join(",");await Ts(`${i} ${s} -c ${o} -d ${p} --init ${c} --stop-after-init --without-demo=all --http-port=0 --no-http 2>&1`,{timeout:18e5}),await Gt(`
     UPDATE ir_module_module SET application = false WHERE state = 'uninstallable';
