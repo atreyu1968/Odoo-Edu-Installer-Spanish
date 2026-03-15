@@ -1,0 +1,61 @@
+root@odooedu:~/Odoo-Edu-Installer-Spanish# find /opt/odoo17/OCA -type d -name "stock_fleet_delivery_driver"
+/opt/odoo17/OCA/delivery-carrier/stock_fleet_delivery_driver
+root@odooedu:~/Odoo-Edu-Installer-Spanish# mv /opt/odoo17/OCA/stock-logistics-transport/stock_fleet_delivery_driver /opt/odoo17/OCA/stock-logistics-transport/stock_fleet_delivery_driver.DISABLED
+systemctl restart odoo17
+sleep 5
+curl -sL -o /dev/null -w "%{http_code}" http://localhost:8069/web/database/selector
+mv: cannot stat '/opt/odoo17/OCA/stock-logistics-transport/stock_fleet_delivery_driver': No such file or directory
+root@odooedu:~/Odoo-Edu-Installer-Spanish# grep -r "version.*18\.0\." /opt/odoo17/OCA/*/  --include="__manifest__.py" -l -l
+/opt/odoo17/OCA/delivery-carrier/stock_fleet_delivery_driver/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_picking_valid_dangerous_goods/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_dropoff_site/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/carrier_account_environment/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_free_fee_removal/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_estimated_package_quantity_by_weight/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_picking_valid/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_agency/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_multi_zip/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_dachser/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_easypost_oca/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_warehouse/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_manual_weight/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/sale_order_warehouse_from_delivery_carrier/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_postlogistics_server_env/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_label_default/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_manual_price/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_max_weight_constraint/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_partner/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_state/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_account/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_date_exclude_service/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_driver_stock_picking_batch/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/stock_picking_delivery_package_type_domain/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_package_type_number_parcels/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_shipping_policy/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_driver/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/server_environment_delivery/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_price_method/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_package_number/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_shipping_label/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_image/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_multi_destination/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_pricelist/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_postlogistics/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/stock_picking_delivery_link/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_purchase/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_package_type_shipping_weight/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_ups_oca/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/partner_delivery_schedule/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_roulier/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_correos_express/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/partner_delivery_zone/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_option/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/stock_picking_report_delivery_cost/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_postlogistics_dangerous_goods/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_package_fee/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_schenker/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/partner_delivery_info/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/stock_picking_carrier_from_rule/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_carrier_info/__manifest__.py
+/opt/odoo17/OCA/delivery-carrier/delivery_auto_refresh/__manifest__.py
+root@odooedu:~/Odoo-Edu-Installer-Spanish# 
