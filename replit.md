@@ -52,6 +52,8 @@ Role-based post-installation admin panel for managing the Odoo educational envir
   - `DELETE /api/groups/:nombre` — Delete group
   - `POST /api/groups/:nombre/create-databases` — Create student databases via odoo-bin
   - `POST /api/groups/:nombre/reset-databases` — Reset student databases
+  - `DELETE /api/groups/:nombre/student/:num` — Delete individual student database
+  - `POST /api/groups/:nombre/student/:num/password` — Change student password in Odoo
   - `GET /api/branding` — Get branding config
   - `PUT /api/branding` — Save branding config
   - `GET /api/status` — System status (Odoo, PostgreSQL, Nginx)

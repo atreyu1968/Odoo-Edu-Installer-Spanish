@@ -11,7 +11,8 @@ import {
   Download, RotateCcw, ChevronDown, Info,
   ShieldCheck, ShieldAlert, ShieldX, GitBranch,
   ArrowUpCircle, Clock, ExternalLink, Ban,
-  FileCheck, FileWarning, CalendarClock
+  FileCheck, FileWarning, CalendarClock,
+  KeyRound, UserX, X
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -210,6 +211,12 @@ export default function AdminPanel() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [dbAction, setDbAction] = useState<Record<string, "creating" | "resetting" | "done" | "error" | null>>({});
+  const [expandedStudents, setExpandedStudents] = useState<Record<string, boolean>>({});
+  const [studentAction, setStudentAction] = useState<Record<string, "deleting" | "changing-pwd" | null>>({});
+  const [confirmDeleteStudent, setConfirmDeleteStudent] = useState<string | null>(null);
+  const [passwordModal, setPasswordModal] = useState<{ grupo: string; num: string; login: string } | null>(null);
+  const [newStudentPassword, setNewStudentPassword] = useState("");
+  const [studentMessage, setStudentMessage] = useState<Record<string, { type: "success" | "error"; text: string }>>({});
 
   const apiFetch = useCallback(async (path: string, options?: RequestInit) => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -482,6 +489,46 @@ export default function AdminPanel() {
       setTimeout(() => { setDbAction(prev => ({ ...prev, [grupo.nombre]: null })); setDbError(prev => ({ ...prev, [grupo.nombre]: "" })); }, 8000);
     }
   }, [apiFetch]);
+
+  const handleDeleteStudent = useCallback(async (grupo: GrupoAlumnos, num: string) => {
+    const key = `${grupo.nombre}_${num}`;
+    setStudentAction(prev => ({ ...prev, [key]: "deleting" }));
+    setStudentMessage(prev => ({ ...prev, [key]: undefined as any }));
+    try {
+      const res = await apiFetch(`/groups/${encodeURIComponent(grupo.nombre)}/student/${num}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al eliminar");
+      setStudentMessage(prev => ({ ...prev, [key]: { type: "success", text: "Eliminado" } }));
+      setConfirmDeleteStudent(null);
+    } catch (e: any) {
+      setStudentMessage(prev => ({ ...prev, [key]: { type: "error", text: e.message } }));
+    }
+    setStudentAction(prev => ({ ...prev, [key]: null }));
+    setTimeout(() => setStudentMessage(prev => { const n = { ...prev }; delete n[key]; return n; }), 5000);
+  }, [apiFetch]);
+
+  const handleChangePassword = useCallback(async () => {
+    if (!passwordModal) return;
+    const key = `${passwordModal.grupo}_${passwordModal.num}`;
+    setStudentAction(prev => ({ ...prev, [key]: "changing-pwd" }));
+    try {
+      const res = await apiFetch(`/groups/${encodeURIComponent(passwordModal.grupo)}/student/${passwordModal.num}/password`, {
+        method: "POST",
+        body: JSON.stringify({ newPassword: newStudentPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al cambiar contraseña");
+      setStudentMessage(prev => ({ ...prev, [key]: { type: "success", text: "Contraseña actualizada" } }));
+      setPasswordModal(null);
+      setNewStudentPassword("");
+    } catch (e: any) {
+      setStudentMessage(prev => ({ ...prev, [key]: { type: "error", text: e.message } }));
+    }
+    setStudentAction(prev => ({ ...prev, [key]: null }));
+    setTimeout(() => setStudentMessage(prev => { const n = { ...prev }; delete n[key]; return n; }), 5000);
+  }, [apiFetch, passwordModal, newStudentPassword]);
 
   if (!auth.authenticated) {
     return (
@@ -784,6 +831,94 @@ export default function AdminPanel() {
                           disabled={!isSuperadmin}
                         />
                       </div>
+                    </div>
+
+                    {/* Student List */}
+                    <div className="border-t border-slate-100">
+                      <button
+                        onClick={() => setExpandedStudents(prev => ({ ...prev, [grupo.nombre]: !prev[grupo.nombre] }))}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors text-sm font-medium text-slate-700"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Alumnos ({grupo.numAlumnos})
+                        </span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${expandedStudents[grupo.nombre] ? "rotate-180" : ""}`} />
+                      </button>
+                      {expandedStudents[grupo.nombre] && (
+                        <div className="px-4 py-2 bg-white max-h-64 overflow-y-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="text-left text-slate-500 border-b border-slate-100">
+                                <th className="pb-2 font-medium">N.º</th>
+                                <th className="pb-2 font-medium">Login</th>
+                                <th className="pb-2 font-medium">Base de datos</th>
+                                <th className="pb-2 font-medium text-right">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Array.from({ length: grupo.numAlumnos }, (_, i) => {
+                                const num = String(i + 1).padStart(2, "0");
+                                const login = `${grupo.passwordPrefix}${num}`;
+                                const dbName = `${grupo.dbPrefix}_${num}`;
+                                const key = `${grupo.nombre}_${num}`;
+                                const action = studentAction[key];
+                                const msg = studentMessage[key];
+                                return (
+                                  <tr key={num} className="border-b border-slate-50 hover:bg-slate-50">
+                                    <td className="py-2 text-slate-600">{num}</td>
+                                    <td className="py-2 font-mono text-slate-700">{login}</td>
+                                    <td className="py-2 font-mono text-slate-500 text-xs">{dbName}</td>
+                                    <td className="py-2 text-right">
+                                      <div className="flex items-center justify-end gap-1">
+                                        {msg && (
+                                          <span className={`text-xs mr-2 ${msg.type === "success" ? "text-emerald-600" : "text-red-500"}`}>
+                                            {msg.text}
+                                          </span>
+                                        )}
+                                        <button
+                                          onClick={() => setPasswordModal({ grupo: grupo.nombre, num, login })}
+                                          disabled={!!action}
+                                          title="Cambiar contraseña"
+                                          className="p-1.5 rounded-md hover:bg-blue-50 text-blue-600 disabled:opacity-40 transition-colors"
+                                        >
+                                          <KeyRound className="w-3.5 h-3.5" />
+                                        </button>
+                                        {confirmDeleteStudent === key ? (
+                                          <div className="flex items-center gap-1">
+                                            <button
+                                              onClick={() => handleDeleteStudent(grupo, num)}
+                                              disabled={action === "deleting"}
+                                              className="p-1.5 rounded-md bg-red-100 text-red-700 hover:bg-red-200 text-xs font-medium disabled:opacity-40"
+                                            >
+                                              {action === "deleting" ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Sí"}
+                                            </button>
+                                            <button
+                                              onClick={() => setConfirmDeleteStudent(null)}
+                                              className="p-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs"
+                                            >
+                                              No
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            onClick={() => setConfirmDeleteStudent(key)}
+                                            disabled={!!action}
+                                            title="Eliminar base de datos"
+                                            className="p-1.5 rounded-md hover:bg-red-50 text-red-500 disabled:opacity-40 transition-colors"
+                                          >
+                                            <UserX className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
@@ -1628,6 +1763,61 @@ function UpdatesTab() {
           ))}
         </div>
       </div>
+
+      {passwordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-blue-600" />
+                Cambiar contraseña
+              </h3>
+              <button onClick={() => { setPasswordModal(null); setNewStudentPassword(""); }} className="p-1 rounded-lg hover:bg-slate-100">
+                <X className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="text-sm text-slate-600">
+                Alumno: <span className="font-mono font-medium text-slate-900">{passwordModal.login}</span>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Nueva contraseña</label>
+                <input
+                  type="text"
+                  value={newStudentPassword}
+                  onChange={e => setNewStudentPassword(e.target.value)}
+                  placeholder="Mínimo 4 caracteres"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 px-5 py-4 bg-slate-50 border-t border-slate-100">
+              <button
+                onClick={() => { setPasswordModal(null); setNewStudentPassword(""); }}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleChangePassword}
+                disabled={newStudentPassword.length < 4 || studentAction[`${passwordModal.grupo}_${passwordModal.num}`] === "changing-pwd"}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                {studentAction[`${passwordModal.grupo}_${passwordModal.num}`] === "changing-pwd" ? (
+                  <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Guardando...</>
+                ) : (
+                  "Guardar"
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

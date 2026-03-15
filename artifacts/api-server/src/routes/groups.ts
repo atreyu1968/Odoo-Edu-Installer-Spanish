@@ -338,6 +338,120 @@ router.post("/groups/:nombre/reset-databases", requireSuperadmin as any, async (
   res.json({ message: "Proceso completado", results });
 });
 
+async function changeOdooPassword(
+  dbName: string,
+  login: string,
+  newPassword: string,
+): Promise<void> {
+  const config = readConfig();
+  const pythonBin = `${config.odoo.home}/venv/bin/python3`;
+  const odooServer = `${config.odoo.home}/odoo17-server`;
+  const confPath = config.odoo.confPath;
+
+  const pyScript = `
+import sys, os
+sys.path.insert(0, ${JSON.stringify(odooServer)})
+import odoo
+odoo.tools.config.parse_config(['-c', ${JSON.stringify(confPath)}, '--no-http', '--http-port=0'])
+from odoo.modules.registry import Registry
+from odoo import api, SUPERUSER_ID
+registry = Registry(${JSON.stringify(dbName)})
+with registry.cursor() as cr:
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    users = env['res.users'].search([('login', '=', ${JSON.stringify(login)})])
+    if users:
+        users[0].password = ${JSON.stringify(newPassword)}
+    else:
+        raise Exception('Usuario no encontrado: ' + ${JSON.stringify(login)})
+    cr.commit()
+`.trim();
+
+  await execAsync(
+    `${pythonBin} -c ${JSON.stringify(pyScript)} 2>&1`,
+    { timeout: 120000 }
+  );
+}
+
+function validateStudentNum(num: string, grupo: GrupoConfig): string | null {
+  if (!/^\d{2}$/.test(num)) return "Número de alumno inválido (debe ser 2 dígitos)";
+  const n = parseInt(num, 10);
+  if (n < 1 || n > grupo.numAlumnos) return `Número de alumno fuera de rango (1-${grupo.numAlumnos})`;
+  return null;
+}
+
+router.delete("/groups/:nombre/student/:num", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const config = readConfig();
+  const { nombre, num } = req.params;
+
+  const grupo = config.grupos.find((g: GrupoConfig) => g.nombre === nombre);
+  if (!grupo) {
+    res.status(404).json({ error: "Grupo no encontrado" });
+    return;
+  }
+
+  const numError = validateStudentNum(num, grupo);
+  if (numError) {
+    res.status(400).json({ error: numError });
+    return;
+  }
+
+  if (req.session?.role === "profesor" && req.session?.grupo !== nombre) {
+    res.status(403).json({ error: "No tienes permiso para este grupo" });
+    return;
+  }
+
+  const dbName = `${grupo.dbPrefix}_${num}`;
+  try {
+    await dropDatabase(dbName);
+    res.json({ message: `Base de datos ${dbName} eliminada` });
+  } catch (e: any) {
+    res.status(500).json({ error: "Error al eliminar la base de datos" });
+  }
+});
+
+router.post("/groups/:nombre/student/:num/password", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const config = readConfig();
+  const { nombre, num } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 4) {
+    res.status(400).json({ error: "La contraseña debe tener al menos 4 caracteres" });
+    return;
+  }
+
+  const grupo = config.grupos.find((g: GrupoConfig) => g.nombre === nombre);
+  if (!grupo) {
+    res.status(404).json({ error: "Grupo no encontrado" });
+    return;
+  }
+
+  const numError = validateStudentNum(num, grupo);
+  if (numError) {
+    res.status(400).json({ error: numError });
+    return;
+  }
+
+  if (req.session?.role === "profesor" && req.session?.grupo !== nombre) {
+    res.status(403).json({ error: "No tienes permiso para este grupo" });
+    return;
+  }
+
+  const dbName = `${grupo.dbPrefix}_${num}`;
+  const studentLogin = `${grupo.passwordPrefix}${num}`;
+
+  try {
+    const safeName = sanitizeDbName(dbName);
+    if (!(await dbExists(safeName))) {
+      res.status(404).json({ error: `Base de datos ${dbName} no existe` });
+      return;
+    }
+    await changeOdooPassword(safeName, studentLogin, newPassword);
+    res.json({ message: `Contraseña de ${studentLogin} actualizada` });
+  } catch (e: any) {
+    res.status(500).json({ error: "Error al cambiar la contraseña" });
+  }
+});
+
 router.get("/groups/databases", requireAuth as any, async (_req: AuthRequest, res: Response) => {
   try {
     const databases = await listDatabases();
