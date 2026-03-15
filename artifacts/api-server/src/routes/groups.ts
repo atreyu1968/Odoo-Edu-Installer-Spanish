@@ -18,9 +18,9 @@ function getPgEnv(): Record<string, string> {
   };
 }
 
-async function pgExec(sql: string, timeout = 30000): Promise<string> {
+async function pgExec(sql: string, dbName = "postgres", timeout = 30000): Promise<string> {
   const { stdout } = await execAsync(
-    `psql -d postgres -t -A -c ${JSON.stringify(sql)}`,
+    `psql -d ${dbName} -t -A -c ${JSON.stringify(sql)}`,
     { timeout, env: getPgEnv() }
   );
   return stdout.trim();
@@ -125,6 +125,13 @@ async function createStudentDatabase(
     `${pythonBin} ${odooBin} -c ${confPath} -d ${safeName} --init ${modules} --stop-after-init --without-demo=all --http-port=0 --no-http 2>&1`,
     { timeout: 900000 }
   );
+
+  await pgExec(`
+    UPDATE ir_module_module SET application = false WHERE state = 'uninstallable';
+    INSERT INTO ir_config_parameter (key, value, create_uid, create_date, write_uid, write_date)
+    VALUES ('module_auto_install_disabled', 'true', 1, NOW(), 1, NOW())
+    ON CONFLICT (key) DO UPDATE SET value = 'true';
+  `, safeName);
 
   if (studentLogin && studentPassword) {
     await createOdooUser(

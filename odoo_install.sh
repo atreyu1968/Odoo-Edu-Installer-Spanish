@@ -1080,6 +1080,14 @@ for GRUPO_DEF in "${GRUPOS[@]}"; do
                 " 2>/dev/null
             fi
 
+            # Ocultar apps Enterprise no instalables y desactivar tienda de apps
+            sudo -u postgres psql -d "$DB_NAME" -c "
+                UPDATE ir_module_module SET application = false WHERE state = 'uninstallable';
+                INSERT INTO ir_config_parameter (key, value, create_uid, create_date, write_uid, write_date)
+                VALUES ('module_auto_install_disabled', 'true', 1, NOW(), 1, NOW())
+                ON CONFLICT (key) DO UPDATE SET value = 'true';
+            " 2>/dev/null
+
             # Crear usuario alumno via ORM (hashea la contrasena correctamente)
             ODOO_CREATE_DB="$DB_NAME" \
             ODOO_CREATE_LOGIN="$USER_LOGIN" \
@@ -1265,6 +1273,14 @@ sudo -u "$ODOO_USER" "$VENV_DIR/bin/python" "$ODOO_BIN" \
     --without-demo=False \
     --stop-after-init \
     --http-port=0 --no-http 2>/dev/null
+
+# Ocultar apps Enterprise no instalables
+sudo -u postgres psql -d "$DB_NAME" -c "
+    UPDATE ir_module_module SET application = false WHERE state = 'uninstallable';
+    INSERT INTO ir_config_parameter (key, value, create_uid, create_date, write_uid, write_date)
+    VALUES ('module_auto_install_disabled', 'true', 1, NOW(), 1, NOW())
+    ON CONFLICT (key) DO UPDATE SET value = 'true';
+" 2>/dev/null
 
 # Aplicar branding
 BRAND_SQL="UPDATE res_company SET name='$DB_NAME'"
