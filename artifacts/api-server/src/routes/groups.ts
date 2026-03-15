@@ -55,10 +55,26 @@ async function createStudentDatabase(dbName: string, _adminPassword?: string): P
     return;
   }
 
-  const modules = "base,base_setup,mail,account,l10n_es";
+  const modules = [
+    "base",
+    "base_setup",
+    "mail",
+    "contacts",
+    "account",
+    "account_payment",
+    "l10n_es",
+    "sale_management",
+    "purchase",
+    "stock",
+    "hr",
+    "project",
+    "calendar",
+    "board",
+    "web",
+  ].join(",");
   await execAsync(
     `${pythonBin} ${odooBin} -c ${confPath} -d ${safeName} --init ${modules} --stop-after-init --without-demo=all --http-port=0 --no-http 2>&1`,
-    { timeout: 600000 }
+    { timeout: 900000 }
   );
 }
 
